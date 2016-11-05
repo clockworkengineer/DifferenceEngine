@@ -22,8 +22,6 @@
  * THE SOFTWARE.
  */
 
-
-
 /*
  * File:   FPETask.hpp
  * Author: Robert Tizzard
@@ -37,53 +35,59 @@
 #include <exception>
 #include <unordered_map>
 #include <thread>
+#include <fstream>
 
-// #include "boost/filesystem.hpp"
-#define INOTIFY_THREAD_SAFE
+#include <boost/filesystem.hpp>
 
+#define INOTIFY_THREAD_SAFE // Compile so thread safe.
 #include "inotify-cxx.h"
 
 #ifndef FPETASK_HPP
 #define FPETASK_HPP
-class FPETask
-{
-    public:
-        FPETask(std::string taskNameStr,
-                std::string watchFolderStr,
-                std::string destinationFolderStr,
-                void (*taskFcn)(std::string srcPathStr, std::string destPathStr, std::string filenameStr));
 
- 
-        virtual ~FPETask();
+namespace fs = boost::filesystem;
 
-        void monitor(void);
-        
-        static const long InofityEvents;
+class FPETask {
+public:
 
-    private:
-        
-        FPETask();
- 
-        FPETask(const FPETask & orig);
+    // CONSTRUCTOR
 
-        std::string prefix (void);
-        
-        void addWatch(InotifyEvent event);
+    FPETask(std::string taskNameStr,                       // Task name
+            std::string watchFolder,                       // Watch folder path (absolute path for present)
+            void (*taskFcn)(std::string filenamePathStr,   // Task file process function
+            std::string filenameStr));
 
-        void removeWatch(InotifyEvent event);
+    // DESTRUCTOR
 
-        void createWatchTable(void);
+    virtual ~FPETask(); // Task class cleanup
 
-        void destroyWatchTable(void);
+    // One public function to monitor watch folder for file events and process added files
 
-        std::string                                     taskName;
-        std::string                                     watchFolder;
-        std::string                                     destinationFolder;
-        Inotify *                                       notify;
-        InotifyWatch *                                  watch;
-        std::unordered_map<InotifyWatch *, std::string> watchMap;
-        void (*taskProcessFcn)(std::string srcPathStr, std::string destPathStr, std::string filenameStr);
-        
+    void monitor(void);
+
+private:
+
+    FPETask(); // Use only provided constructor
+    FPETask(const FPETask & orig);
+
+    std::string prefix(void);               // Logging output prefix function
+    void addWatch(InotifyEvent event);      // Add a folder to watch
+    void removeWatch(InotifyEvent event);   // Remove a folder watch
+    void createWatchTable(void);            // Create a watch table for existing watch folder structure
+    void destroyWatchTable(void);           // Clear watch table
+
+    std::string  taskName;         // Task name
+    std::string  watchFolder;      // Watch Folder 
+    Inotify * notify;              // File watch notifier
+
+    std::unordered_map<InotifyWatch *, std::string> watchMap;       // Watch table indexed by watch variable
+    std::unordered_map<std::string, InotifyWatch *> revWatchMap;    // Reverse watch table indexed by path
+
+    void (*taskProcessFcn)(std::string filenamePathStr, // Task file process function 
+                           std::string filenameStr);
+
+    static const uint32_t InofityEvents; // Inotify events to monitor
+
 };
 #endif /* FPETASK_HPP */
 

@@ -29,48 +29,44 @@
  * Created on October 24, 2016, 2:33 PM
  */
 
-#include <iostream>
-#include <fstream>
-#include <ctime>
-#include <chrono>
-#include <boost/filesystem.hpp>
 #include "FPETask.hpp"
 
-using namespace boost::filesystem;
+// Inotify events to recieve
 
-const long FPETask::InofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM | IN_DELETE_SELF | IN_CLOSE_WRITE | IN_MOVED_TO;
+const uint32_t FPETask::InofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
+        IN_DELETE_SELF | IN_CLOSE_WRITE | IN_MOVED_TO;
 
-FPETask::FPETask(std::string taskNameStr, std::string watchFolderStr, std::string destinationFolderStr,
-        void (*taskFcn)(std::string srcPathStr, std::string destPathStr, std::string filenameStr)) : taskProcessFcn(taskFcn), taskName(taskNameStr), watchFolder(watchFolderStr), destinationFolder(destinationFolderStr) {
+// Task object constuctor. Create watch directory and initialize variables
 
-    std::cout << this->prefix() << "Watch Folder " << watchFolderStr << std::endl;
-    std::cout << this->prefix() << "Destination Folder " << destinationFolderStr << std::endl;
+FPETask::FPETask(std::string taskNameStr, std::string watchFolder,
+        void (*taskFcn)(std::string  watchFolder, std::string filenameStr)) : 
+        taskName(taskNameStr), watchFolder(watchFolder), taskProcessFcn(taskFcn) {
+
+    std::cout << this->prefix() << "Watch Folder " << watchFolder << std::endl;
 
     try {
 
-        if (!exists(watchFolderStr)) {
-            std::cout << this->prefix() << "Watch Folder " << watchFolderStr << " DOES NOT EXIST." << std::endl;
-            if (create_directory(watchFolderStr)) {
-                std::cout << this->prefix() << "Creating Watch Folder " << watchFolderStr << std::endl;
+        if (!fs::exists(watchFolder)) {
+            std::cout << this->prefix() << "Watch Folder " << watchFolder << " DOES NOT EXIST." << std::endl;
+            if (fs::create_directory(watchFolder)) {
+                std::cout << this->prefix() << "Creating Watch Folder " << watchFolder << std::endl;
             }
         }
 
-        if (!exists(destinationFolderStr)) {
-            std::cout << this->prefix() << "Destination Folder " << destinationFolderStr << " DOES NOT EXIST." << std::endl;
-            if (create_directory(destinationFolderStr)) {
-                std::cout << this->prefix() << "Creating Destination Folder " << destinationFolderStr << std::endl;
-            }
-        }
 
-    } catch (const boost::filesystem::filesystem_error& e) {
+    } catch (const fs::filesystem_error& e) {
         std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
     }
 
 }
 
+// Copy constructor is private
+
 FPETask::FPETask(const FPETask& orig) {
 
 }
+
+// Destructor just releases watch table related resources.
 
 FPETask::~FPETask() {
 
@@ -78,39 +74,54 @@ FPETask::~FPETask() {
 
 }
 
-std::string FPETask::prefix (void) {
-    
+// Prefix string for any task logging.
+
+std::string FPETask::prefix(void) {
+
     return ("TASK [" + this->taskName + "] ");
-    
+
 }
+
+// Clean up inotifier and its watch variables and clear watch maps.
 
 void FPETask::destroyWatchTable(void) {
 
     this->notify->Close();
     this->watchMap.clear();
+    this->revWatchMap.clear();
+
 }
+
+// Create inotifer and  add watches for any existing directory structure.
 
 void FPETask::createWatchTable(void) {
 
+    InotifyWatch *watch;
+
     this->notify = new Inotify();
 
-    this->watch = new InotifyWatch(this->watchFolder, FPETask::InofityEvents);
-    this->notify->Add(*(this->watch));
-    this->watchMap.insert({this->watch, this->watchFolder});
+    watch = new InotifyWatch(this->watchFolder, FPETask::InofityEvents);
 
-    for (recursive_directory_iterator i(this->watchFolder), end; i != end; ++i) {
-        if (is_directory(i->path())) {
+    this->notify->Add(watch);
+    this->watchMap.insert({watch, this->watchFolder});
+    this->revWatchMap.insert({this->watchFolder, watch});
+
+    for (fs::recursive_directory_iterator i(this->watchFolder), end; i != end; ++i) {
+        if (fs::is_directory(i->path())) {
             std::string pathStr = i->path().string() + "/";
-            if (exists(path(pathStr))) {
-                InotifyWatch *watch = new InotifyWatch(pathStr, FPETask::InofityEvents);
+            if (fs::exists(fs::path(pathStr))) {
+                watch = new InotifyWatch(pathStr, FPETask::InofityEvents);
                 this->notify->Add(watch);
                 this->watchMap.insert({watch, pathStr});
+                this->revWatchMap.insert({pathStr, watch});
             }
             std::cout << this->prefix() << "Directory added [" << pathStr << "] watch = [" << watch << "]" << std::endl;
         }
     }
 
 }
+
+// Add watch for newly added directory
 
 void FPETask::addWatch(InotifyEvent event) {
 
@@ -123,9 +134,12 @@ void FPETask::addWatch(InotifyEvent event) {
 
     this->notify->Add(watch);
     this->watchMap.insert({watch, pathStr});
+    this->revWatchMap.insert({pathStr, watch});
 
 
 }
+
+//  Remove watch for deleted or moved directory
 
 void FPETask::removeWatch(InotifyEvent event) {
 
@@ -133,39 +147,37 @@ void FPETask::removeWatch(InotifyEvent event) {
 
         std::string filename = event.GetName();
         std::string pathStr = this->watchMap[event.GetWatch()];
-        InotifyWatch *watch = event.GetWatch();
+        InotifyWatch *watch = nullptr;
 
         if (filename.compare("") != 0) {
             pathStr += filename + "/";
         }
-
-        for (auto& x : this->watchMap) {
-            if (pathStr.compare(x.second) == 0) {
-                watch = x.first;
-                break;
-            }
-        }
-
+   
+        watch = this->revWatchMap[pathStr];
         if (watch) {
             std::cout << this->prefix() << "Directory remove [" << pathStr << "] watch = [" << watch << "] File [" << filename << "]" << std::endl;
             this->watchMap.erase(watch);
+            this->revWatchMap.erase(pathStr);
             this->notify->Remove(watch);
         } else {
             std::cerr << this->prefix() << "Directory remove failed [" << pathStr << "] File [" << filename << "]" << std::endl;
         }
 
-        if (this->watchMap.size()==1) { 
+        if (this->watchMap.size() == 1) {
             std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
         }
-        
+
     } catch (InotifyException &e) {
-        if (this->watchMap.size()==1) { 
+        if (this->watchMap.size() == 1) {
             std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
         }
         std::cerr << this->prefix() << "Inotify exception occured: " << e.GetMessage() << " errno: " << e.GetErrorNumber() << std::endl;
     }
 
 }
+
+// Create watch table and loop forever adding/removing watches for directory structure changes
+// and also activate task processing for any non-directory file added.
 
 void FPETask::monitor(void) {
 
@@ -203,7 +215,8 @@ void FPETask::monitor(void) {
                             break;
                         case IN_CLOSE_WRITE:
                         case IN_MOVED_TO:
-                            this->taskProcessFcn(this->watchMap[event.GetWatch()], this->destinationFolder, event.GetName());
+
+                            this->taskProcessFcn(this->watchMap[event.GetWatch()], event.GetName());
                             break;
 
                     }

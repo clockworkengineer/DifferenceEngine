@@ -28,79 +28,159 @@
  * Created on October 24, 2016, 2:34 PM
  */
 
-#include <string>
-#include <iostream>
-#include <cstdlib>
-#include <boost/version.hpp>
-#include "boost/filesystem.hpp"
 #include "FPETask.hpp"
 
-using namespace boost:: filesystem;
+#include "boost/program_options.hpp" 
 
-std::string watchFolder("/home/pi/watchstuff/tmp/");
-std::string destinationFolder("/home/pi/watchstuff/destination/");
+namespace po = boost::program_options;
 
-void copyFile(std::string srcPathStr,
-              std::string destPathStr,
-              std::string filenameStr)
-{
-    path sourcePath(srcPathStr + filenameStr);
-    path destinationPath(destPathStr + srcPathStr.substr((watchFolder).length()));
+fs::path watchFolder;           // Watch Folder
+fs::path destinationFolder;     // Destination Folder for copies.
 
-    try
-    {
-        if (!exists(destinationPath))
-        {
-            if (create_directories(destinationPath))
-            {
-                std::cout << "CREATED :" + destinationPath.string() << std::endl;
+// Command line exit status
+
+namespace { 
+    const size_t ERROR_IN_COMMAND_LINE = 1;
+    const size_t SUCCESS = 0;
+    const size_t ERROR_UNHANDLED_EXCEPTION = 2;
+} // namespace 
+
+// Copy file task action function. Copy passed file to destination folder/directory 
+// keeping the sources directory structure.
+
+void copyFile(std::string filenamePathStr, std::string filenameStr) {
+
+    // Destination path += (filename path - watch folder path)
+    
+    std::string destinationPathStr(destinationFolder.string() + 
+                filenamePathStr.substr((watchFolder.string()).length()));
+
+    try {
+
+        // Create destination folder if needed
+        
+        if (!fs::exists(destinationPathStr)) {
+            if (fs::create_directories(destinationPathStr)) {
+                std::cout << "CREATED :" + destinationPathStr << std::endl;
+            } else {
+                std::cerr << "CREATED FAILED FOR :" + destinationPathStr << std::endl;
             }
-            else
-            {
-                std::cerr << "CREATED FAILED FOR :" + destinationPath.string() << std::endl;
-            }
         }
 
-        destinationPath /= filenameStr;
+        // Add filename to source and destination paths
+        
+        filenamePathStr += filenameStr;
+        destinationPathStr += filenameStr;
 
-        if (!exists(destinationPath))
-        {
-            std::cout << "COPY FROM [" << sourcePath.string() << "] TO [" << destinationPath.string() << "]" << std::endl;
-
-            copy_file(sourcePath, destinationPath, copy_option::none);
+        // Currently only copy file if it doesn't already exist.
+        
+        if (!fs::exists(destinationPathStr)) {
+            std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
+            fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
+        } else {
+            std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
         }
-        else
-        {
-            std::cout << "DESTINATION ALREADY EXISTS : " + destinationPath.string() << std::endl;
-        }
-    }
-    catch (const boost::filesystem::filesystem_error& e) 
-    {
+        
+    //
+    // Catch any errors
+    //   
+        
+   } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
-    }
-    catch (std::exception & e)
-    {
+    } catch (std::exception & e) {
         std::cerr << "STL exception occured: " << e.what() << std::endl;
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception occured" << std::endl;
     }
+
 }
 
-int main(void)
-{
-    std::cout << "FPE Running" << std::endl;
-    
-    std::cout << "Using Boost " << BOOST_VERSION / 100000 << "."    // major version
-              << BOOST_VERSION / 100 % 1000 << "."                  // minor version
-              << BOOST_VERSION % 100                                // patch level
-              << std::endl;
+//
+// === FPE MAIN ENTRY POINT ===
+//
 
-    FPETask task(std::string("File Copy"), watchFolder, destinationFolder, copyFile);
+int main(int argc, char** argv) {
 
-    std::thread taskThread(&FPETask::monitor, &task);
-    
-    taskThread.join();
-}
+    try {
 
+        // Define and parse the program options
+
+        po::options_description desc("Options");
+        desc.add_options()
+                ("help", "Print help messages")
+                ("watch,w", po::value<fs::path>(&watchFolder)->required(), "Watch Folder")
+                ("destination,d", po::value<fs::path>(&destinationFolder)->required(), "Destination Folder");
+
+        po::variables_map vm;
+
+        try {
+
+            po::store(po::parse_command_line(argc, argv, desc), vm);
+
+            if (vm.count("help")) {
+                std::cout << "File Processing Engine Application" << std::endl
+                        << desc << std::endl;
+                return SUCCESS;
+            }
+
+            po::notify(vm); // throws on error, so do after help in case there are any problems 
+
+        } catch (po::error& e) {
+            std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
+            std::cerr << desc << std::endl;
+            return ERROR_IN_COMMAND_LINE;
+        }
+
+        // FPE up and running
+        
+        std::cout << "FPE Running" << std::endl;
+        
+        // Display BOOST version
+        
+        std::cout << "Using Boost " << BOOST_VERSION / 100000 << "." // major version
+                << BOOST_VERSION / 100 % 1000 << "." // minor version
+                << BOOST_VERSION % 100 // patch level
+                << std::endl;
+
+        // Create destination folder for copy file
+        
+        if (!fs::exists(destinationFolder)) {
+            std::cout << "Destination Folder " << destinationFolder << " DOES NOT EXIST." << std::endl;
+
+            if (fs::create_directory(destinationFolder)) {
+                std::cout << "Creating Destination Folder " << destinationFolder << std::endl;
+            }
+        }
+
+        // Make watch/destination paths absolute
+        
+        watchFolder = fs::absolute(watchFolder);
+        destinationFolder = fs::absolute(destinationFolder);
+
+        // Create task object
+        
+        FPETask task(std::string("File Copy"), watchFolder.string(), copyFile);
+
+        // Create task object thread and wait
+        
+        std::thread taskThread(&FPETask::monitor, &task);
+        taskThread.join();
+
+    //
+    // Catch any errors
+    //    
+
+    } catch (const fs::filesystem_error & e) {
+        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
+        return ERROR_UNHANDLED_EXCEPTION;
+    } catch (std::exception & e) {
+        std::cerr << "STL exception occured: " << e.what() << std::endl;
+        return ERROR_UNHANDLED_EXCEPTION;
+    } catch (...) {
+        std::cerr << "unknown exception occured" << std::endl;
+        return ERROR_UNHANDLED_EXCEPTION;
+    }
+
+    return SUCCESS;
+
+} 
