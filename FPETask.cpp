@@ -40,7 +40,7 @@ const uint32_t FPETask::InofityEvents = IN_ACCESS | IN_ISDIR | IN_CREATE | IN_MO
 
 FPETask::FPETask(std::string taskNameStr, std::string watchFolder,
         void (*taskFcn)(std::string watchFolder, std::string filenameStr)) :
-                    taskName(taskNameStr), watchFolder(watchFolder), taskProcessFcn(taskFcn) {
+        taskName(taskNameStr), watchFolder(watchFolder), taskProcessFcn(taskFcn) {
 
     std::cout << this->prefix() << "Watch Folder " << watchFolder << std::endl;
 
@@ -205,10 +205,14 @@ void FPETask::removeWatch(InotifyEvent event) {
 }
 
 // Worker thread. Remove path/filename from queue and process.
-// Access to fileNames queue conrolled by mutex and loop is controlled
-// by atomic bool doWork flag.
+// Access to fileNames queue controlled by lockguard(mutex) and 
+// loop is controlled by atomic bool doWork flag.
 
 void FPETask::worker(void) {
+
+    bool        filesToProcess;
+    std::string filenamePathStr;
+    std::string filenameStr;
 
     try {
 
@@ -216,25 +220,30 @@ void FPETask::worker(void) {
 
         while (this->doWork.load()) {
 
-            this->fileNamesMutex.lock();
-            while (!this->fileNames.empty()) {
-                std::string filenamePathStr(this->fileNames.front());
-                this->fileNames.pop();
-                std::string filenameStr(this->fileNames.front());
-                this->fileNames.pop();
-                this->fileNamesMutex.unlock();
-                this->taskProcessFcn(filenamePathStr, filenameStr);
-                this->fileNamesMutex.lock();
-            }
-            this->fileNamesMutex.unlock();
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
+            do {
+                do {
+                    std::lock_guard<std::mutex> guard(this->fileNamesMutex);
+                    filesToProcess = !this->fileNames.empty();
+                    if (filesToProcess) {
+                        filenamePathStr = this->fileNames.front();
+                        this->fileNames.pop();
+                        filenameStr = this->fileNames.front();
+                        this->fileNames.pop();
 
+                    }
+                } while (false); // lock guard out of scope so mutex off
+                if (filesToProcess) {
+                    this->taskProcessFcn(filenamePathStr, filenameStr);
+                }
+            } while (filesToProcess);
+            
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        }
+        
     } catch (std::exception &e) {
-        this->fileNamesMutex.unlock();
         std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
     } catch (...) {
-        this->fileNamesMutex.unlock();
         std::cerr << this->prefix() << "unknown exception occured" << std::endl;
     }
 

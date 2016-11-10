@@ -66,10 +66,10 @@ public:
 
     virtual ~FPETask(); // Task class cleanup
 
-    // One public function to monitor watch folder for file events and process added files
+    // PUBLIC FUNCTIONS
 
-    void monitor(void);
-    void stop(void);
+    void monitor(void);     // Monitor watch folder for file events and process added files
+    void stop(void);        // Stop all threads
 
 private:
 
