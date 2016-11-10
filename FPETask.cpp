@@ -40,7 +40,7 @@ const uint32_t FPETask::InofityEvents = IN_ACCESS | IN_ISDIR | IN_CREATE | IN_MO
 
 FPETask::FPETask(std::string taskNameStr, std::string watchFolder,
         void (*taskFcn)(std::string watchFolder, std::string filenameStr)) :
-        taskName(taskNameStr), watchFolder(watchFolder), taskProcessFcn(taskFcn) {
+taskName(taskNameStr), watchFolder(watchFolder), taskProcessFcn(taskFcn) {
 
     std::cout << this->prefix() << "Watch Folder " << watchFolder << std::endl;
 
@@ -117,14 +117,14 @@ void FPETask::destroyWatchTable(void) {
 }
 
 void FPETask::addWatchPath(std::string pathStr) {
-    
-     InotifyWatch *watch;
+
+    InotifyWatch *watch;
 
     watch = new InotifyWatch(pathStr, FPETask::InofityEvents);
     this->notify->Add(watch);
     this->watchMap.insert({watch, pathStr});
     this->revWatchMap.insert({pathStr, watch});
-    
+
 }
 
 // Create inotifer and  add watches for any existing directory structure.
@@ -136,12 +136,13 @@ void FPETask::createWatchTable(void) {
     this->notify.reset(new Inotify());
 
     this->addWatchPath(this->watchFolder);
-  
+
     for (fs::recursive_directory_iterator i(this->watchFolder), end; i != end; ++i) {
         if (fs::is_directory(i->path())) {
             std::string pathStr = i->path().string() + "/";
             if (fs::exists(fs::path(pathStr))) {
-            this->addWatchPath(pathStr);        }
+                this->addWatchPath(pathStr);
+            }
             std::cout << this->prefix() << "Directory added [" << pathStr << "] watch = [" << watch << "]" << std::endl;
         }
     }
@@ -156,8 +157,8 @@ void FPETask::addWatch(InotifyEvent event) {
     std::string pathStr = this->watchMap[event.GetWatch()] + filename + "/";
 
     this->addWatchPath(pathStr);
- 
-    std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "] File [" << filename << "]" << std::endl; 
+
+    std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "] File [" << filename << "]" << std::endl;
 
 }
 
@@ -208,7 +209,7 @@ void FPETask::removeWatch(InotifyEvent event) {
 
 void FPETask::worker(void) {
 
-    bool        filesToProcess;
+    bool filesToProcess;
     std::string filenamePathStr;
     std::string filenameStr;
 
@@ -234,11 +235,11 @@ void FPETask::worker(void) {
                     this->taskProcessFcn(filenamePathStr, filenameStr);
                 }
             } while (filesToProcess);
-            
+
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
         }
-        
+
     } catch (std::exception &e) {
         std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
     } catch (...) {
