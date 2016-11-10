@@ -70,7 +70,7 @@ public:
 
     void monitor(void);     // Monitor watch folder for file events and process added files
     void stop(void);        // Stop all threads
-
+ 
 private:
 
     FPETask();                              // Use only provided constructors

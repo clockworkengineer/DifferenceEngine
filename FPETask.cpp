@@ -296,7 +296,7 @@ void FPETask::monitor(void) {
                             this->fileNames.push(this->watchMap[event.GetWatch()]);
                             this->fileNames.push(event.GetName());
                             break;
-
+ 
                     }
 
                 }
@@ -311,7 +311,7 @@ void FPETask::monitor(void) {
     } catch (...) {
         std::cerr << this->prefix() << "unknown exception occured" << std::endl;
     }
-
+ 
     std::cout << this->prefix() << "FPETask Monitor on Thread stopped." << std::endl;
 
 }

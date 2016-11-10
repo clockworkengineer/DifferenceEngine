@@ -19,3 +19,5 @@
 /nbproject/Package-Debug.bash
 /nbproject/private/Makefile-variables.mk
 /nbproject/private/configurations.xml
+/inotify-cxx.cpp
+/inotify-cxx.h
