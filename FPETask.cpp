@@ -116,6 +116,17 @@ void FPETask::destroyWatchTable(void) {
 
 }
 
+void FPETask::addWatchPath(std::string pathStr) {
+    
+     InotifyWatch *watch;
+
+    watch = new InotifyWatch(pathStr, FPETask::InofityEvents);
+    this->notify->Add(watch);
+    this->watchMap.insert({watch, pathStr});
+    this->revWatchMap.insert({pathStr, watch});
+    
+}
+
 // Create inotifer and  add watches for any existing directory structure.
 
 void FPETask::createWatchTable(void) {
@@ -124,21 +135,13 @@ void FPETask::createWatchTable(void) {
 
     this->notify.reset(new Inotify());
 
-    watch = new InotifyWatch(this->watchFolder, FPETask::InofityEvents);
-
-    this->notify->Add(watch);
-    this->watchMap.insert({watch, this->watchFolder});
-    this->revWatchMap.insert({this->watchFolder, watch});
-
+    this->addWatchPath(this->watchFolder);
+  
     for (fs::recursive_directory_iterator i(this->watchFolder), end; i != end; ++i) {
         if (fs::is_directory(i->path())) {
             std::string pathStr = i->path().string() + "/";
             if (fs::exists(fs::path(pathStr))) {
-                watch = new InotifyWatch(pathStr, FPETask::InofityEvents);
-                this->notify->Add(watch);
-                this->watchMap.insert({watch, pathStr});
-                this->revWatchMap.insert({pathStr, watch});
-            }
+            this->addWatchPath(pathStr);        }
             std::cout << this->prefix() << "Directory added [" << pathStr << "] watch = [" << watch << "]" << std::endl;
         }
     }
@@ -152,14 +155,9 @@ void FPETask::addWatch(InotifyEvent event) {
     std::string filename = event.GetName();
     std::string pathStr = this->watchMap[event.GetWatch()] + filename + "/";
 
-    InotifyWatch *watch = new InotifyWatch(pathStr, FPETask::InofityEvents);
-
-    std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << watch << "] File [" << filename << "]" << std::endl;
-
-    this->notify->Add(watch);
-    this->watchMap.insert({watch, pathStr});
-    this->revWatchMap.insert({pathStr, watch});
-
+    this->addWatchPath(pathStr);
+ 
+    std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "] File [" << filename << "]" << std::endl; 
 
 }
 

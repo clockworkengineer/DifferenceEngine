@@ -78,6 +78,7 @@ private:
     FPETask(const FPETask && orig);
 
     std::string prefix(void);               // Logging output prefix function
+    void addWatchPath(std::string pathStr); //
     void addWatch(InotifyEvent event);      // Add a folder to watch
     void removeWatch(InotifyEvent event);   // Remove a folder watch
     void createWatchTable(void);            // Create a watch table for existing watch folder structure
