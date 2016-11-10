@@ -33,14 +33,14 @@
 
 // Inotify events to recieve
 
-const uint32_t FPETask::InofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
+const uint32_t FPETask::InofityEvents = IN_ACCESS | IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
         IN_DELETE_SELF | IN_CLOSE_WRITE | IN_MOVED_TO;
 
-// Task object constuctor. Create watch directory and initialize variables
+// Task object constructor. Create watch directory and initialize variables
 
 FPETask::FPETask(std::string taskNameStr, std::string watchFolder,
-        void (*taskFcn)(std::string  watchFolder, std::string filenameStr)) : 
-        taskName(taskNameStr), watchFolder(watchFolder), taskProcessFcn(taskFcn) {
+        void (*taskFcn)(std::string watchFolder, std::string filenameStr)) :
+                    taskName(taskNameStr), watchFolder(watchFolder), taskProcessFcn(taskFcn) {
 
     std::cout << this->prefix() << "Watch Folder " << watchFolder << std::endl;
 
@@ -53,10 +53,13 @@ FPETask::FPETask(std::string taskNameStr, std::string watchFolder,
             }
         }
 
-
     } catch (const fs::filesystem_error& e) {
         std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
     }
+
+    // All threads start working
+
+    this->doWork = true;
 
 }
 
@@ -66,11 +69,32 @@ FPETask::FPETask(const FPETask& orig) {
 
 }
 
-// Destructor just releases watch table related resources.
+// Move constructor is private
+
+FPETask::FPETask(const FPETask&& orig) {
+
+}
+
+// Destructor just releases watch table related resources /  flag threads to stop working.
 
 FPETask::~FPETask() {
 
+    this->doWork = false;
     this->destroyWatchTable();
+
+}
+
+// Flag thread loops to stop. Folder watcher needs a push because of wait for event.
+
+void FPETask::stop(void) {
+
+
+    std::cout << this->prefix() << "Stop task threads." << std::endl;
+
+    this->doWork = false;
+    if (fs::is_empty(watchFolder) || fs::exists(watchFolder)) {
+        std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
+    }
 
 }
 
@@ -98,7 +122,7 @@ void FPETask::createWatchTable(void) {
 
     InotifyWatch *watch;
 
-    this->notify = new Inotify();
+    this->notify.reset(new Inotify());
 
     watch = new InotifyWatch(this->watchFolder, FPETask::InofityEvents);
 
@@ -152,7 +176,7 @@ void FPETask::removeWatch(InotifyEvent event) {
         if (filename.compare("") != 0) {
             pathStr += filename + "/";
         }
-   
+
         watch = this->revWatchMap[pathStr];
         if (watch) {
             std::cout << this->prefix() << "Directory remove [" << pathStr << "] watch = [" << watch << "] File [" << filename << "]" << std::endl;
@@ -164,15 +188,57 @@ void FPETask::removeWatch(InotifyEvent event) {
         }
 
         if (this->watchMap.size() == 1) {
+            std::cout << this->prefix() << "Watch Count = " << this->notify->GetWatchCount() << std::endl;
             std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
         }
 
     } catch (InotifyException &e) {
         if (this->watchMap.size() == 1) {
+            std::cout << this->prefix() << "Watch Count = " << this->notify->GetWatchCount() << std::endl;
             std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
+
         }
+
         std::cerr << this->prefix() << "Inotify exception occured: " << e.GetMessage() << " errno: " << e.GetErrorNumber() << std::endl;
     }
+
+}
+
+// Worker thread. Remove path/filename from queue and process.
+// Access to fileNames queue conrolled by mutex and loop is controlled
+// by atomic bool doWork flag.
+
+void FPETask::worker(void) {
+
+    try {
+
+        std::cout << this->prefix() << "Worker thread started... " << std::endl;
+
+        while (this->doWork.load()) {
+
+            this->fileNamesMutex.lock();
+            while (!this->fileNames.empty()) {
+                std::string filenamePathStr(this->fileNames.front());
+                this->fileNames.pop();
+                std::string filenameStr(this->fileNames.front());
+                this->fileNames.pop();
+                this->fileNamesMutex.unlock();
+                this->taskProcessFcn(filenamePathStr, filenameStr);
+                this->fileNamesMutex.lock();
+            }
+            this->fileNamesMutex.unlock();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+    } catch (std::exception &e) {
+        this->fileNamesMutex.unlock();
+        std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
+    } catch (...) {
+        this->fileNamesMutex.unlock();
+        std::cerr << this->prefix() << "unknown exception occured" << std::endl;
+    }
+
+    std::cout << this->prefix() << "Worker thread stopped. " << std::endl;
 
 }
 
@@ -183,15 +249,18 @@ void FPETask::monitor(void) {
 
     std::thread::id this_id = std::this_thread::get_id();
 
-    std::cout << this->prefix() << "FPETask Monitor on Thread " << this_id << std::endl;
+    std::cout << this->prefix() << "FPETask Monitor on Thread started ... " << this_id << std::endl;
 
     this->createWatchTable();
 
+    this->doWork = true;
+    this->workerThread.reset(new std::thread(&FPETask::worker, this));
+
     try {
 
-        std::cout << this->prefix() << "Watching directory " << this->watchFolder << std::endl << std::endl;
+        std::cout << this->prefix() << "Watching directory " << this->watchFolder << std::endl;
 
-        for (;;) {
+        while (this->doWork.load()) {
 
             this->notify->WaitForEvents();
 
@@ -215,8 +284,9 @@ void FPETask::monitor(void) {
                             break;
                         case IN_CLOSE_WRITE:
                         case IN_MOVED_TO:
-
-                            this->taskProcessFcn(this->watchMap[event.GetWatch()], event.GetName());
+                            std::lock_guard<std::mutex> guard(this->fileNamesMutex);
+                            this->fileNames.push(this->watchMap[event.GetWatch()]);
+                            this->fileNames.push(event.GetName());
                             break;
 
                     }
@@ -233,5 +303,7 @@ void FPETask::monitor(void) {
     } catch (...) {
         std::cerr << this->prefix() << "unknown exception occured" << std::endl;
     }
+
+    std::cout << this->prefix() << "FPETask Monitor on Thread stopped." << std::endl;
 
 }

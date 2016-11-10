@@ -36,6 +36,11 @@
 #include <unordered_map>
 #include <thread>
 #include <fstream>
+#include <chrono>
+#include <queue>
+#include <mutex>
+#include <atomic>
+#include <utility>
 
 #include <boost/filesystem.hpp>
 
@@ -53,9 +58,9 @@ public:
     // CONSTRUCTOR
 
     FPETask(std::string taskNameStr,                       // Task name
-            std::string watchFolder,                       // Watch folder path (absolute path for present)
+            std::string watchFolder,                       // Watch folder path
             void (*taskFcn)(std::string filenamePathStr,   // Task file process function
-            std::string filenameStr));
+                            std::string filenameStr));
 
     // DESTRUCTOR
 
@@ -64,21 +69,28 @@ public:
     // One public function to monitor watch folder for file events and process added files
 
     void monitor(void);
+    void stop(void);
 
 private:
 
-    FPETask(); // Use only provided constructor
+    FPETask();                              // Use only provided constructors
     FPETask(const FPETask & orig);
+    FPETask(const FPETask && orig);
 
     std::string prefix(void);               // Logging output prefix function
     void addWatch(InotifyEvent event);      // Add a folder to watch
     void removeWatch(InotifyEvent event);   // Remove a folder watch
     void createWatchTable(void);            // Create a watch table for existing watch folder structure
     void destroyWatchTable(void);           // Clear watch table
+    void worker(void);                      // Worker thread
 
-    std::string  taskName;         // Task name
-    std::string  watchFolder;      // Watch Folder 
-    Inotify * notify;              // File watch notifier
+    std::string  taskName;                      // Task name
+    std::string  watchFolder;                   // Watch Folder
+    std::unique_ptr<Inotify> notify;            // Notify handler
+    std::mutex fileNamesMutex;                  // Queue Mutex
+    std::queue <std::string> fileNames;         // Queue of path/file names
+    std::atomic<bool> doWork;                   // doWork=true (run thread loops) false=(stop thread loops)
+    std::unique_ptr<std::thread> workerThread;  // Worker thread for task to performed.
 
     std::unordered_map<InotifyWatch *, std::string> watchMap;       // Watch table indexed by watch variable
     std::unordered_map<std::string, InotifyWatch *> revWatchMap;    // Reverse watch table indexed by path

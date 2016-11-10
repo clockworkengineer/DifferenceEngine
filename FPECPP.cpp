@@ -28,14 +28,22 @@
  * Created on October 24, 2016, 2:34 PM
  */
 
+// Task class
+
 #include "FPETask.hpp"
+
+// BOOST program options processing
 
 #include "boost/program_options.hpp" 
 
 namespace po = boost::program_options;
 
+// Globals
+
 fs::path watchFolder;           // Watch Folder
 fs::path destinationFolder;     // Destination Folder for copies.
+bool fileCopy=false;
+bool videoConversion=false;
 
 // Command line exit status
 
@@ -45,12 +53,63 @@ namespace {
     const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 } // namespace 
 
+
+void handBrake(std::string filenamePathStr, std::string filenameStr) {
+
+    int result;
+    
+    std::string destinationPathStr(destinationFolder.string());
+    fs::path fileName(filenameStr);
+    
+    try {
+
+        // Create destination folder if needed
+        
+        if (!fs::exists(destinationPathStr)) {
+            if (fs::create_directories(destinationPathStr)) {
+                std::cout << "CREATED :" + destinationPathStr << std::endl;
+            } else {
+                std::cerr << "CREATED FAILED FOR :" + destinationPathStr << std::endl;
+            }
+        }
+
+        // Add filename to source and destination paths
+        
+        filenamePathStr += filenameStr;
+        destinationPathStr += fileName.stem().string() + ".mp4";
+ 
+        std::string command = "/usr/local/bin/HandBrakeCLI -i " + filenamePathStr + " -o " + destinationPathStr + " --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
+        
+        std::cout << command << std::endl;
+        
+        result = std::system(command.c_str());
+        
+        if (result==0) {
+            std::cout << "File conversion success." << std::endl;
+        } else {
+            std::cout << "File conversion error: " << result << std::endl;
+        }
+        
+    //
+    // Catch any errors
+    //   
+        
+   } catch (const fs::filesystem_error & e) {
+        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
+    } catch (std::exception & e) {
+        std::cerr << "STL exception occured: " << e.what() << std::endl;
+    } catch (...) {
+        std::cerr << "unknown exception occured" << std::endl;
+    }
+
+}
+
 // Copy file task action function. Copy passed file to destination folder/directory 
 // keeping the sources directory structure.
 
 void copyFile(std::string filenamePathStr, std::string filenameStr) {
 
-    // Destination path += (filename path - watch folder path)
+    // Destination path += ("filename path" - "watch folder path")
     
     std::string destinationPathStr(destinationFolder.string() + 
                 filenamePathStr.substr((watchFolder.string()).length()));
@@ -109,7 +168,9 @@ int main(int argc, char** argv) {
         desc.add_options()
                 ("help", "Print help messages")
                 ("watch,w", po::value<fs::path>(&watchFolder)->required(), "Watch Folder")
-                ("destination,d", po::value<fs::path>(&destinationFolder)->required(), "Destination Folder");
+                ("destination,d", po::value<fs::path>(&destinationFolder)->required(), "Destination Folder")
+                ("copy", "File Copy Watcher")
+                ("video", "Video Conversion Watcher");
 
         po::variables_map vm;
 
@@ -123,6 +184,24 @@ int main(int argc, char** argv) {
                 return SUCCESS;
             }
 
+            // Copy watched files.
+            
+            if (vm.count("copy")) {
+                fileCopy=true;
+            }
+            
+            // Convert watched video files
+            
+            if (vm.count("video")) {
+                videoConversion=true;
+            }
+            
+            // Default to copy
+            
+            if (!fileCopy && !videoConversion) {
+                fileCopy=true;
+            }
+   
             po::notify(vm); // throws on error, so do after help in case there are any problems 
 
         } catch (po::error& e) {
@@ -159,13 +238,19 @@ int main(int argc, char** argv) {
 
         // Create task object
         
-        FPETask task(std::string("File Copy"), watchFolder.string(), copyFile);
-
+        FPETask *task;
+        
+        if (fileCopy) {
+            task = new FPETask(std::string("File Copy"), watchFolder.string(), copyFile);
+        } else {
+            task = new FPETask(std::string("Video Conversion"), watchFolder.string(), handBrake);
+        }
+        
         // Create task object thread and wait
         
-        std::thread taskThread(&FPETask::monitor, &task);
+        std::thread taskThread(&FPETask::monitor, task);
         taskThread.join();
-
+    
     //
     // Catch any errors
     //    
