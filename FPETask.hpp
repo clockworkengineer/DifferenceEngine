@@ -91,7 +91,7 @@ private:
     std::mutex fileNamesMutex;                  // Queue Mutex
     std::queue <std::string> fileNames;         // Queue of path/file names
     std::atomic<bool> doWork;                   // doWork=true (run thread loops) false=(stop thread loops)
-    std::unique_ptr<std::thread> workerThread;  // Worker thread for task to performed.
+    std::unique_ptr<std::thread> workerThread;  // Worker thread for task to be performed.
 
     std::unordered_map<InotifyWatch *, std::string> watchMap;       // Watch table indexed by watch variable
     std::unordered_map<std::string, InotifyWatch *> revWatchMap;    // Reverse watch table indexed by path

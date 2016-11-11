@@ -159,8 +159,8 @@ void copyFile(std::string filenamePathStr, std::string filenameStr) {
 //
 
 int main(int argc, char** argv) {
- 
-    try { 
+
+    try {
 
         // Define and parse the program options
 
