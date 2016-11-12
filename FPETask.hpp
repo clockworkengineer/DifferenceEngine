@@ -56,16 +56,21 @@ namespace fs = boost::filesystem;
 class FPETask {
 public:
 
-    // CONSTRUCTOR
+    // CONSTRUCTORS
 
     FPETask(std::string taskNameStr,                       // Task name
             std::string watchFolder,                       // Watch folder path
             void (*taskFcn)(std::string filenamePathStr,   // Task file process function
                             std::string filenameStr));
 
+   FPETask(const FPETask && orig);
+   
+   FPETask(const FPETask & orig);
+        
     // DESTRUCTOR
 
     virtual ~FPETask(); // Task class cleanup
+
 
     // PUBLIC FUNCTIONS
 
@@ -74,10 +79,8 @@ public:
  
 private:
 
-    FPETask();                              // Use only provided constructors
-    FPETask(const FPETask & orig);
-    FPETask(const FPETask && orig);
-
+    FPETask();                                      // Use only provided constructors
+  
     std::string prefix(void);                       // Logging output prefix function
     void addWatchPath(std::string pathStr);         // Add path to be watched
     void addWatch(struct inotify_event *event);     // Add a folder to watch

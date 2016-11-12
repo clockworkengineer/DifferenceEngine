@@ -42,8 +42,8 @@ namespace po = boost::program_options;
 
 fs::path watchFolder;           // Watch Folder
 fs::path destinationFolder;     // Destination Folder for copies.
-bool fileCopy=false;
-bool videoConversion=false;
+bool fileCopy=false;            // Task file copy
+bool videoConversion=false;     // Task video conversion
 
 // Command line exit status
 
@@ -53,6 +53,8 @@ namespace {
     const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 } // namespace 
 
+// Convert video file task action function. Convert passed in file to '.mp4'
+// using handbrakes normal present to --destination.
 
 void handBrake(std::string filenamePathStr, std::string filenameStr) {
 
@@ -78,6 +80,8 @@ void handBrake(std::string filenamePathStr, std::string filenameStr) {
         filenamePathStr += filenameStr;
         destinationPathStr += fileName.stem().string() + ".mp4";
  
+        // Convert file
+        
         std::string command = "/usr/local/bin/HandBrakeCLI -i " + filenamePathStr + " -o " + destinationPathStr + " --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
         
         std::cout << command << std::endl;
@@ -221,7 +225,7 @@ int main(int argc, char** argv) {
                 << BOOST_VERSION % 100 // patch level
                 << std::endl;
 
-        // Create destination folder for copy file
+        // Create destination folder for task
         
         if (!fs::exists(destinationFolder)) {
             std::cout << "Destination Folder " << destinationFolder << " DOES NOT EXIST." << std::endl;
@@ -237,7 +241,7 @@ int main(int argc, char** argv) {
         destinationFolder = fs::absolute(destinationFolder);
 
         // Create task object
-        
+         
         FPETask *task;
         
         if (fileCopy) {
@@ -249,6 +253,7 @@ int main(int argc, char** argv) {
         // Create task object thread and wait
         
         std::thread taskThread(&FPETask::monitor, task);
+    
         taskThread.join();
     
     //

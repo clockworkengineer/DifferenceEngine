@@ -85,31 +85,16 @@ FPETask::FPETask(const FPETask&& orig) {
 
 }
 
-// Destructor just releases watch table related resources /  flag threads to stop working.
+// Destructor is private
 
 FPETask::~FPETask() {
-
-    try {
-        
-        this->doWork = false;
-        this->destroyWatchTable();
-
-    } catch (const fs::filesystem_error& e) {
-        std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
-    } catch (std::runtime_error &e) {
-        std::cout << "Caught a runtime_error exception: " << e.what() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << this->prefix() << "unknown exception occured" << std::endl;
-    }
-    
+   
 }
 
-// Flag thread loops to stop. Folder watcher needs a push because of wait for event.
+// Flag thread loops to stop. Folder watcher needs a push because of wait for read().
+// Also clean up any resources
 
 void FPETask::stop(void) {
-
 
     std::cout << this->prefix() << "Stop task threads." << std::endl;
 
@@ -118,6 +103,7 @@ void FPETask::stop(void) {
         if (fs::is_empty(watchFolder) || fs::exists(watchFolder)) {
             std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
         }
+        this->destroyWatchTable();
     } catch (const fs::filesystem_error& e) {
         std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
     } catch (std::runtime_error &e) {
@@ -142,23 +128,34 @@ std::string FPETask::prefix(void) {
 // Clean up inotifier and its watch variables and clear watch maps.
 
 void FPETask::destroyWatchTable(void) {
-    
+
+    for (auto it = this->watchMap.begin(); it != this->watchMap.end(); ++it) {
+        if (inotify_rm_watch(this->fdNotify, it->first) == -1) {
+            std::stringstream errStream;
+            errStream << "inotify_rm_watch() error:  " << errno;
+            throw std::runtime_error(errStream.str());
+        } else {
+            std::cout << this->prefix() << "Watch[" << it->first << "] removed." <<std::endl;
+        }
+    }
     if (close(this->fdNotify) == -1) {
         std::stringstream errStream;
         errStream << "inotify close() error:  " << errno;
         throw std::runtime_error(errStream.str());
     }
-    
+
     this->watchMap.clear();
     this->revWatchMap.clear();
 
 
 }
 
+// create a watch for the path.
+
 void FPETask::addWatchPath(std::string pathStr) {
 
     int watch;
-    
+
     if ((watch = inotify_add_watch(this->fdNotify, pathStr.c_str(), FPETask::kInofityEvents)) == -1) {
         std::stringstream errStream;
         errStream << "inotify_add_watch() error:  " << errno;
@@ -170,11 +167,11 @@ void FPETask::addWatchPath(std::string pathStr) {
 
 }
 
-// Create inotifer and  add watches for any existing directory structure.
+// Initialize inotify and  add watches for any existing directory structure.
 
 void FPETask::createWatchTable(void) {
 
-    if ((this->fdNotify = inotify_init())== -1) {
+    if ((this->fdNotify = inotify_init()) == -1) {
         std::stringstream errStream;
         errStream << "inotify_init() error:  " << errno;
         throw std::runtime_error(errStream.str());
@@ -230,7 +227,7 @@ void FPETask::removeWatch(struct inotify_event *event) {
 
             this->watchMap.erase(watch);
             this->revWatchMap.erase(pathStr);
-   
+
             if (inotify_rm_watch(this->fdNotify, watch) == -1) {
                 std::stringstream errStream;
                 errStream << "inotify_rm_watch() error:  " << errno;
@@ -265,7 +262,6 @@ void FPETask::worker(void) {
     std::string filenamePathStr;
     std::string filenameStr;
 
-
     std::cout << this->prefix() << "Worker thread started... " << std::endl;
 
     while (this->doWork.load()) {
@@ -287,7 +283,7 @@ void FPETask::worker(void) {
             }
         } while (filesToProcess);
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(1)); // This works better than yield
 
     }
 
@@ -300,7 +296,6 @@ void FPETask::worker(void) {
 
 void FPETask::monitor(void) {
 
-   int readLen, currentPos = 0;
     std::uint8_t buffer[FPETask::kInotifyEventBuffLen];
 
     std::thread::id this_id = std::this_thread::get_id();
@@ -315,7 +310,7 @@ void FPETask::monitor(void) {
     try {
 
         while (this->doWork.load()) {
-            
+
             int readLen, currentPos = 0;
 
             if ((readLen = read(this->fdNotify, buffer, FPETask::kInotifyEventBuffLen)) == -1) {
