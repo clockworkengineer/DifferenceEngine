@@ -41,11 +41,12 @@
 #include <mutex>
 #include <atomic>
 #include <utility>
+#include <sstream> 
+
+#include <sys/inotify.h>
 
 #include <boost/filesystem.hpp>
-
-#define INOTIFY_THREAD_SAFE // Compile so thread safe.
-#include "inotify-cxx.h"
+#include <boost/format.hpp>
 
 #ifndef FPETASK_HPP
 #define FPETASK_HPP
@@ -77,29 +78,29 @@ private:
     FPETask(const FPETask & orig);
     FPETask(const FPETask && orig);
 
-    std::string prefix(void);               // Logging output prefix function
-    void addWatchPath(std::string pathStr); // Add path to be watched
-    void addWatch(InotifyEvent event);      // Add a folder to watch
-    void removeWatch(InotifyEvent event);   // Remove a folder watch
-    void createWatchTable(void);            // Create a watch table for existing watch folder structure
-    void destroyWatchTable(void);           // Clear watch table
-    void worker(void);                      // Worker thread
+    std::string prefix(void);                       // Logging output prefix function
+    void addWatchPath(std::string pathStr);         // Add path to be watched
+    void addWatch(struct inotify_event *event);     // Add a folder to watch
+    void removeWatch(struct inotify_event *event);  // Remove a folder watch
+    void createWatchTable(void);                    // Create a watch table for existing watch folder structure
+    void destroyWatchTable(void);                   // Clear watch table
+    void worker(void);                              // Worker thread
 
     std::string  taskName;                      // Task name
     std::string  watchFolder;                   // Watch Folder
-    std::unique_ptr<Inotify> notify;            // Notify handler
-    std::mutex fileNamesMutex;                  // Queue Mutex
-    std::queue <std::string> fileNames;         // Queue of path/file names
-    std::atomic<bool> doWork;                   // doWork=true (run thread loops) false=(stop thread loops)
-    std::unique_ptr<std::thread> workerThread;  // Worker thread for task to be performed.
-
-    std::unordered_map<InotifyWatch *, std::string> watchMap;       // Watch table indexed by watch variable
-    std::unordered_map<std::string, InotifyWatch *> revWatchMap;    // Reverse watch table indexed by path
-
-    void (*taskProcessFcn)(std::string filenamePathStr, // Task file process function 
+    int fdNotify;
+    std::mutex fileNamesMutex;                              // Queue Mutex
+    std::queue <std::string> fileNames;                     // Queue of path/file names
+    std::atomic<bool> doWork;                               // doWork=true (run thread loops) false=(stop thread loops)
+    std::unique_ptr<std::thread> workerThread;              // Worker thread for task to be performed.
+    std::unordered_map<int32_t, std::string> watchMap;      // Watch table indexed by watch variable
+    std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
+    void (*taskProcessFcn)(std::string filenamePathStr,     // Task file process function 
                            std::string filenameStr);
 
-    static const uint32_t InofityEvents; // Inotify events to monitor
+    static const uint32_t kInofityEvents;       // inotify events to monitor
+    static const uint32_t kInotifyEventSize;    // inotify read event size
+    static const uint32_t kInotifyEventBuffLen; // inotify read buffer length
 
 };
 #endif /* FPETASK_HPP */
