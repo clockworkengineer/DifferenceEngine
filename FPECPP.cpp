@@ -1,4 +1,10 @@
 /*
+ * File:   FPECPP.cpp
+ * 
+ * Author: Robert Tizzard
+ *
+ * Created on October 24, 2016, 2:34 PM
+ *
  * The MIT License
  *
  * Copyright 2016 Robert Tizzard.
@@ -21,12 +27,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/*
- * File:   FPECPP.cpp
- * Author: Robert Tizzard
- *
- * Created on October 24, 2016, 2:34 PM
- */
 
 // Task class
 
@@ -42,6 +42,7 @@ namespace po = boost::program_options;
 
 fs::path watchFolder;           // Watch Folder
 fs::path destinationFolder;     // Destination Folder for copies.
+
 bool fileCopy=false;            // Task file copy
 bool videoConversion=false;     // Task video conversion
 
@@ -51,51 +52,40 @@ namespace {
     const size_t ERROR_IN_COMMAND_LINE = 1;
     const size_t SUCCESS = 0;
     const size_t ERROR_UNHANDLED_EXCEPTION = 2;
-} // namespace 
+}
 
-// Convert video file task action function. Convert passed in file to '.mp4'
-// using handbrakes normal present to --destination.
+//
+// Convert video file action function. Convert passed in file to MP4
+// using handbrakes "normal preset" to desination folder (--destination).
+//
 
 void handBrake(std::string filenamePathStr, std::string filenameStr) {
+  
+    fs::path sourceFile(filenamePathStr+filenameStr);
+    fs::path destinationFile(destinationFolder.string());
 
-    int result;
-    
-    std::string destinationPathStr(destinationFolder.string());
-    fs::path fileName(filenameStr);
-    
     try {
 
-        // Create destination folder if needed
+        // Create destination file name
         
-        if (!fs::exists(destinationPathStr)) {
-            if (fs::create_directories(destinationPathStr)) {
-                std::cout << "CREATED :" + destinationPathStr << std::endl;
-            } else {
-                std::cerr << "CREATED FAILED FOR :" + destinationPathStr << std::endl;
-            }
-        }
-
-        // Add filename to source and destination paths
-        
-        filenamePathStr += filenameStr;
-        destinationPathStr += fileName.stem().string() + ".mp4";
+        destinationFile /= sourceFile.stem().string();
+        destinationFile.replace_extension(".mp4");
  
         // Convert file
         
-        std::string command = "/usr/local/bin/HandBrakeCLI -i " + filenamePathStr + " -o " + destinationPathStr + " --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
+        std::string command = "/usr/local/bin/HandBrakeCLI -i " + sourceFile.string()+ " -o " + destinationFile.string() + " --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
         
         std::cout << command << std::endl;
-        
-        result = std::system(command.c_str());
-        
-        if (result==0) {
+
+        auto  result=0;
+        if ((result = std::system(command.c_str()))==0) {
             std::cout << "File conversion success." << std::endl;
         } else {
             std::cout << "File conversion error: " << result << std::endl;
         }
         
     //
-    // Catch any errors
+    // Catch any errors locally and report so that thread keeps running.
     //   
         
    } catch (const fs::filesystem_error & e) {
@@ -108,19 +98,19 @@ void handBrake(std::string filenamePathStr, std::string filenameStr) {
 
 }
 
-// Copy file task action function. Copy passed file to destination folder/directory 
+// Copy file action function. Copy passed file to destination folder/directory 
 // keeping the sources directory structure.
 
 void copyFile(std::string filenamePathStr, std::string filenameStr) {
 
-    // Destination path += ("filename path" - "watch folder path")
+    // Destination file path += ("filename path" - "watch folder path")
     
     std::string destinationPathStr(destinationFolder.string() + 
                 filenamePathStr.substr((watchFolder.string()).length()));
 
     try {
 
-        // Create destination folder if needed
+        // Construct full destination path if needed
         
         if (!fs::exists(destinationPathStr)) {
             if (fs::create_directories(destinationPathStr)) {
@@ -138,15 +128,15 @@ void copyFile(std::string filenamePathStr, std::string filenameStr) {
         // Currently only copy file if it doesn't already exist.
         
         if (!fs::exists(destinationPathStr)) {
-            std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
-            fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
+           std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
+           fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
         } else {
             std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
         }
         
     //
-    // Catch any errors
-    //   
+    // Catch any errors locally and report so that thread keeps running.
+    // 
         
    } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
@@ -182,6 +172,8 @@ int main(int argc, char** argv) {
 
             po::store(po::parse_command_line(argc, argv, desc), vm);
 
+            // Display options and exit with success
+            
             if (vm.count("help")) {
                 std::cout << "File Processing Engine Application" << std::endl
                         << desc << std::endl;
@@ -206,17 +198,17 @@ int main(int argc, char** argv) {
                 fileCopy=true;
             }
    
-            po::notify(vm); // throws on error, so do after help in case there are any problems 
+            po::notify(vm);
 
         } catch (po::error& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
+            std::cerr << "FPE Error: " << e.what() << std::endl << std::endl;
             std::cerr << desc << std::endl;
             return ERROR_IN_COMMAND_LINE;
         }
 
         // FPE up and running
         
-        std::cout << "FPE Running" << std::endl;
+        std::cout << "FPE Running..." << std::endl;
         
         // Display BOOST version
         
@@ -224,6 +216,11 @@ int main(int argc, char** argv) {
                 << BOOST_VERSION / 100 % 1000 << "." // minor version
                 << BOOST_VERSION % 100 // patch level
                 << std::endl;
+
+       // Make watch/destination paths absolute
+        
+        watchFolder = fs::absolute(watchFolder);
+        destinationFolder = fs::absolute(destinationFolder);
 
         // Create destination folder for task
         
@@ -234,27 +231,23 @@ int main(int argc, char** argv) {
                 std::cout << "Creating Destination Folder " << destinationFolder << std::endl;
             }
         }
-
-        // Make watch/destination paths absolute
-        
-        watchFolder = fs::absolute(watchFolder);
-        destinationFolder = fs::absolute(destinationFolder);
-
+   
         // Create task object
-         
-        FPETask *task;
+        
+        std::shared_ptr<FPETask> task;
         
         if (fileCopy) {
-            task = new FPETask(std::string("File Copy"), watchFolder.string(), copyFile);
+            task.reset(new FPETask(std::string("File Copy"), watchFolder.string(), copyFile));
         } else {
-            task = new FPETask(std::string("Video Conversion"), watchFolder.string(), handBrake);
+            task.reset(new FPETask(std::string("Video Conversion"), watchFolder.string(), handBrake));
         }
         
         // Create task object thread and wait
-        
-        std::thread taskThread(&FPETask::monitor, task);
-    
-        taskThread.join();
+  
+        std::unique_ptr<std::thread> taskThread;
+        taskThread.reset(new std::thread(&FPETask::monitor, task)); 
+ 
+        taskThread->join();     
     
     //
     // Catch any errors
@@ -263,6 +256,8 @@ int main(int argc, char** argv) {
     } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
         return ERROR_UNHANDLED_EXCEPTION;
+   } catch (std::runtime_error &e) {
+        std::cerr << "Caught a runtime_error exception: " << e.what() << std::endl;
     } catch (std::exception & e) {
         std::cerr << "STL exception occured: " << e.what() << std::endl;
         return ERROR_UNHANDLED_EXCEPTION;

@@ -1,4 +1,10 @@
 /*
+ * File:  FPETask.hpp
+ * 
+ * Author: Robert Tizzard
+ * 
+ * Created on October 24, 2016, 2:33 PM
+ *
  * The MIT License
  *
  * Copyright 2016 Robert Tizzard.
@@ -21,13 +27,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- 
-/*
- * File:   FPETask.hpp
- * Author: Robert Tizzard
- *
- * Created on October 24, 2016, 2:33 PM
- */
+
+#ifndef FPETASK_HPP
+#define FPETASK_HPP
 
 #include <string>
 #include <iostream>
@@ -48,29 +50,23 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
-#ifndef FPETASK_HPP
-#define FPETASK_HPP
-
 namespace fs = boost::filesystem;
 
 class FPETask {
 public:
 
-    // CONSTRUCTORS
+    // CONSTRUCTOR
 
     FPETask(std::string taskNameStr,                       // Task name
             std::string watchFolder,                       // Watch folder path
             void (*taskFcn)(std::string filenamePathStr,   // Task file process function
                             std::string filenameStr));
 
-   FPETask(const FPETask && orig);
-   
-   FPETask(const FPETask & orig);
+
         
     // DESTRUCTOR
 
     virtual ~FPETask(); // Task class cleanup
-
 
     // PUBLIC FUNCTIONS
 
@@ -80,7 +76,9 @@ public:
 private:
 
     FPETask();                                      // Use only provided constructors
-  
+    FPETask(const FPETask & orig);
+    FPETask(const FPETask && orig);   
+    
     std::string prefix(void);                       // Logging output prefix function
     void addWatchPath(std::string pathStr);         // Add path to be watched
     void addWatch(struct inotify_event *event);     // Add a folder to watch
@@ -89,9 +87,9 @@ private:
     void destroyWatchTable(void);                   // Clear watch table
     void worker(void);                              // Worker thread
 
-    std::string  taskName;                      // Task name
-    std::string  watchFolder;                   // Watch Folder
-    int fdNotify;
+    std::string  taskName;                                  // Task name
+    std::string  watchFolder;                               // Watch Folder
+    int fdNotify;                                           // inotify file descriptor
     std::mutex fileNamesMutex;                              // Queue Mutex
     std::queue <std::string> fileNames;                     // Queue of path/file names
     std::atomic<bool> doWork;                               // doWork=true (run thread loops) false=(stop thread loops)
