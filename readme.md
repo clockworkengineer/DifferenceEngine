@@ -4,14 +4,16 @@
 
 This is a C++/Linux variant of the JavaScript/Node file processing engine. In its current form it has support for the copying of files from a watched folder to a specified destination (keeping any source directory structure intact) and also the conversion of any video files copied to the watch folder to .mp4 format using HandbrakeCLI and its normal preset. It is run from the command line and typing FPECPP --help gives its options
 
+    File Processing Engine Application
     Options:
       --help   Print help messages
       -w [ --watch ] arg   Watch Folder
       -d [ --destination ] arg Destination Folder
+      --maxdepth arg   Maximum Watch Depth
       --copy   File Copy Watcher
       --video  Video Conversion Watcher
 
-Both watch and destination Folders are mandatory but if the copy and  video parameters are missing it defaults to copy file. Note I tend to use the term folder/directory interchangeably coming from a mixed development environment.
+Both watch and destination Folders are mandatory but if the copy and  video parameters are missing it defaults to copy file. The maximum depth is how far down  the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc). Note I tend to use the term folder/directory interchangeably coming from a mixed development environment.
 
 # Building #
 
