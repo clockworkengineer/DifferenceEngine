@@ -7,7 +7,7 @@
  *
  * The MIT License
  *
- * Copyright 2016 Robert Tizzard.
+ * Copyright 2016.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,40 +51,32 @@ const uint32_t FPETask::kInotifyEventBuffLen = (1024 * (FPETask::kInotifyEventSi
 // Task object constructor. Create watch directory and initialize variables.
 //
 
-FPETask::FPETask(std::string taskNameStr, std::string watchFolder,
+FPETask::FPETask(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
         void (*taskFcn)(std::string watchFolder, std::string filenameStr)) :
-taskName{taskNameStr}, watchFolder{watchFolder}, taskProcessFcn{taskFcn}
+        taskName{taskNameStr}, watchFolder{watchFolder}, taskProcessFcn{taskFcn}
 {
 
-    std::cout << this->prefix() << "Watch Folder " << watchFolder << std::endl;
-
+    std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
 
     if (!fs::exists(watchFolder)) {
-        std::cout << this->prefix() << "Watch Folder " << watchFolder << " DOES NOT EXIST." << std::endl;
+        std::cout << this->prefix() << "Watch Folder [" << watchFolder << "] DOES NOT EXIST." << std::endl;
         if (fs::create_directory(watchFolder)) {
-            std::cout << this->prefix() << "Creating Watch Folder " << watchFolder << std::endl;
+            std::cout << this->prefix() << "Creating Watch Folder [" << watchFolder << "]" << std::endl;
         }
     }
 
+    std::cout << this->prefix() << "Watch Depth [" << maxWatchDepth << "]" << std::endl;    
+    
+    // Save away max watch depth and modify with watch folder depth value if not all (-1).
+    
+    this->maxWatchDepth = maxWatchDepth;
+    if (maxWatchDepth != -1) {
+        this->maxWatchDepth += FPETask::pathDepth(watchFolder);
+    }
+    
     // All threads start working
 
     this->doWork = true;
-
-}
-
-//
-// Copy constructor is private
-//
-
-FPETask::FPETask(const FPETask& orig) {
-
-}
-
-//
-// Move constructor is private
-//
-
-FPETask::FPETask(const FPETask&& orig) {
 
 }
 
@@ -99,6 +91,24 @@ FPETask::~FPETask() {
 }
 
 //
+// Count '/' to find directory depth
+//
+
+int FPETask::pathDepth(std::string pathStr) {
+
+    auto i = 0;
+    auto pos = pathStr.find("/");
+    while (pos != std::string::npos) {
+      i++; pos++;
+      pos = pathStr.find("/", pos);
+    }
+    
+    return(i);
+    
+}
+    
+
+//
 // Flag thread loops to stop. Folder watcher needs a push because of wait for read().
 // Also clean up any resources.
 //
@@ -107,14 +117,11 @@ void FPETask::stop(void) {
 
     std::cout << this->prefix() << "Stop task threads." << std::endl;
 
-
     this->doWork = false;
-    if (fs::is_empty(watchFolder) || fs::exists(watchFolder)) {
+    if (fs::is_empty(this->watchFolder) || fs::exists(this->watchFolder)) {
         std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
     }
     this->destroyWatchTable();
-
-
 
 }
 
@@ -162,16 +169,26 @@ void FPETask::addWatchPath(std::string pathStr) {
 
     int watch;
 
+    // Deeper than max watch depth so ignore.
+    
+    if ((this->maxWatchDepth != -1) && (FPETask::pathDepth(pathStr) > this->maxWatchDepth)) {
+        return;
+    }
+    
+    // Add watch
+    
     if ((watch = inotify_add_watch(this->fdNotify, pathStr.c_str(), FPETask::kInofityEvents)) == -1) {
         std::stringstream errStream;
         errStream << "inotify_add_watch() error:  " << errno;
         throw std::runtime_error(errStream.str());
     }
-
+    
     // Add watch to map and reverse map
     
     this->watchMap.insert({watch, pathStr});
     this->revWatchMap.insert({pathStr, watch});
+    
+   std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "]"<< std::endl;
 
 }
 
@@ -181,6 +198,8 @@ void FPETask::addWatchPath(std::string pathStr) {
 
 void FPETask::createWatchTable(void) {
 
+    // Initialize inotify 
+    
     if ((this->fdNotify = inotify_init()) == -1) {
         std::stringstream errStream;
         errStream << "inotify_init() error:  " << errno;
@@ -195,10 +214,8 @@ void FPETask::createWatchTable(void) {
             if (fs::exists(fs::path(pathStr))) {
                 this->addWatchPath(pathStr);
             }
-            std::cout << this->prefix() << "Directory added [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "]" << std::endl;
-        }
+         }
     }
-
 
 }
 
@@ -212,8 +229,6 @@ void FPETask::addWatch(struct inotify_event *event) {
     std::string pathStr = this->watchMap[event->wd] + filename + "/";
 
     this->addWatchPath(pathStr);
-
-    std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "] File [" << filename << "]" << std::endl;
 
 }
 
@@ -296,7 +311,6 @@ void FPETask::worker(void) {
                         this->fileNames.pop();
                         filenameStr = this->fileNames.front();
                         this->fileNames.pop();
-
                     }
                 } while (false); // lock guard out of scope so mutex off
                 if (filesToProcess) {
@@ -319,7 +333,6 @@ void FPETask::worker(void) {
 
     std::cout << this->prefix() << "Worker thread stopped. " << std::endl;
 
-
 }
 
 //
@@ -333,7 +346,7 @@ void FPETask::monitor(void) {
 
     std::thread::id this_id = std::this_thread::get_id();
 
-    std::cout << this->prefix() << "FPETask Monitor on Thread started ... " << this_id << std::endl;
+    std::cout << this->prefix() << "FPETask Monitor on Thread started [" << this_id << "]" << std::endl;
 
     try {
 

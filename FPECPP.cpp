@@ -7,7 +7,7 @@
  *
  * The MIT License
  *
- * Copyright 2016 Robert Tizzard.
+ * Copyright 2016.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,7 @@ fs::path destinationFolder;     // Destination Folder for copies.
 
 bool fileCopy=false;            // Task file copy
 bool videoConversion=false;     // Task video conversion
+int  maxWatchDepth=-1;          // Depth to watch 0=all;
 
 // Command line exit status
 
@@ -163,6 +164,7 @@ int main(int argc, char** argv) {
                 ("help", "Print help messages")
                 ("watch,w", po::value<fs::path>(&watchFolder)->required(), "Watch Folder")
                 ("destination,d", po::value<fs::path>(&destinationFolder)->required(), "Destination Folder")
+                ("maxdepth", po::value<int>(&maxWatchDepth), "Maximum Watch Depth")
                 ("copy", "File Copy Watcher")
                 ("video", "Video Conversion Watcher");
 
@@ -237,14 +239,15 @@ int main(int argc, char** argv) {
         std::shared_ptr<FPETask> task;
         
         if (fileCopy) {
-            task.reset(new FPETask(std::string("File Copy"), watchFolder.string(), copyFile));
+            task.reset(new FPETask(std::string("File Copy"), watchFolder.string(), maxWatchDepth, copyFile));
         } else {
-            task.reset(new FPETask(std::string("Video Conversion"), watchFolder.string(), handBrake));
+            task.reset(new FPETask(std::string("Video Conversion"), watchFolder.string(), maxWatchDepth, handBrake));
         }
         
         // Create task object thread and wait
   
         std::unique_ptr<std::thread> taskThread;
+        
         taskThread.reset(new std::thread(&FPETask::monitor, task)); 
  
         taskThread->join();     

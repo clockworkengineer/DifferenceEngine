@@ -7,7 +7,7 @@
  *
  * The MIT License
  *
- * Copyright 2016 Robert Tizzard.
+ * Copyright 2016.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,8 +59,10 @@ public:
 
     FPETask(std::string taskNameStr,                       // Task name
             std::string watchFolder,                       // Watch folder path
+            int maxWatchDepth,                             // Maximum watch depth -1= all, 0=just watch folder
             void (*taskFcn)(std::string filenamePathStr,   // Task file process function
-                            std::string filenameStr));
+                            std::string filenameStr))
+            ;
 
 
         
@@ -75,10 +77,11 @@ public:
  
 private:
 
-    FPETask();                                      // Use only provided constructors
-    FPETask(const FPETask & orig);
-    FPETask(const FPETask && orig);   
+    FPETask() = delete;                                      // Use only provided constructors
+    FPETask(const FPETask & orig) = delete;;
+    FPETask(const FPETask && orig )= delete;;   
     
+    static int pathDepth(std::string pathStr);      // Add path to be watched
     std::string prefix(void);                       // Logging output prefix function
     void addWatchPath(std::string pathStr);         // Add path to be watched
     void addWatch(struct inotify_event *event);     // Add a folder to watch
@@ -89,6 +92,7 @@ private:
 
     std::string  taskName;                                  // Task name
     std::string  watchFolder;                               // Watch Folder
+    int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder
     int fdNotify;                                           // inotify file descriptor
     std::mutex fileNamesMutex;                              // Queue Mutex
     std::queue <std::string> fileNames;                     // Queue of path/file names
