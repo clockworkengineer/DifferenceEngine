@@ -6,14 +6,16 @@ This is a C++/Linux variant of the JavaScript/Node file processing engine. In it
 
     File Processing Engine Application
     Options:
-      --help   Print help messages
-      -w [ --watch ] arg   Watch Folder
-      -d [ --destination ] arg Destination Folder
-      --maxdepth arg   Maximum Watch Depth
-      --copy   File Copy Watcher
-      --video  Video Conversion Watcher
-
-Both watch and destination Folders are mandatory but if the copy and  video parameters are missing it defaults to copy file. The maximum depth is how far down  the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc). Note I tend to use the term folder/directory interchangeably coming from a mixed development environment.
+      --help   					Print help messages
+      -w [ --watch ] arg   		Watch Folder
+      -d [ --destination ] arg 	Destination Folder
+      --maxdepth arg   			Maximum Watch Depth
+      --copy   					File Copy Watcher
+      --video  					Video Conversion Watcher
+      --command arg				Command Watcher
+      --delete	 				Delete Source File
+    
+Both watch and destination Folders are mandatory but if the copy and  video parameters are missing it defaults to command. With this option it takes any file passed through and runs the specified shell script command substituting %1% in the command for the source file and %2% for any destination file (it defaults to "echo "%1%"). The maximum depth is how far down  the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc).Also note if --video is used in conjunction with --command then the command will be used in place of the default Handbrake to convert the video file. Lastly "--delete" tells the action function to delete any source file after sucessful processing. Note I tend to use the term folder/directory interchangeably coming from a mixed development environment.
 
 # Building #
 
@@ -25,7 +27,9 @@ So that as much of the engine as possible is portable across platforms any funct
 
 # Task Class #
 
-The core for the file processing engine is provided by the FPETask class whose constructor takes three arguments, the task name (std::string), the folder to be watched (std::string) and a pointer to a function that is called for each file that is copied/moved into the watch folder hierarchy. This is virtually identical to how the class is created in the JavaScript variant except that the third parameter is a program and its arguments. The engine comes with two built in variants of this function, a file copy and file handbrake encoder (any new function should adhere to these functions template). To start watching/processing files call this classes monitor function; the code within FPECPP.cpp creates a separate thread for this but it can be run in the main programs thread by just calling task.monitor().
+The core for the file processing engine is provided by the FPETask class whose constructor takes four arguments, the task name (std::string), the folder to be watched (std::string), an integer speciying the watch depth (-1=all,0=just watch folder,1=next level down etc.) and a pointer to a function that is called for each file that is copied/moved into the watch folder hierarchy. 
+
+This is virtually identical to how the class is created in the JavaScript variant except that the third parameter is a program and its arguments and there is no depth parameter. The engine comes with two built in variants of this function, a file copy and file handbrake encoder (any new function should adhere to these functions template). To start watching/processing files call this classes monitor function; the code within FPECPP.cpp creates a separate thread for this but it can be run in the main programs thread by just calling task.monitor() with any thread creation wrappper code.
 
 At the center of the class is an event loop which waits for inotify events and performs processing according to what type of event. If its a new folder that has appeared then a new watch is added for it, if a folder has disappeared then the watch for it is removed. Note that it is possible for a watch to be removed for a directory only to be recreated if it is moved within the hierarchy. The last type of event is for normal files that have been created; these are just sent to be processed by the user defined function passed in on creation.
 
@@ -35,9 +39,16 @@ It should be noted that a basic shutdown protocol is provided to close down any 
 
 # File Copy Function #
 
-This function takes the file name and path passed as parameters and copies the combination file source  to  the the specified destination (--destination). It does this with the aid of boost file system API's. Note that any directories that need to be created in the destination tree for the source path specified are done by function create_directories().
+This function takes the file name and path passed as parameters and copies the combination file source  to  the the specified destination (--destination). It does this with the aid of boost file system API's. Note that any directories that need to be created in the destination tree for the source path specified are done by BOOST function create_directories().
 
 # Handbrake video conversion function #
 
 This function takes the file name and path passed as parameters and creates a command to process the file into an ".mp4" file using handbrake. Please note that this command has a hard encoded path to my installation of handbrake and should be changed according to the target. The command is passed to the OS using the function call system(), which waits for completion and a returned status (nothing fancy is done with this except report success or failure). Note all output from handbrake (stdout/stderr) is  also redirected to a hard encoded log file.
+
+# To Do #
+
+1. The ability to drive program from tasksToRunDetails.json
+1. Add more task options such a torrent file download
+
+
 

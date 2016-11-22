@@ -47,15 +47,16 @@ namespace po = boost::program_options;
 fs::path gWatchFolder;           // Watch Folder
 fs::path gDestinationFolder;     // Destination Folder for copies.
 
-// Handbrake command and default command if --command specificed
+// Handbrake command and default command if --command not specified
 
 std::string gHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
-std::string gRunCommand = "echo %1%";
+std::string gCommandToRun = "echo %1%";
 
-bool fileCopy=false;            // Task file copy
-bool videoConversion=false;     // Task video conversion
-bool passCommand=false;         // Task perform command
-int  maxWatchDepth=-1;          // Depth to watch 0=all;
+bool gFileCopy=false;            // Task file copy
+bool gVideoConversion=false;     // Task video conversion
+bool gRunCommand=false;          // Task perform command
+int  gMaxWatchDepth=-1;          // Watch depth -1=all,0=just watch folder,1=next level down etc.
+bool gDeleteSource=false;        // Delete source file
 
 // Command line exit status
 
@@ -80,10 +81,11 @@ int main(int argc, char** argv) {
                 ("help", "Print help messages")
                 ("watch,w", po::value<fs::path>(&gWatchFolder)->required(), "Watch Folder")
                 ("destination,d", po::value<fs::path>(&gDestinationFolder)->required(), "Destination Folder")
-                ("maxdepth", po::value<int>(&maxWatchDepth), "Maximum Watch Depth")
+                ("maxdepth", po::value<int>(&gMaxWatchDepth), "Maximum Watch Depth")
                 ("copy", "File Copy Watcher")
                 ("video", "Video Conversion Watcher")
-                ("command", po::value<std::string>(&gRunCommand), "Command To Perform");
+                ("command", po::value<std::string>(&gCommandToRun), "Command Watcher")
+                ("delete", "Delete Source File");
 
         po::variables_map vm;
 
@@ -104,25 +106,31 @@ int main(int argc, char** argv) {
             // Copy watched files.
             
             if (vm.count("copy")) {
-                fileCopy=true;
+                gFileCopy=true;
             }
             
             // Convert watched video files
             
             if (vm.count("video")) {
-                videoConversion=true;
+                gVideoConversion=true;
             }
 
             // Run command on watched files
             
             if (vm.count("command")) {
-                passCommand=true;
+                gRunCommand=true;
              }
             
+            // Delete source file
+            
+            if (vm.count("delete")) {
+                gDeleteSource=true;
+             }
+      
             // Default to command
             
-            if (!fileCopy && !videoConversion) {
-                passCommand=true;
+            if (!gFileCopy && !gVideoConversion) {
+                gRunCommand=true;
             }
    
             po::notify(vm);
@@ -151,8 +159,8 @@ int main(int argc, char** argv) {
 
         // --video with --command override Handbrake video conversion for passed command
         
-        if (videoConversion && passCommand) {
-             gHandbrakeCommand = gRunCommand;
+        if (gVideoConversion && gRunCommand) {
+             gHandbrakeCommand = gCommandToRun;
         }
   
         // Create destination folder for task
@@ -169,12 +177,12 @@ int main(int argc, char** argv) {
         
         std::shared_ptr<FPETask> task;
         
-        if (fileCopy) {
-            task.reset(new FPETask(std::string("File Copy"), gWatchFolder.string(), maxWatchDepth, copyFile));
-        } else if (videoConversion) {
-            task.reset(new FPETask(std::string("Video Conversion"), gWatchFolder.string(), maxWatchDepth, handBrake));
+        if (gFileCopy) {
+            task.reset(new FPETask(std::string("File Copy"), gWatchFolder.string(), gMaxWatchDepth, copyFile));
+        } else if (gVideoConversion) {
+            task.reset(new FPETask(std::string("Video Conversion"), gWatchFolder.string(), gMaxWatchDepth, handBrake));
         } else {
-            task.reset(new FPETask(std::string("Run Command"), gWatchFolder.string(), maxWatchDepth, runCommand));
+            task.reset(new FPETask(std::string("Run Command"), gWatchFolder.string(), gMaxWatchDepth, runCommand));
         }
         
         // Create task object thread and wait

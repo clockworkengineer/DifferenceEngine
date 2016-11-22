@@ -92,7 +92,7 @@ private:
 
     std::string  taskName;                                  // Task name
     std::string  watchFolder;                               // Watch Folder
-    int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder
+    int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder,1=next level down etc.
     int fdNotify;                                           // inotify file descriptor
     std::mutex fileNamesMutex;                              // Queue Mutex
     std::queue <std::string> fileNames;                     // Queue of path/file names

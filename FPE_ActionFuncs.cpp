@@ -32,11 +32,11 @@
 
 // Globals
 
-extern fs::path gWatchFolder;           // Watch Folder
-extern fs::path gDestinationFolder;     // Destination Folder for copies.
-extern std::string gHandbrakeCommand;   // Handbrake command
-extern std::string gRunCommand;         // Command to run
-
+extern fs::path gWatchFolder; // Watch Folder
+extern fs::path gDestinationFolder; // Destination Folder for copies.
+extern std::string gHandbrakeCommand; // Handbrake command
+extern std::string gCommandToRun; // Command to run
+extern bool gDeleteSource; // Delete source file
 //
 // Run a specified command on the file (%1% source, %2% destination)
 //
@@ -45,32 +45,36 @@ void runCommand(std::string filenamePathStr, std::string filenameStr) {
 
     fs::path sourceFile(filenamePathStr + filenameStr);
     fs::path destinationFile(gDestinationFolder.string());
- 
+
     try {
-     
+
         // Create destination file name
 
         destinationFile /= filenameStr;
 
         // Create correct command for whether source and destination specified or just source or none
 
-        bool srcFound=(gRunCommand.find("%1%")!=std::string::npos);
-        bool dstFound=(gRunCommand.find("%2%")!=std::string::npos);
+        bool srcFound = (gCommandToRun.find("%1%") != std::string::npos);
+        bool dstFound = (gCommandToRun.find("%2%") != std::string::npos);
 
         std::string command;
         if (srcFound && dstFound) {
-            command = (boost::format(gRunCommand) % sourceFile.string() % destinationFile.string()).str();
+            command = (boost::format(gCommandToRun) % sourceFile.string() % destinationFile.string()).str();
         } else if (srcFound) {
-            command = (boost::format(gRunCommand) % sourceFile.string()).str();
+            command = (boost::format(gCommandToRun) % sourceFile.string()).str();
         } else {
-            command = gRunCommand;
+            command = gCommandToRun;
         }
-        
+
         std::cout << command << std::endl;
 
         auto result = 0;
         if ((result = std::system(command.c_str())) == 0) {
             std::cout << "Command success." << std::endl;
+            if (gDeleteSource) {
+                std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
+                fs::remove(sourceFile);
+            }
         } else {
             std::cout << "Command error: " << result << std::endl;
         }
@@ -97,7 +101,7 @@ void handBrake(std::string filenamePathStr, std::string filenameStr) {
 
     fs::path sourceFile(filenamePathStr + filenameStr);
     fs::path destinationFile(gDestinationFolder.string());
- 
+
     try {
 
         // Create destination file name
@@ -114,6 +118,11 @@ void handBrake(std::string filenamePathStr, std::string filenameStr) {
         auto result = 0;
         if ((result = std::system(command.c_str())) == 0) {
             std::cout << "File conversion success." << std::endl;
+            if (gDeleteSource) {
+                std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
+                fs::remove(sourceFile);
+            }
+
         } else {
             std::cout << "File conversion error: " << result << std::endl;
         }
@@ -166,6 +175,11 @@ void copyFile(std::string filenamePathStr, std::string filenameStr) {
         if (!fs::exists(destinationPathStr)) {
             std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
             fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
+            if (gDeleteSource) {
+                std::cout << "DELETING SOURCE [" << filenamePathStr << "]" << std::endl;
+                fs::remove(filenamePathStr);
+            }
+
         } else {
             std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
         }
