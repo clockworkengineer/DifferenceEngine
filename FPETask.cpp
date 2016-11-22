@@ -47,38 +47,6 @@ const uint32_t FPETask::kInotifyEventSize = (sizeof (struct inotify_event));
 
 const uint32_t FPETask::kInotifyEventBuffLen = (1024 * (FPETask::kInotifyEventSize + 16));
 
-//
-// Task object constructor. Create watch directory and initialize variables.
-//
-
-FPETask::FPETask(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
-        void (*taskFcn)(std::string watchFolder, std::string filenameStr)) :
-        taskName{taskNameStr}, watchFolder{watchFolder}, taskProcessFcn{taskFcn}
-{
-
-    std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
-
-    if (!fs::exists(watchFolder)) {
-        std::cout << this->prefix() << "Watch Folder [" << watchFolder << "] DOES NOT EXIST." << std::endl;
-        if (fs::create_directory(watchFolder)) {
-            std::cout << this->prefix() << "Creating Watch Folder [" << watchFolder << "]" << std::endl;
-        }
-    }
-
-    std::cout << this->prefix() << "Watch Depth [" << maxWatchDepth << "]" << std::endl;    
-    
-    // Save away max watch depth and modify with watch folder depth value if not all (-1).
-    
-    this->maxWatchDepth = maxWatchDepth;
-    if (maxWatchDepth != -1) {
-        this->maxWatchDepth += FPETask::pathDepth(watchFolder);
-    }
-    
-    // All threads start working
-
-    this->doWork = true;
-
-}
 
 //
 // Destructor is private
@@ -89,6 +57,10 @@ FPETask::~FPETask() {
     std::cout << this->prefix() << "DESTRUCTOR CALLED." << std::endl;
 
 }
+
+//
+// PRIVATE METHODS
+//
 
 //
 // Count '/' to find directory depth
@@ -105,24 +77,6 @@ int FPETask::pathDepth(std::string pathStr) {
     
     return(i);
     
-}
-    
-
-//
-// Flag thread loops to stop. Folder watcher needs a push because of wait for read().
-// Also clean up any resources.
-//
-
-void FPETask::stop(void) {
-
-    std::cout << this->prefix() << "Stop task threads." << std::endl;
-
-    this->doWork = false;
-    if (fs::is_empty(this->watchFolder) || fs::exists(this->watchFolder)) {
-        std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
-    }
-    this->destroyWatchTable();
-
 }
 
 //
@@ -332,6 +286,62 @@ void FPETask::worker(void) {
     }
 
     std::cout << this->prefix() << "Worker thread stopped. " << std::endl;
+
+}
+
+//
+// PUBLIC METHODS
+//
+
+//
+// Task object constructor. 
+//
+
+FPETask::FPETask(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
+        void (*taskFcn)(std::string watchFolder, std::string filenameStr)) :
+        taskName{taskNameStr}, watchFolder{watchFolder}, taskProcessFcn{taskFcn}
+{
+
+    std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
+
+    // Create watch directory.
+
+    if (!fs::exists(watchFolder)) {
+        std::cout << this->prefix() << "Watch Folder [" << watchFolder << "] DOES NOT EXIST." << std::endl;
+        if (fs::create_directory(watchFolder)) {
+            std::cout << this->prefix() << "Creating Watch Folder [" << watchFolder << "]" << std::endl;
+        }
+    }
+
+    std::cout << this->prefix() << "Watch Depth [" << maxWatchDepth << "]" << std::endl;    
+    
+    // Save away max watch depth and modify with watch folder depth value if not all (-1).
+    
+    this->maxWatchDepth = maxWatchDepth;
+    if (maxWatchDepth != -1) {
+        this->maxWatchDepth += FPETask::pathDepth(watchFolder);
+    }
+    
+    // All threads start working
+
+    this->doWork = true;
+
+}
+
+//
+// Flag thread loops to stop. Folder watcher needs a push because of wait for read().
+// Also clean up any resources.
+//
+
+void FPETask::stop(void) {
+
+    std::cout << this->prefix() << "Stop task threads." << std::endl;
+
+    this->doWork = false;
+    if (fs::is_empty(this->watchFolder) || fs::exists(this->watchFolder)) {
+        std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
+    }
+    this->destroyWatchTable();
 
 }
 

@@ -32,6 +32,10 @@
 
 #include "FPETask.hpp" 
 
+// Task Action functions
+
+#include "FPE_ActionFuncs.hpp"
+
 // BOOST program options processing
 
 #include "boost/program_options.hpp" 
@@ -40,11 +44,17 @@ namespace po = boost::program_options;
 
 // Globals
 
-fs::path watchFolder;           // Watch Folder
-fs::path destinationFolder;     // Destination Folder for copies.
+fs::path gWatchFolder;           // Watch Folder
+fs::path gDestinationFolder;     // Destination Folder for copies.
+
+// Handbrake command and default command if --command specificed
+
+std::string gHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
+std::string gRunCommand = "echo %1%";
 
 bool fileCopy=false;            // Task file copy
 bool videoConversion=false;     // Task video conversion
+bool passCommand=false;         // Task perform command
 int  maxWatchDepth=-1;          // Depth to watch 0=all;
 
 // Command line exit status
@@ -53,100 +63,6 @@ namespace {
     const size_t ERROR_IN_COMMAND_LINE = 1;
     const size_t SUCCESS = 0;
     const size_t ERROR_UNHANDLED_EXCEPTION = 2;
-}
-
-//
-// Convert video file action function. Convert passed in file to MP4
-// using handbrakes "normal preset" to desination folder (--destination).
-//
-
-void handBrake(std::string filenamePathStr, std::string filenameStr) {
-  
-    fs::path sourceFile(filenamePathStr+filenameStr);
-    fs::path destinationFile(destinationFolder.string());
-
-    try {
-
-        // Create destination file name
-        
-        destinationFile /= sourceFile.stem().string();
-        destinationFile.replace_extension(".mp4");
- 
-        // Convert file
-        
-        std::string command = "/usr/local/bin/HandBrakeCLI -i " + sourceFile.string()+ " -o " + destinationFile.string() + " --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
-        
-        std::cout << command << std::endl;
-
-        auto  result=0;
-        if ((result = std::system(command.c_str()))==0) {
-            std::cout << "File conversion success." << std::endl;
-        } else {
-            std::cout << "File conversion error: " << result << std::endl;
-        }
-        
-    //
-    // Catch any errors locally and report so that thread keeps running.
-    //   
-        
-   } catch (const fs::filesystem_error & e) {
-        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
-    } catch (std::exception & e) {
-        std::cerr << "STL exception occured: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << "unknown exception occured" << std::endl;
-    }
-
-}
-
-// Copy file action function. Copy passed file to destination folder/directory 
-// keeping the sources directory structure.
-
-void copyFile(std::string filenamePathStr, std::string filenameStr) {
-
-    // Destination file path += ("filename path" - "watch folder path")
-    
-    std::string destinationPathStr(destinationFolder.string() + 
-                filenamePathStr.substr((watchFolder.string()).length()));
-
-    try {
-
-        // Construct full destination path if needed
-        
-        if (!fs::exists(destinationPathStr)) {
-            if (fs::create_directories(destinationPathStr)) {
-                std::cout << "CREATED :" + destinationPathStr << std::endl;
-            } else {
-                std::cerr << "CREATED FAILED FOR :" + destinationPathStr << std::endl;
-            }
-        }
-
-        // Add filename to source and destination paths
-        
-        filenamePathStr += filenameStr;
-        destinationPathStr += filenameStr;
-
-        // Currently only copy file if it doesn't already exist.
-        
-        if (!fs::exists(destinationPathStr)) {
-           std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
-           fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
-        } else {
-            std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
-        }
-        
-    //
-    // Catch any errors locally and report so that thread keeps running.
-    // 
-        
-   } catch (const fs::filesystem_error & e) {
-        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
-    } catch (std::exception & e) {
-        std::cerr << "STL exception occured: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << "unknown exception occured" << std::endl;
-    }
-
 }
 
 //
@@ -162,15 +78,18 @@ int main(int argc, char** argv) {
         po::options_description desc("Options");
         desc.add_options()
                 ("help", "Print help messages")
-                ("watch,w", po::value<fs::path>(&watchFolder)->required(), "Watch Folder")
-                ("destination,d", po::value<fs::path>(&destinationFolder)->required(), "Destination Folder")
+                ("watch,w", po::value<fs::path>(&gWatchFolder)->required(), "Watch Folder")
+                ("destination,d", po::value<fs::path>(&gDestinationFolder)->required(), "Destination Folder")
                 ("maxdepth", po::value<int>(&maxWatchDepth), "Maximum Watch Depth")
                 ("copy", "File Copy Watcher")
-                ("video", "Video Conversion Watcher");
+                ("video", "Video Conversion Watcher")
+                ("command", po::value<std::string>(&gRunCommand), "Command To Perform");
 
         po::variables_map vm;
 
         try {
+            
+            // Process arguments
 
             po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -193,11 +112,17 @@ int main(int argc, char** argv) {
             if (vm.count("video")) {
                 videoConversion=true;
             }
+
+            // Run command on watched files
             
-            // Default to copy
+            if (vm.count("command")) {
+                passCommand=true;
+             }
+            
+            // Default to command
             
             if (!fileCopy && !videoConversion) {
-                fileCopy=true;
+                passCommand=true;
             }
    
             po::notify(vm);
@@ -221,16 +146,22 @@ int main(int argc, char** argv) {
 
        // Make watch/destination paths absolute
         
-        watchFolder = fs::absolute(watchFolder);
-        destinationFolder = fs::absolute(destinationFolder);
+        gWatchFolder = fs::absolute(gWatchFolder);
+        gDestinationFolder = fs::absolute(gDestinationFolder);
 
+        // --video with --command override Handbrake video conversion for passed command
+        
+        if (videoConversion && passCommand) {
+             gHandbrakeCommand = gRunCommand;
+        }
+  
         // Create destination folder for task
         
-        if (!fs::exists(destinationFolder)) {
-            std::cout << "Destination Folder " << destinationFolder << " DOES NOT EXIST." << std::endl;
+        if (!fs::exists(gDestinationFolder)) {
+            std::cout << "Destination Folder " << gDestinationFolder << " DOES NOT EXIST." << std::endl;
 
-            if (fs::create_directory(destinationFolder)) {
-                std::cout << "Creating Destination Folder " << destinationFolder << std::endl;
+            if (fs::create_directory(gDestinationFolder)) {
+                std::cout << "Creating Destination Folder " << gDestinationFolder << std::endl;
             }
         }
    
@@ -239,9 +170,11 @@ int main(int argc, char** argv) {
         std::shared_ptr<FPETask> task;
         
         if (fileCopy) {
-            task.reset(new FPETask(std::string("File Copy"), watchFolder.string(), maxWatchDepth, copyFile));
+            task.reset(new FPETask(std::string("File Copy"), gWatchFolder.string(), maxWatchDepth, copyFile));
+        } else if (videoConversion) {
+            task.reset(new FPETask(std::string("Video Conversion"), gWatchFolder.string(), maxWatchDepth, handBrake));
         } else {
-            task.reset(new FPETask(std::string("Video Conversion"), watchFolder.string(), maxWatchDepth, handBrake));
+            task.reset(new FPETask(std::string("Run Command"), gWatchFolder.string(), maxWatchDepth, runCommand));
         }
         
         // Create task object thread and wait
