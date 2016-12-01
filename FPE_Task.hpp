@@ -62,8 +62,8 @@ public:
             int maxWatchDepth,                             // Maximum watch depth -1= all, 0=just watch folder
             void (*taskFcn)(std::string filenamePathStr,   // Task file process function
                             std::string filenameStr, 
-                            void *fnData), 
-            void* fnData);
+                            std::shared_ptr<void>fnData), 
+            std::shared_ptr<void> fnData);
             
 
 
@@ -104,8 +104,8 @@ private:
     std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
     void (*taskProcessFcn)(std::string filenamePathStr,     // Task file process function 
                            std::string filenameStr,
-                           void*fnData);
-    void* fnData;
+                           std::shared_ptr<void> fnData);
+    std::shared_ptr<void> fnData;
 
     static const uint32_t kInofityEvents;       // inotify events to monitor
     static const uint32_t kInotifyEventSize;    // inotify read event size

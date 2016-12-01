@@ -38,9 +38,9 @@ struct ActFnData {
     bool         bDeleteSource;      // Delete source file
 };
 
-void handBrake(std::string filenamePathStr, std::string filenameStr, void *fnData);
-void copyFile(std::string filenamePathStr, std::string filenameStr, void *fnData);
-void runCommand(std::string filenamePathStr, std::string filenameStr, void *fnData);
+void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
+void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
+void runCommand(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
 
 #endif /* FPE_ACTIONFUNCS_HPP */
 

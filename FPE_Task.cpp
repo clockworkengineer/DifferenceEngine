@@ -298,7 +298,7 @@ void FPETask::worker(void) {
 //
 
 FPETask::FPETask(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
-        void (*taskFcn)(std::string watchFolder, std::string filenameStr, void* fnData), void*fnData) :
+        void (*taskFcn)(std::string watchFolder, std::string filenameStr, std::shared_ptr<void>fnData), std::shared_ptr<void> fnData) :
         taskName{taskNameStr}, watchFolder{watchFolder}, taskProcessFcn{taskFcn}, fnData {fnData}
 {
 

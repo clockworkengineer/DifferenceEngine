@@ -40,10 +40,10 @@
 // Run a specified command on the file (%1% source, %2% destination)
 //
 
-void runCommand(std::string filenamePathStr, std::string filenameStr, void *fnData) {
+void runCommand(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void>fnData) {
 
-    ActFnData *funcData=static_cast< ActFnData *> (fnData);
-
+    ActFnData *funcData=static_cast<ActFnData *> (fnData.get());
+   
     fs::path sourceFile(filenamePathStr + filenameStr);
     fs::path destinationFile(funcData->destinationFolder.string());
     
@@ -98,9 +98,9 @@ void runCommand(std::string filenamePathStr, std::string filenameStr, void *fnDa
 // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
 //
 
-void handBrake(std::string filenamePathStr, std::string filenameStr, void *fnData) {
+void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
 
-    ActFnData *funcData=static_cast< ActFnData *> (fnData);
+     ActFnData *funcData=static_cast<ActFnData *> (fnData.get());
        
     fs::path sourceFile(filenamePathStr + filenameStr);
     fs::path destinationFile(funcData->destinationFolder.string());
@@ -150,10 +150,10 @@ void handBrake(std::string filenamePathStr, std::string filenameStr, void *fnDat
 // keeping the sources directory structure.
 //
 
-void copyFile(std::string filenamePathStr, std::string filenameStr, void *fnData) {
+void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
 
 
-    ActFnData *funcData=static_cast< ActFnData *> (fnData);
+     ActFnData *funcData=static_cast<ActFnData *> (fnData.get());
     
     // Destination file path += ("filename path" - "watch folder path")
     

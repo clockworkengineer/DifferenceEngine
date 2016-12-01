@@ -40,23 +40,15 @@
 
 #include "FPE_ProcCmdLine.hpp"
 
-// Contants
-
-// Handbrake command and default command if --command not specified
-
-const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
-const std::string kCommandToRun = "echo %1%";
-
-
 //
 // Create task and run in thread.
 //
 
-void createTaskAndActivate( std::string taskName, std::string watchFolder, int watchDepth, void (*taskFcn)(std::string, std::string, void *data), void *fcnData) {
+void createTaskAndActivate( std::string taskName, std::string watchFolder, int watchDepth, void (*taskFcn)(std::string, std::string, std::shared_ptr<void> fnData), std::shared_ptr<void> fnData) {
 
     // Create task object
 
-    FPETask task(taskName, watchFolder, watchDepth, taskFcn, fcnData);
+    FPETask task(taskName, watchFolder, watchDepth, taskFcn, fnData);
  
     // Create task object thread and wait
 
@@ -79,7 +71,8 @@ int main(int argc, char** argv) {
 
         ParamArgData argData;
         ActFnData   *fcnData = new ActFnData();
-        
+        std::shared_ptr<void> fnData(fcnData);
+     
         // Process FPE command line arguments.
     
         procCmdLine(argc, argv, argData);
@@ -106,17 +99,7 @@ int main(int argc, char** argv) {
         
         fcnData->watchFolder = fs::absolute(fcnData->watchFolder);
         fcnData->destinationFolder = fs::absolute(fcnData->destinationFolder);
-
-        // --video with --command override Handbrake video conversion for passed command
-
-        if (!argData.bRunCommand) {
-            if (argData.bVideoConversion) {
-                fcnData->commandToRun = kHandbrakeCommand;
-            } else {
-                fcnData->commandToRun = kCommandToRun;
-            }
-        }
-        
+    
         // Create destination folder for task
         
         if (!fs::exists(fcnData->destinationFolder)) {
@@ -130,11 +113,11 @@ int main(int argc, char** argv) {
         // Create task object
 
         if (argData.bFileCopy) {
-            createTaskAndActivate(std::string("File Copy"), fcnData->watchFolder.string(), argData.maxWatchDepth, copyFile, static_cast<void*>(fcnData));
+            createTaskAndActivate(std::string("File Copy"), fcnData->watchFolder.string(), argData.maxWatchDepth, copyFile, fnData);
         } else if (argData.bVideoConversion) {
-            createTaskAndActivate(std::string("Video Conversion"), fcnData->watchFolder.string(), argData.maxWatchDepth, handBrake, static_cast<void*>(fcnData));
+            createTaskAndActivate(std::string("Video Conversion"), fcnData->watchFolder.string(), argData.maxWatchDepth, handBrake, fnData);
         } else {
-            createTaskAndActivate(std::string("Run Command"), fcnData->watchFolder.string(), argData.maxWatchDepth, runCommand, static_cast<void*>(fcnData));
+            createTaskAndActivate(std::string("Run Command"), fcnData->watchFolder.string(), argData.maxWatchDepth, runCommand, fnData);
         }
         
         

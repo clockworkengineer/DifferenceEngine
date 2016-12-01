@@ -42,6 +42,14 @@
 
 namespace po = boost::program_options;
 
+// Constants
+
+// Handbrake command and default command if --command not specified
+
+const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
+const std::string kCommandToRun = "echo %1%";
+
+
 //
 // Read in and process command line arguments using boost.
 //
@@ -54,7 +62,7 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
         argData.bFileCopy = false;
         argData.bVideoConversion = false;
         argData.bRunCommand = false;
-        argData.maxWatchDepth - 1;
+        argData.maxWatchDepth = -1;
         argData.bDeleteSource = false;
 
         // Define and parse the program options
@@ -117,6 +125,16 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
             }
    
             po::notify(vm);
+
+            // --video with --command override Handbrake video conversion for passed command
+            
+            if (!argData.bRunCommand) {
+                if (argData.bVideoConversion) {
+                    argData.commandToRun = kHandbrakeCommand;
+                } else {
+                    argData.commandToRun = kCommandToRun;
+                }
+            }
 
         } catch (po::error& e) {
             std::cerr << "FPE Error: " << e.what() << std::endl << std::endl;
