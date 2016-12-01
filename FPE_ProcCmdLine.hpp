@@ -1,5 +1,5 @@
 /*
- * File:   FPE_ActionFuncs.cpp
+ * File:   FPE_ProcCmdLine.hpp
  * 
  * Author: Robert Tizzard
  *
@@ -28,19 +28,34 @@
  * THE SOFTWARE.
  */
 
-#ifndef FPE_ACTIONFUNCS_HPP
-#define FPE_ACTIONFUNCS_HPP
+#ifndef FPE_PROCCMDLINE_HPP
+#define FPE_PROCCMDLINE_HPP
 
-struct ActFnData {
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+
+namespace fs = boost::filesystem;
+
+struct ParamArgData {
     fs::path     watchFolder;        // Watch Folder
     fs::path     destinationFolder;  // Destination Folder for copies.
     std::string  commandToRun;       // Command to run
+    bool         bFileCopy;          // Task file copy
+    bool         bVideoConversion;   // Task video conversion
+    bool         bRunCommand;        // Task perform command
+    int          maxWatchDepth;     // Watch depth -1=all,0=just watch folder,1=next level down etc.
     bool         bDeleteSource;      // Delete source file
 };
 
-void handBrake(std::string filenamePathStr, std::string filenameStr, void *fnData);
-void copyFile(std::string filenamePathStr, std::string filenameStr, void *fnData);
-void runCommand(std::string filenamePathStr, std::string filenameStr, void *fnData);
+// Command line exit status
 
-#endif /* FPE_ACTIONFUNCS_HPP */
+namespace { 
+    const size_t ERROR_IN_COMMAND_LINE = 1;
+    const size_t SUCCESS = 0;
+    const size_t ERROR_UNHANDLED_EXCEPTION = 2;
+}
+
+void procCmdLine (int argc, char** argv, ParamArgData &argData);
+
+#endif /* FPE_PROCCMDLINE_HPP */
 

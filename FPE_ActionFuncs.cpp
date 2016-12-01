@@ -28,24 +28,25 @@
  * THE SOFTWARE.
  */
 
-#include "FPETask.hpp" 
+// Task class
 
-// Globals
+#include "FPE_Task.hpp" 
 
-extern fs::path gWatchFolder; // Watch Folder
-extern fs::path gDestinationFolder; // Destination Folder for copies.
-extern std::string gHandbrakeCommand; // Handbrake command
-extern std::string gCommandToRun; // Command to run
-extern bool gDeleteSource; // Delete source file
+// Task Action functions
+
+#include "FPE_ActionFuncs.hpp"
+
 //
 // Run a specified command on the file (%1% source, %2% destination)
 //
 
-void runCommand(std::string filenamePathStr, std::string filenameStr) {
+void runCommand(std::string filenamePathStr, std::string filenameStr, void *fnData) {
+
+    ActFnData *funcData=static_cast< ActFnData *> (fnData);
 
     fs::path sourceFile(filenamePathStr + filenameStr);
-    fs::path destinationFile(gDestinationFolder.string());
-
+    fs::path destinationFile(funcData->destinationFolder.string());
+    
     try {
 
         // Create destination file name
@@ -54,16 +55,16 @@ void runCommand(std::string filenamePathStr, std::string filenameStr) {
 
         // Create correct command for whether source and destination specified or just source or none
 
-        bool srcFound = (gCommandToRun.find("%1%") != std::string::npos);
-        bool dstFound = (gCommandToRun.find("%2%") != std::string::npos);
+        bool srcFound = (funcData->commandToRun.find("%1%") != std::string::npos);
+        bool dstFound = (funcData->commandToRun.find("%2%") != std::string::npos);
 
         std::string command;
         if (srcFound && dstFound) {
-            command = (boost::format(gCommandToRun) % sourceFile.string() % destinationFile.string()).str();
+            command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
         } else if (srcFound) {
-            command = (boost::format(gCommandToRun) % sourceFile.string()).str();
+            command = (boost::format(funcData->commandToRun) % sourceFile.string()).str();
         } else {
-            command = gCommandToRun;
+            command = funcData->commandToRun;
         }
 
         std::cout << command << std::endl;
@@ -71,7 +72,7 @@ void runCommand(std::string filenamePathStr, std::string filenameStr) {
         auto result = 0;
         if ((result = std::system(command.c_str())) == 0) {
             std::cout << "Command success." << std::endl;
-            if (gDeleteSource) {
+            if (funcData->bDeleteSource) {
                 std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
                 fs::remove(sourceFile);
             }
@@ -79,9 +80,9 @@ void runCommand(std::string filenamePathStr, std::string filenameStr) {
             std::cout << "Command error: " << result << std::endl;
         }
 
-        //
-        // Catch any errors locally and report so that thread keeps running.
-        //   
+    //
+    // Catch any errors locally and report so that thread keeps running.
+    //   
 
     } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
@@ -97,10 +98,13 @@ void runCommand(std::string filenamePathStr, std::string filenameStr) {
 // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
 //
 
-void handBrake(std::string filenamePathStr, std::string filenameStr) {
+void handBrake(std::string filenamePathStr, std::string filenameStr, void *fnData) {
 
+    ActFnData *funcData=static_cast< ActFnData *> (fnData);
+       
     fs::path sourceFile(filenamePathStr + filenameStr);
-    fs::path destinationFile(gDestinationFolder.string());
+    fs::path destinationFile(funcData->destinationFolder.string());
+ 
 
     try {
 
@@ -111,14 +115,14 @@ void handBrake(std::string filenamePathStr, std::string filenameStr) {
 
         // Convert file
 
-        std::string command = (boost::format(gHandbrakeCommand) % sourceFile.string() % destinationFile.string()).str();
+        std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
 
         std::cout << command << std::endl;
 
         auto result = 0;
         if ((result = std::system(command.c_str())) == 0) {
             std::cout << "File conversion success." << std::endl;
-            if (gDeleteSource) {
+            if (funcData->bDeleteSource) {
                 std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
                 fs::remove(sourceFile);
             }
@@ -127,9 +131,9 @@ void handBrake(std::string filenamePathStr, std::string filenameStr) {
             std::cout << "File conversion error: " << result << std::endl;
         }
 
-        //
-        // Catch any errors locally and report so that thread keeps running.
-        //   
+    //
+    // Catch any errors locally and report so that thread keeps running.
+    //   
 
     } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
@@ -146,13 +150,17 @@ void handBrake(std::string filenamePathStr, std::string filenameStr) {
 // keeping the sources directory structure.
 //
 
-void copyFile(std::string filenamePathStr, std::string filenameStr) {
+void copyFile(std::string filenamePathStr, std::string filenameStr, void *fnData) {
 
+
+    ActFnData *funcData=static_cast< ActFnData *> (fnData);
+    
     // Destination file path += ("filename path" - "watch folder path")
+    
+    std::string destinationPathStr(funcData->destinationFolder.string() +
+            filenamePathStr.substr((funcData->watchFolder.string()).length()));
 
-    std::string destinationPathStr(gDestinationFolder.string() +
-            filenamePathStr.substr((gWatchFolder.string()).length()));
-
+    
     try {
 
         // Construct full destination path if needed
@@ -175,7 +183,7 @@ void copyFile(std::string filenamePathStr, std::string filenameStr) {
         if (!fs::exists(destinationPathStr)) {
             std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
             fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
-            if (gDeleteSource) {
+            if (funcData->bDeleteSource) {
                 std::cout << "DELETING SOURCE [" << filenamePathStr << "]" << std::endl;
                 fs::remove(filenamePathStr);
             }
@@ -184,9 +192,9 @@ void copyFile(std::string filenamePathStr, std::string filenameStr) {
             std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
         }
 
-        //
-        // Catch any errors locally and report so that thread keeps running.
-        // 
+    //
+    // Catch any errors locally and report so that thread keeps running.
+    // 
 
     } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
