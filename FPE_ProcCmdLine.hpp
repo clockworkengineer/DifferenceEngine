@@ -31,10 +31,14 @@
 #ifndef FPE_PROCCMDLINE_HPP
 #define FPE_PROCCMDLINE_HPP
 
+// Boost file system and format libraries definitions
+
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 namespace fs = boost::filesystem;
+
+// Command line parameter data
 
 struct ParamArgData {
     fs::path     watchFolder;        // Watch Folder
@@ -43,7 +47,7 @@ struct ParamArgData {
     bool         bFileCopy;          // Task file copy
     bool         bVideoConversion;   // Task video conversion
     bool         bRunCommand;        // Task perform command
-    int          maxWatchDepth;     // Watch depth -1=all,0=just watch folder,1=next level down etc.
+    int          maxWatchDepth;      // Watch depth -1=all,0=just watch folder,1=next level down etc.
     bool         bDeleteSource;      // Delete source file
 };
 

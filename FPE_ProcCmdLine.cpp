@@ -42,19 +42,16 @@
 
 namespace po = boost::program_options;
 
-// Constants
-
 // Handbrake command and default command if --command not specified
 
 const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
 const std::string kCommandToRun = "echo %1%";
 
-
 //
 // Read in and process command line arguments using boost.
 //
 
-void procCmdLine (int argc, char** argv, ParamArgData &argData) {
+void procCmdLine (int argc, char** argv, ParamArgData& argData) {
     
         // Default values
     
@@ -136,6 +133,11 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
                 }
             }
 
+            // Make watch/destination paths absolute
+        
+            argData.watchFolder = fs::absolute(argData.watchFolder);
+            argData.destinationFolder = fs::absolute(argData.destinationFolder);
+  
         } catch (po::error& e) {
             std::cerr << "FPE Error: " << e.what() << std::endl << std::endl;
             std::cerr << desc << std::endl;

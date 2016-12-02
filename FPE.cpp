@@ -46,15 +46,20 @@
 
 void createTaskAndActivate( std::string taskName, std::string watchFolder, int watchDepth, void (*taskFcn)(std::string, std::string, std::shared_ptr<void> fnData), std::shared_ptr<void> fnData) {
 
+    // ASSERT if pointer parameters NULL
+    
+    assert(taskFcn!=nullptr);
+    assert(fnData!=nullptr);
+
     // Create task object
 
-    FPETask task(taskName, watchFolder, watchDepth, taskFcn, fnData);
+    FPE_Task task(taskName, watchFolder, watchDepth, taskFcn, fnData);
  
-    // Create task object thread and wait
+    // Create task object thread and start to watch
 
     std::unique_ptr<std::thread> taskThread;
 
-    taskThread.reset(new std::thread(&FPETask::monitor, &task));
+    taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
 
     taskThread->join();
 
@@ -68,22 +73,13 @@ int main(int argc, char** argv) {
 
     
     try {
-
-        ParamArgData argData;
-        ActFnData   *fcnData = new ActFnData();
-        std::shared_ptr<void> fnData(fcnData);
-     
+           
         // Process FPE command line arguments.
-    
-        procCmdLine(argc, argv, argData);
-
-        // Copy relevant data from command line structure to task function data
-        
-        fcnData->watchFolder = argData.watchFolder;
-        fcnData->destinationFolder = argData.destinationFolder;
-        fcnData->bDeleteSource = argData.bDeleteSource;
-        fcnData->commandToRun = argData.commandToRun;
-        
+  
+        ParamArgData argData;
+   
+        procCmdLine(argc, argv, argData);  
+  
         // FPE up and running
         
         std::cout << "FPE Running..." << std::endl;
@@ -94,30 +90,35 @@ int main(int argc, char** argv) {
                 << BOOST_VERSION / 100 % 1000 << "." // minor version
                 << BOOST_VERSION % 100 // patch level
                 << std::endl;
-
-       // Make watch/destination paths absolute
-        
-        fcnData->watchFolder = fs::absolute(fcnData->watchFolder);
-        fcnData->destinationFolder = fs::absolute(fcnData->destinationFolder);
-    
+  
         // Create destination folder for task
         
-        if (!fs::exists(fcnData->destinationFolder)) {
-            std::cout << "Destination Folder " << fcnData->destinationFolder << " DOES NOT EXIST." << std::endl;
+        if (!fs::exists(argData.destinationFolder)) {
+            std::cout << "Destination Folder " << argData.destinationFolder << " DOES NOT EXIST." << std::endl;
 
-            if (fs::create_directory(fcnData->destinationFolder)) {
-                std::cout << "Creating Destination Folder " << fcnData->destinationFolder << std::endl;
+            if (fs::create_directory(argData.destinationFolder)) {
+                std::cout << "Creating Destination Folder " << argData.destinationFolder << std::endl;
             }
         }
    
+        // Signal source will be deleted on success
+        
+        if (argData.bDeleteSource) {
+            std::cout << "*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***" << std::endl;
+        }
+    
+       // Create function data (wrap in void shared pointer for passing to task).
+
+        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, argData.destinationFolder, argData.commandToRun, argData.bDeleteSource});
+ 
         // Create task object
 
         if (argData.bFileCopy) {
-            createTaskAndActivate(std::string("File Copy"), fcnData->watchFolder.string(), argData.maxWatchDepth, copyFile, fnData);
+            createTaskAndActivate(std::string("File Copy"), argData.watchFolder.string(), argData.maxWatchDepth, copyFile, fnData);
         } else if (argData.bVideoConversion) {
-            createTaskAndActivate(std::string("Video Conversion"), fcnData->watchFolder.string(), argData.maxWatchDepth, handBrake, fnData);
+            createTaskAndActivate(std::string("Video Conversion"), argData.watchFolder.string(), argData.maxWatchDepth, handBrake, fnData);
         } else {
-            createTaskAndActivate(std::string("Run Command"), fcnData->watchFolder.string(), argData.maxWatchDepth, runCommand, fnData);
+            createTaskAndActivate(std::string("Run Command"), argData.watchFolder.string(), argData.maxWatchDepth, runCommand, fnData);
         }
         
         

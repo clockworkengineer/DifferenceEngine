@@ -36,23 +36,23 @@
 
 // inotify events to recieve
 
-const uint32_t FPETask::kInofityEvents = IN_ACCESS | IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
+const uint32_t FPE_Task::kInofityEvents = IN_ACCESS | IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
         IN_DELETE_SELF | IN_CLOSE_WRITE | IN_MOVED_TO;
 
 // inotify event structure size
 
-const uint32_t FPETask::kInotifyEventSize = (sizeof (struct inotify_event));
+const uint32_t FPE_Task::kInotifyEventSize = (sizeof (struct inotify_event));
 
 // inotify event read buffer size
 
-const uint32_t FPETask::kInotifyEventBuffLen = (1024 * (FPETask::kInotifyEventSize + 16));
+const uint32_t FPE_Task::kInotifyEventBuffLen = (1024 * (FPE_Task::kInotifyEventSize + 16));
 
 
 //
 // Destructor is private
 //
 
-FPETask::~FPETask() {
+FPE_Task::~FPE_Task() {
 
     std::cout << this->prefix() << "DESTRUCTOR CALLED." << std::endl;
 
@@ -66,7 +66,7 @@ FPETask::~FPETask() {
 // Count '/' to find directory depth
 //
 
-int FPETask::pathDepth(std::string pathStr) {
+int FPE_Task::pathDepth(std::string pathStr) {
 
     auto i = 0;
     auto pos = pathStr.find("/");
@@ -83,7 +83,7 @@ int FPETask::pathDepth(std::string pathStr) {
 // Prefix string for any task logging.
 //
 
-std::string FPETask::prefix(void) {
+std::string FPE_Task::prefix(void) {
 
     return ("TASK [" + this->taskName + "] ");
 
@@ -93,7 +93,7 @@ std::string FPETask::prefix(void) {
 // Clean up inotifier plus its watch variables and clear watch maps.
 //
 
-void FPETask::destroyWatchTable(void) {
+void FPE_Task::destroyWatchTable(void) {
 
     for (auto it = this->watchMap.begin(); it != this->watchMap.end(); ++it) {
         if (inotify_rm_watch(this->fdNotify, it->first) == -1) {
@@ -119,19 +119,19 @@ void FPETask::destroyWatchTable(void) {
 // Create a inotify watch for the passed in path.
 //
 
-void FPETask::addWatchPath(std::string pathStr) {
+void FPE_Task::addWatchPath(std::string pathStr) {
 
     int watch;
 
     // Deeper than max watch depth so ignore.
     
-    if ((this->maxWatchDepth != -1) && (FPETask::pathDepth(pathStr) > this->maxWatchDepth)) {
+    if ((this->maxWatchDepth != -1) && (FPE_Task::pathDepth(pathStr) > this->maxWatchDepth)) {
         return;
     }
     
     // Add watch
     
-    if ((watch = inotify_add_watch(this->fdNotify, pathStr.c_str(), FPETask::kInofityEvents)) == -1) {
+    if ((watch = inotify_add_watch(this->fdNotify, pathStr.c_str(), FPE_Task::kInofityEvents)) == -1) {
         std::stringstream errStream;
         errStream << "inotify_add_watch() error:  " << errno;
         throw std::runtime_error(errStream.str());
@@ -150,7 +150,7 @@ void FPETask::addWatchPath(std::string pathStr) {
 // Initialize inotify and add watches for any existing directory structure.
 //
 
-void FPETask::createWatchTable(void) {
+void FPE_Task::createWatchTable(void) {
 
     // Initialize inotify 
     
@@ -177,8 +177,12 @@ void FPETask::createWatchTable(void) {
 // Add watch for newly added directory
 //
 
-void FPETask::addWatch(struct inotify_event *event) {
+void FPE_Task::addWatch(struct inotify_event *event) {
 
+    // ASSERT if event pointer NULL
+    
+    assert(event!=nullptr);
+    
     std::string filename = event->name;
     std::string pathStr = this->watchMap[event->wd] + filename + "/";
 
@@ -190,9 +194,13 @@ void FPETask::addWatch(struct inotify_event *event) {
 //  Remove watch for deleted or moved directory
 //
 
-void FPETask::removeWatch(struct inotify_event *event) {
+void FPE_Task::removeWatch(struct inotify_event *event) {
 
     try {
+        
+        // ASSERT if event pointer NULL
+    
+        assert(event!=nullptr);
 
         std::string filename = (event->len) ? event->name : "";
         std::string pathStr = this->watchMap[event->wd];
@@ -244,9 +252,9 @@ void FPETask::removeWatch(struct inotify_event *event) {
 // loop is controlled by atomic bool doWork flag.
 //
 
-void FPETask::worker(void) {
+void FPE_Task::worker(void) {
 
-    bool filesToProcess;
+    bool bFilesToProcess ;
     std::string filenamePathStr;
     std::string filenameStr;
 
@@ -254,23 +262,23 @@ void FPETask::worker(void) {
 
     try {
 
-        while (this->doWork.load()) {
+        while (this->bDoWork.load()) {
 
             do {
                 do {
                     std::lock_guard<std::mutex> guard(this->fileNamesMutex);
-                    filesToProcess = !this->fileNames.empty();
-                    if (filesToProcess) {
+                    bFilesToProcess = !this->fileNames.empty();
+                    if (bFilesToProcess) {
                         filenamePathStr = this->fileNames.front();
                         this->fileNames.pop();
                         filenameStr = this->fileNames.front();
                         this->fileNames.pop();
                     }
                 } while (false); // lock guard out of scope so mutex off
-                if (filesToProcess) {
+                if (bFilesToProcess)  {
                     this->taskProcessFcn(filenamePathStr, filenameStr, this->fnData);
                 }
-            } while (filesToProcess);
+            } while (bFilesToProcess);
 
             std::this_thread::sleep_for(std::chrono::seconds(1)); // This works better than yield
 
@@ -297,10 +305,15 @@ void FPETask::worker(void) {
 // Task object constructor. 
 //
 
-FPETask::FPETask(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
+FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
         void (*taskFcn)(std::string watchFolder, std::string filenameStr, std::shared_ptr<void>fnData), std::shared_ptr<void> fnData) :
         taskName{taskNameStr}, watchFolder{watchFolder}, taskProcessFcn{taskFcn}, fnData {fnData}
 {
+
+   // ASSERT if passed psrameter pointers NULL
+
+    assert(taskFcn!=nullptr);
+    assert(fnData!=nullptr);
 
     std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
 
@@ -319,12 +332,12 @@ FPETask::FPETask(std::string taskNameStr, std::string watchFolder, int maxWatchD
     
     this->maxWatchDepth = maxWatchDepth;
     if (maxWatchDepth != -1) {
-        this->maxWatchDepth += FPETask::pathDepth(watchFolder);
+        this->maxWatchDepth += FPE_Task::pathDepth(watchFolder);
     }
     
     // All threads start working
 
-    this->doWork = true;
+    this->bDoWork = true;
 
 }
 
@@ -333,11 +346,11 @@ FPETask::FPETask(std::string taskNameStr, std::string watchFolder, int maxWatchD
 // Also clean up any resources.
 //
 
-void FPETask::stop(void) {
+void FPE_Task::stop(void) {
 
     std::cout << this->prefix() << "Stop task threads." << std::endl;
 
-    this->doWork = false;
+    this->bDoWork = false;
     if (fs::is_empty(this->watchFolder) || fs::exists(this->watchFolder)) {
         std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
     }
@@ -350,27 +363,27 @@ void FPETask::stop(void) {
 // and also activate task processing for any non-directory file added.
 //
 
-void FPETask::monitor(void) {
+void FPE_Task::monitor(void) {
 
-    std::uint8_t buffer[FPETask::kInotifyEventBuffLen];
+    std::uint8_t buffer[FPE_Task::kInotifyEventBuffLen];
 
     std::thread::id this_id = std::this_thread::get_id();
 
-    std::cout << this->prefix() << "FPETask Monitor on Thread started [" << this_id << "]" << std::endl;
+    std::cout << this->prefix() << "FPE_Task Monitor on Thread started [" << this_id << "]" << std::endl;
 
     try {
 
         this->createWatchTable();
 
-        this->doWork = true;
-        this->workerThread.reset(new std::thread(&FPETask::worker, this));
+        this->bDoWork = true;
+        this->workerThread.reset(new std::thread(&FPE_Task::worker, this));
         this->workerThread->detach();
 
-        while (this->doWork.load()) {
+        while (this->bDoWork.load()) {
 
             int readLen, currentPos = 0;
 
-            if ((readLen = read(this->fdNotify, buffer, FPETask::kInotifyEventBuffLen)) == -1) {
+            if ((readLen = read(this->fdNotify, buffer, FPE_Task::kInotifyEventBuffLen)) == -1) {
                 std::stringstream errStream;
                 errStream << "inotify read() error: " << errno;
                 throw std::runtime_error(errStream.str());
@@ -399,7 +412,7 @@ void FPETask::monitor(void) {
 
                 }
 
-                currentPos += FPETask::kInotifyEventSize + event->len;
+                currentPos += FPE_Task::kInotifyEventSize + event->len;
 
             }
         }
@@ -414,6 +427,6 @@ void FPETask::monitor(void) {
         std::cerr << this->prefix() << "unknown exception occured" << std::endl;
     }
 
-    std::cout << this->prefix() << "FPETask Monitor on Thread stopped." << std::endl;
+    std::cout << this->prefix() << "FPE_Task Monitor on Thread stopped." << std::endl;
 
 }

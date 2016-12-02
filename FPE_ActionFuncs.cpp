@@ -42,11 +42,15 @@
 
 void runCommand(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void>fnData) {
 
-    ActFnData *funcData=static_cast<ActFnData *> (fnData.get());
-   
+    // ASSERT if passed in pointers are NULL
+
+    assert(fnData != nullptr);
+    ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+    assert(funcData != nullptr);
+
     fs::path sourceFile(filenamePathStr + filenameStr);
     fs::path destinationFile(funcData->destinationFolder.string());
-    
+
     try {
 
         // Create destination file name
@@ -80,9 +84,9 @@ void runCommand(std::string filenamePathStr, std::string filenameStr, std::share
             std::cout << "Command error: " << result << std::endl;
         }
 
-    //
-    // Catch any errors locally and report so that thread keeps running.
-    //   
+        //
+        // Catch any errors locally and report so that thread keeps running.
+        //   
 
     } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
@@ -100,11 +104,14 @@ void runCommand(std::string filenamePathStr, std::string filenameStr, std::share
 
 void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
 
-     ActFnData *funcData=static_cast<ActFnData *> (fnData.get());
-       
+    // ASSERT if passed in pointers are NULL
+
+    assert(fnData != nullptr);
+    ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+    assert(funcData != nullptr);
+
     fs::path sourceFile(filenamePathStr + filenameStr);
     fs::path destinationFile(funcData->destinationFolder.string());
- 
 
     try {
 
@@ -131,9 +138,9 @@ void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared
             std::cout << "File conversion error: " << result << std::endl;
         }
 
-    //
-    // Catch any errors locally and report so that thread keeps running.
-    //   
+        //
+        // Catch any errors locally and report so that thread keeps running.
+        //   
 
     } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
@@ -152,15 +159,18 @@ void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared
 
 void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
 
+    // ASSERT if passed in pointers are NULL
 
-     ActFnData *funcData=static_cast<ActFnData *> (fnData.get());
-    
+    assert(fnData != nullptr);
+    ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+    assert(funcData != nullptr);
+
     // Destination file path += ("filename path" - "watch folder path")
-    
+
     std::string destinationPathStr(funcData->destinationFolder.string() +
             filenamePathStr.substr((funcData->watchFolder.string()).length()));
 
-    
+
     try {
 
         // Construct full destination path if needed
@@ -192,9 +202,9 @@ void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_
             std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
         }
 
-    //
-    // Catch any errors locally and report so that thread keeps running.
-    // 
+        //
+        // Catch any errors locally and report so that thread keeps running.
+        // 
 
     } catch (const fs::filesystem_error & e) {
         std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;

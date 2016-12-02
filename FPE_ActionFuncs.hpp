@@ -31,12 +31,16 @@
 #ifndef FPE_ACTIONFUNCS_HPP
 #define FPE_ACTIONFUNCS_HPP
 
+// Action function data
+
 struct ActFnData {
     fs::path     watchFolder;        // Watch Folder
     fs::path     destinationFolder;  // Destination Folder for copies.
     std::string  commandToRun;       // Command to run
     bool         bDeleteSource;      // Delete source file
 };
+
+// Action function prototypes
 
 void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
 void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
