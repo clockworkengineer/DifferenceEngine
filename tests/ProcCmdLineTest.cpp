@@ -9,6 +9,8 @@
 #include "gtest/gtest.h"
 #include "FPE_ProcCmdLine.hpp"
 
+// Count length of argv to pass to procCmdLine.
+
 int argvLen (char *argv[]) {
     int argc = 0; 
     while(argv[++argc] != NULL);
@@ -130,7 +132,7 @@ TEST(ProcCmdLineTest, TaskRunCommandCommandDelete) {
 
 }
 
-TEST(ProcCmdLineTest, TaskCopyFileMAxDepth3) {
+TEST(ProcCmdLineTest, TaskCopyFileMaxDepth3) {
     
     ParamArgData argData;
 

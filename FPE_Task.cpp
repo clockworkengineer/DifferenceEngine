@@ -276,7 +276,7 @@ void FPE_Task::worker(void) {
                     }
                 } while (false); // lock guard out of scope so mutex off
                 if (bFilesToProcess)  {
-                    this->taskProcessFcn(filenamePathStr, filenameStr, this->fnData);
+                    this->taskActFcn(filenamePathStr, filenameStr, this->fnData);
                 }
             } while (bFilesToProcess);
 
@@ -306,13 +306,13 @@ void FPE_Task::worker(void) {
 //
 
 FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
-        void (*taskFcn)(std::string watchFolder, std::string filenameStr, std::shared_ptr<void>fnData), std::shared_ptr<void> fnData) :
-        taskName{taskNameStr}, watchFolder{watchFolder}, taskProcessFcn{taskFcn}, fnData {fnData}
+        TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) :
+        taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn {taskActFcn}, fnData {fnData}
 {
 
    // ASSERT if passed psrameter pointers NULL
 
-    assert(taskFcn!=nullptr);
+    assert(taskActFcn!=nullptr);
     assert(fnData!=nullptr);
 
     std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;

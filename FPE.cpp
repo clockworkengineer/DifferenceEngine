@@ -44,16 +44,16 @@
 // Create task and run in thread.
 //
 
-void createTaskAndActivate( std::string taskName, std::string watchFolder, int watchDepth, void (*taskFcn)(std::string, std::string, std::shared_ptr<void> fnData), std::shared_ptr<void> fnData) {
+void createTaskAndActivate( std::string taskName, std::string watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
 
     // ASSERT if pointer parameters NULL
     
-    assert(taskFcn!=nullptr);
+    assert(taskActFcn!=nullptr);
     assert(fnData!=nullptr);
 
     // Create task object
 
-    FPE_Task task(taskName, watchFolder, watchDepth, taskFcn, fnData);
+    FPE_Task task(taskName, watchFolder, watchDepth, taskActFcn, fnData);
  
     // Create task object thread and start to watch
 

@@ -58,22 +58,25 @@
 
 namespace fs = boost::filesystem;
 
+// Task action function
+
+typedef void (*TaskActionFcn)(std::string filenamePathStr,  
+                              std::string filenameStr, 
+                              std::shared_ptr<void>fnData);
+
+// Task class
+
 class FPE_Task {
 public:
 
     // CONSTRUCTOR
 
-    FPE_Task(std::string taskNameStr,                       // Task name
-            std::string watchFolder,                       // Watch folder path
-            int maxWatchDepth,                             // Maximum watch depth -1= all, 0=just watch folder
-            void (*taskFcn)(std::string filenamePathStr,   // Task file process function
-                            std::string filenameStr, 
-                            std::shared_ptr<void>fnData), 
-            std::shared_ptr<void> fnData);                  // Task file process function data
+    FPE_Task(std::string taskNameStr,         // Task name
+            std::string watchFolder,          // Watch folder path
+            int maxWatchDepth,                // Maximum watch depth -1= all, 0=just watch folder
+            TaskActionFcn taskActFcn,         // Task action function
+            std::shared_ptr<void> fnData);    // Task file process function data
             
-
-
-        
     // DESTRUCTOR
 
     virtual ~FPE_Task(); // Task class cleanup
@@ -104,14 +107,11 @@ private:
     int fdNotify;                                           // inotify file descriptor
     std::mutex fileNamesMutex;                              // Queue Mutex
     std::queue <std::string> fileNames;                     // Queue of path/file names
-    std::atomic<bool> bDoWork;                               // doWork=true (run thread loops) false=(stop thread loops)
+    std::atomic<bool> bDoWork;                              // doWork=true (run thread loops) false=(stop thread loops)
     std::unique_ptr<std::thread> workerThread;              // Worker thread for task to be performed.
     std::unordered_map<int32_t, std::string> watchMap;      // Watch table indexed by watch variable
     std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
-    void (*taskProcessFcn)(std::string filenamePathStr,     // Task file process function 
-                           std::string filenameStr,
-                           std::shared_ptr<void> fnData);
-    
+    TaskActionFcn taskActFcn;                               // Task action function 
     std::shared_ptr<void> fnData;                           // Task action function data
 
     static const uint32_t kInofityEvents;       // inotify events to monitor

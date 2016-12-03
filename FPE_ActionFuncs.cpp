@@ -48,15 +48,13 @@ void runCommand(std::string filenamePathStr, std::string filenameStr, std::share
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     assert(funcData != nullptr);
 
-    fs::path sourceFile(filenamePathStr + filenameStr);
-    fs::path destinationFile(funcData->destinationFolder.string());
-
     try {
-
-        // Create destination file name
-
-        destinationFile /= filenameStr;
-
+      
+        // Form source and destination file paths
+    
+        fs::path sourceFile(filenamePathStr + filenameStr);
+        fs::path destinationFile(funcData->destinationFolder.string() + filenameStr);
+        
         // Create correct command for whether source and destination specified or just source or none
 
         bool srcFound = (funcData->commandToRun.find("%1%") != std::string::npos);
@@ -109,14 +107,14 @@ void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared
     assert(fnData != nullptr);
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     assert(funcData != nullptr);
-
-    fs::path sourceFile(filenamePathStr + filenameStr);
-    fs::path destinationFile(funcData->destinationFolder.string());
-
+ 
     try {
+        
+        // Form source and destination file paths
 
-        // Create destination file name
-
+        fs::path sourceFile(filenamePathStr + filenameStr);
+        fs::path destinationFile(funcData->destinationFolder.string());
+        
         destinationFile /= sourceFile.stem().string();
         destinationFile.replace_extension(".mp4");
 
@@ -165,13 +163,12 @@ void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     assert(funcData != nullptr);
 
-    // Destination file path += ("filename path" - "watch folder path")
-
-    std::string destinationPathStr(funcData->destinationFolder.string() +
-            filenamePathStr.substr((funcData->watchFolder.string()).length()));
-
-
     try {
+
+        // Destination file path += ("filename path" - "watch folder path")
+
+        std::string destinationPathStr(funcData->destinationFolder.string() +
+            filenamePathStr.substr((funcData->watchFolder.string()).length()));
 
         // Construct full destination path if needed
 
