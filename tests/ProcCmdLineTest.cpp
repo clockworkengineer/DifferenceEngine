@@ -5,7 +5,6 @@
  * Created on December 2, 2016, 3:30 PM
  */
 
-
 #include "gtest/gtest.h"
 #include "FPE_ProcCmdLine.hpp"
 
