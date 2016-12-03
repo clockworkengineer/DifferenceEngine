@@ -59,6 +59,11 @@ namespace {
     const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 }
 
+// Handbrake command and default command if --command not specified
+
+const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
+const std::string kCommandToRun = "echo %1%";
+
 void procCmdLine (int argc, char** argv, ParamArgData &argData);
 
 #endif /* FPE_PROCCMDLINE_HPP */

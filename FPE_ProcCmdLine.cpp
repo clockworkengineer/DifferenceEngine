@@ -42,11 +42,6 @@
 
 namespace po = boost::program_options;
 
-// Handbrake command and default command if --command not specified
-
-const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
-const std::string kCommandToRun = "echo %1%";
-
 //
 // Read in and process command line arguments using boost.
 //
@@ -79,6 +74,8 @@ void procCmdLine (int argc, char** argv, ParamArgData& argData) {
 
         try {
             
+            int taskCount=0;
+            
             // Process arguments
 
             po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -86,8 +83,7 @@ void procCmdLine (int argc, char** argv, ParamArgData& argData) {
             // Display options and exit with success
             
             if (vm.count("help")) {
-                std::cout << "File Processing Engine Application" << std::endl
-                        << desc << std::endl;
+                std::cout << "File Processing Engine Application" << std::endl << desc << std::endl;
                 exit(SUCCESS);
             }
 
@@ -95,18 +91,21 @@ void procCmdLine (int argc, char** argv, ParamArgData& argData) {
             
             if (vm.count("copy")) {
                 argData.bFileCopy=true;
+                taskCount++;
             }
             
             // Convert watched video files
             
             if (vm.count("video")) {
                 argData.bVideoConversion=true;
+                taskCount++;
             }
 
             // Run command on watched files
             
             if (vm.count("command")) {
                 argData.bRunCommand=true;
+                taskCount++;
              }
             
             // Delete source file
@@ -115,23 +114,15 @@ void procCmdLine (int argc, char** argv, ParamArgData& argData) {
                 argData.bDeleteSource=true;
              }
       
-            // Default to command
+            // Default task file copy. More than one task throw error.
             
-            if (!argData.bFileCopy && !argData.bVideoConversion) {
-                argData.bRunCommand=true;
+            if (taskCount==0) {
+                argData.bFileCopy=true;
+            } else if (taskCount>1) {
+                 throw po::error("More than one task specified");
             }
-   
-            po::notify(vm);
 
-            // --video with --command override Handbrake video conversion for passed command
-            
-            if (!argData.bRunCommand) {
-                if (argData.bVideoConversion) {
-                    argData.commandToRun = kHandbrakeCommand;
-                } else {
-                    argData.commandToRun = kCommandToRun;
-                }
-            }
+            po::notify(vm);
 
             // Make watch/destination paths absolute
         

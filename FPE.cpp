@@ -70,7 +70,6 @@ void createTaskAndActivate( std::string taskName, std::string watchFolder, int w
 //
 
 int main(int argc, char** argv) {
-
     
     try {
            
