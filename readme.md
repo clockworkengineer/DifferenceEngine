@@ -69,7 +69,7 @@ This function takes the file name and path passed as parameters and creates a co
 
 1. The ability to drive program from tasksToRunDetails.json
 1. Add more task options such a torrent file download
-2. add more google tests.
+2. Add more google tests.
 
 
 

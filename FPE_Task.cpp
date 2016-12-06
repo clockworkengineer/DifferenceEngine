@@ -66,17 +66,18 @@ FPE_Task::~FPE_Task() {
 // Count '/' to find directory depth
 //
 
-int FPE_Task::pathDepth(std::string pathStr) {
+int FPE_Task::pathDepth(std::string &pathStr) {
 
     auto i = 0;
     auto pos = pathStr.find("/");
     while (pos != std::string::npos) {
-      i++; pos++;
-      pos = pathStr.find("/", pos);
+        i++;
+        pos++;
+        pos = pathStr.find("/", pos);
     }
-    
-    return(i);
-    
+
+    return (i);
+
 }
 
 //
@@ -119,30 +120,30 @@ void FPE_Task::destroyWatchTable(void) {
 // Create a inotify watch for the passed in path.
 //
 
-void FPE_Task::addWatchPath(std::string pathStr) {
+void FPE_Task::addWatchPath(std::string &pathStr) {
 
     int watch;
 
     // Deeper than max watch depth so ignore.
-    
-    if ((this->maxWatchDepth != -1) && (FPE_Task::pathDepth(pathStr) > this->maxWatchDepth)) {
+
+    if ((this->maxWatchDepth != -1) && (pathDepth(pathStr) > this->maxWatchDepth)) {
         return;
     }
-    
+
     // Add watch
-    
+
     if ((watch = inotify_add_watch(this->fdNotify, pathStr.c_str(), FPE_Task::kInofityEvents)) == -1) {
         std::stringstream errStream;
         errStream << "inotify_add_watch() error:  " << errno;
         throw std::runtime_error(errStream.str());
     }
-    
+
     // Add watch to map and reverse map
-    
+
     this->watchMap.insert({watch, pathStr});
     this->revWatchMap.insert({pathStr, watch});
-    
-   std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "]"<< std::endl;
+
+    std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "]" << std::endl;
 
 }
 
@@ -153,7 +154,7 @@ void FPE_Task::addWatchPath(std::string pathStr) {
 void FPE_Task::createWatchTable(void) {
 
     // Initialize inotify 
-    
+
     if ((this->fdNotify = inotify_init()) == -1) {
         std::stringstream errStream;
         errStream << "inotify_init() error:  " << errno;
@@ -168,7 +169,7 @@ void FPE_Task::createWatchTable(void) {
             if (fs::exists(fs::path(pathStr))) {
                 this->addWatchPath(pathStr);
             }
-         }
+        }
     }
 
 }
@@ -180,9 +181,9 @@ void FPE_Task::createWatchTable(void) {
 void FPE_Task::addWatch(struct inotify_event *event) {
 
     // ASSERT if event pointer NULL
-    
-    assert(event!=nullptr);
-    
+
+    assert(event != nullptr);
+
     std::string filename = event->name;
     std::string pathStr = this->watchMap[event->wd] + filename + "/";
 
@@ -197,10 +198,10 @@ void FPE_Task::addWatch(struct inotify_event *event) {
 void FPE_Task::removeWatch(struct inotify_event *event) {
 
     try {
-        
+
         // ASSERT if event pointer NULL
-    
-        assert(event!=nullptr);
+
+        assert(event != nullptr);
 
         std::string filename = (event->len) ? event->name : "";
         std::string pathStr = this->watchMap[event->wd];
@@ -231,7 +232,7 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
         if (this->watchMap.size() == 1) {
             std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
         }
-        
+
     } catch (std::runtime_error &e) {
         // Report error 22 and carry on. From the documentation on this error the kernel has removed the watch for us.
         if (errno == EINVAL) {
@@ -240,7 +241,7 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
                 std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
             }
         } else {
-            throw;  // Throw exception back up the chain.
+            throw; // Throw exception back up the chain.
         }
     }
 
@@ -254,15 +255,15 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
 
 void FPE_Task::worker(void) {
 
-    bool bFilesToProcess ;
+    bool bFilesToProcess;
     std::string filenamePathStr;
     std::string filenameStr;
 
     std::cout << this->prefix() << "Worker thread started... " << std::endl;
 
-    try {
+    while (this->bDoWork.load()) {
 
-        while (this->bDoWork.load()) {
+        try {
 
             do {
                 do {
@@ -275,22 +276,23 @@ void FPE_Task::worker(void) {
                         this->fileNames.pop();
                     }
                 } while (false); // lock guard out of scope so mutex off
-                if (bFilesToProcess)  {
+                if (bFilesToProcess) {
                     this->taskActFcn(filenamePathStr, filenameStr, this->fnData);
                 }
             } while (bFilesToProcess);
 
             std::this_thread::sleep_for(std::chrono::seconds(1)); // This works better than yield
 
+        } catch (const fs::filesystem_error& e) {
+            std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
+        } catch (std::runtime_error &e) {
+            std::cerr << this->prefix() << "Caught a runtime_error exception: " << e.what() << std::endl;
+        } catch (std::exception &e) {
+            std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << this->prefix() << "unknown exception occured" << std::endl;
         }
-    } catch (const fs::filesystem_error& e) {
-        std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
-    } catch (std::runtime_error &e) {
-        std::cerr << this->prefix() << "Caught a runtime_error exception: " << e.what() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << this->prefix() << "unknown exception occured" << std::endl;
+
     }
 
     std::cout << this->prefix() << "Worker thread stopped. " << std::endl;
@@ -307,13 +309,13 @@ void FPE_Task::worker(void) {
 
 FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
         TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) :
-        taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn {taskActFcn}, fnData {fnData}
+taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn{taskActFcn}, fnData{fnData}
 {
 
-   // ASSERT if passed psrameter pointers NULL
+    // ASSERT if passed psrameter pointers NULL
 
-    assert(taskActFcn!=nullptr);
-    assert(fnData!=nullptr);
+    assert(taskActFcn != nullptr);
+    assert(fnData != nullptr);
 
     std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
 
@@ -326,15 +328,15 @@ FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder, int maxWatc
         }
     }
 
-    std::cout << this->prefix() << "Watch Depth [" << maxWatchDepth << "]" << std::endl;    
-    
+    std::cout << this->prefix() << "Watch Depth [" << maxWatchDepth << "]" << std::endl;
+
     // Save away max watch depth and modify with watch folder depth value if not all (-1).
-    
+
     this->maxWatchDepth = maxWatchDepth;
     if (maxWatchDepth != -1) {
-        this->maxWatchDepth += FPE_Task::pathDepth(watchFolder);
+        this->maxWatchDepth += pathDepth(watchFolder);
     }
-    
+
     // All threads start working
 
     this->bDoWork = true;

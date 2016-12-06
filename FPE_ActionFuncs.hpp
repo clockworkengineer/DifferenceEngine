@@ -31,6 +31,12 @@
 #ifndef FPE_ACTIONFUNCS_HPP
 #define FPE_ACTIONFUNCS_HPP
 
+// Boost file system and format libraries definitions
+
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 // Action function data
 
 struct ActFnData {
@@ -42,9 +48,9 @@ struct ActFnData {
 
 // Action function prototypes
 
-void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
-void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
-void runCommand(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
+bool handBrake(std::string &filenamePathStr, std::string &filenameStr, std::shared_ptr<void> fnData);
+bool copyFile(std::string &filenamePathStr, std::string &filenameStr, std::shared_ptr<void> fnData);
+bool runCommand(std::string &filenamePathStr, std::string &filenameStr, std::shared_ptr<void> fnData);
 
 #endif /* FPE_ACTIONFUNCS_HPP */
 

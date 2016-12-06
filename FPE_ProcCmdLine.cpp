@@ -46,7 +46,7 @@ namespace po = boost::program_options;
 // Read in and process command line arguments using boost.
 //
 
-void procCmdLine (int argc, char** argv, ParamArgData& argData) {
+void procCmdLine (int argc, char** argv, ParamArgData &argData) {
     
         // Default values
     

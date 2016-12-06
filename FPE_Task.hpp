@@ -60,8 +60,8 @@ namespace fs = boost::filesystem;
 
 // Task action function
 
-typedef void (*TaskActionFcn)(std::string filenamePathStr,  
-                              std::string filenameStr, 
+typedef bool (*TaskActionFcn)(std::string &filenamePathStr,  
+                              std::string &filenameStr, 
                               std::shared_ptr<void>fnData);
 
 // Task class
@@ -92,9 +92,9 @@ private:
     FPE_Task(const FPE_Task & orig) = delete;;
     FPE_Task(const FPE_Task && orig )= delete;;   
     
-    static int pathDepth(std::string pathStr);      // Add path to be watched
+    static int pathDepth(std::string &pathStr);      // Add path to be watched
     std::string prefix(void);                       // Logging output prefix function
-    void addWatchPath(std::string pathStr);         // Add path to be watched
+    void addWatchPath(std::string &pathStr);         // Add path to be watched
     void addWatch(struct inotify_event *event);     // Add a folder to watch
     void removeWatch(struct inotify_event *event);  // Remove a folder watch
     void createWatchTable(void);                    // Create a watch table for existing watch folder structure

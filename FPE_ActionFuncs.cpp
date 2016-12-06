@@ -38,115 +38,103 @@
 
 //
 // Run a specified command on the file (%1% source, %2% destination)
+// At present this uses system ( but this doesn't return and error and isn't safe
+// so change in future.
 //
 
-void runCommand(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void>fnData) {
+bool runCommand(std::string &filenamePathStr, std::string &filenameStr, std::shared_ptr<void>fnData) {
 
-    // ASSERT if passed in pointers are NULL
+    // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
+    assert(filenamePathStr.length() != 0);
+    assert(filenameStr.length() != 0);
+
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
-    assert(funcData != nullptr);
+    bool      bSuccess=false;
 
-    try {
-      
-        // Form source and destination file paths
-    
-        fs::path sourceFile(filenamePathStr + filenameStr);
-        fs::path destinationFile(funcData->destinationFolder.string() + filenameStr);
-        
-        // Create correct command for whether source and destination specified or just source or none
+    // Form source and destination file paths
 
-        bool srcFound = (funcData->commandToRun.find("%1%") != std::string::npos);
-        bool dstFound = (funcData->commandToRun.find("%2%") != std::string::npos);
+    fs::path sourceFile(filenamePathStr + filenameStr);
+    fs::path destinationFile(funcData->destinationFolder.string() + filenameStr);
 
-        std::string command;
-        if (srcFound && dstFound) {
-            command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
-        } else if (srcFound) {
-            command = (boost::format(funcData->commandToRun) % sourceFile.string()).str();
-        } else {
-            command = funcData->commandToRun;
-        }
+    // Create correct command for whether source and destination specified or just source or none
 
-        std::cout << command << std::endl;
+    bool srcFound = (funcData->commandToRun.find("%1%") != std::string::npos);
+    bool dstFound = (funcData->commandToRun.find("%2%") != std::string::npos);
 
-        auto result = 0;
-        if ((result = std::system(command.c_str())) == 0) {
-            std::cout << "Command success." << std::endl;
-            if (funcData->bDeleteSource) {
-                std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
-                fs::remove(sourceFile);
-            }
-        } else {
-            std::cout << "Command error: " << result << std::endl;
-        }
-
-        //
-        // Catch any errors locally and report so that thread keeps running.
-        //   
-
-    } catch (const fs::filesystem_error & e) {
-        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
-    } catch (std::exception & e) {
-        std::cerr << "STL exception occured: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << "unknown exception occured" << std::endl;
+    std::string command;
+    if (srcFound && dstFound) {
+        command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
+    } else if (srcFound) {
+        command = (boost::format(funcData->commandToRun) % sourceFile.string()).str();
+    } else {
+        command = funcData->commandToRun;
     }
+
+    std::cout << command << std::endl;
+
+    auto result = 0;
+    if ((result = std::system(command.c_str())) == 0) {
+        bSuccess=true;
+        std::cout << "Command success." << std::endl;
+        if (funcData->bDeleteSource) {
+            std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
+            fs::remove(sourceFile);
+        }
+    } else {
+        std::cout << "Command error: " << result << std::endl;
+    }
+    
+    return(bSuccess);
 
 }
 
 //
 // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
+// At present this uses system ( but this doesn't return and error and isn't safe
+// so change in future.
 //
 
-void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
+bool handBrake(std::string &filenamePathStr, std::string &filenameStr, std::shared_ptr<void> fnData) {
 
-    // ASSERT if passed in pointers are NULL
+    // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
+    assert(filenamePathStr.length() != 0);
+    assert(filenameStr.length() != 0);
+
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
-    assert(funcData != nullptr);
- 
-    try {
-        
-        // Form source and destination file paths
+    bool      bSuccess=false;
 
-        fs::path sourceFile(filenamePathStr + filenameStr);
-        fs::path destinationFile(funcData->destinationFolder.string());
-        
-        destinationFile /= sourceFile.stem().string();
-        destinationFile.replace_extension(".mp4");
+    // Form source and destination file paths
 
-        // Convert file
+    fs::path sourceFile(filenamePathStr + filenameStr);
+    fs::path destinationFile(funcData->destinationFolder.string());
 
-        std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
+    destinationFile /= sourceFile.stem().string();
+    destinationFile.replace_extension(".mp4");
 
-        std::cout << command << std::endl;
+    // Convert file
 
-        auto result = 0;
-        if ((result = std::system(command.c_str())) == 0) {
-            std::cout << "File conversion success." << std::endl;
-            if (funcData->bDeleteSource) {
-                std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
-                fs::remove(sourceFile);
-            }
+    std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
 
-        } else {
-            std::cout << "File conversion error: " << result << std::endl;
+    std::cout << command << std::endl;
+
+    auto result = 0;
+    if ((result = std::system(command.c_str())) == 0) {
+        bSuccess = true;
+        std::cout << "File conversion success." << std::endl;
+        if (funcData->bDeleteSource) {
+            std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
+            fs::remove(sourceFile);
         }
 
-        //
-        // Catch any errors locally and report so that thread keeps running.
-        //   
-
-    } catch (const fs::filesystem_error & e) {
-        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
-    } catch (std::exception & e) {
-        std::cerr << "STL exception occured: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << "unknown exception occured" << std::endl;
+    } else {
+        std::cout << "File conversion error: " << result << std::endl;
     }
+
+    return(bSuccess);
 
 }
 
@@ -155,60 +143,52 @@ void handBrake(std::string filenamePathStr, std::string filenameStr, std::shared
 // keeping the sources directory structure.
 //
 
-void copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
+bool copyFile(std::string &filenamePathStr, std::string &filenameStr, std::shared_ptr<void> fnData) {
 
-    // ASSERT if passed in pointers are NULL
+    // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
+    assert(filenamePathStr.length() != 0);
+    assert(filenameStr.length() != 0);
+
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
-    assert(funcData != nullptr);
+    bool      bSuccess=false;
 
-    try {
+    // Destination file path += ("filename path" - "watch folder path")
 
-        // Destination file path += ("filename path" - "watch folder path")
-
-        std::string destinationPathStr(funcData->destinationFolder.string() +
+    std::string destinationPathStr(funcData->destinationFolder.string() +
             filenamePathStr.substr((funcData->watchFolder.string()).length()));
 
-        // Construct full destination path if needed
+    // Construct full destination path if needed
 
-        if (!fs::exists(destinationPathStr)) {
-            if (fs::create_directories(destinationPathStr)) {
-                std::cout << "CREATED :" + destinationPathStr << std::endl;
-            } else {
-                std::cerr << "CREATED FAILED FOR :" + destinationPathStr << std::endl;
-            }
-        }
-
-        // Add filename to source and destination paths
-
-        filenamePathStr += filenameStr;
-        destinationPathStr += filenameStr;
-
-        // Currently only copy file if it doesn't already exist.
-
-        if (!fs::exists(destinationPathStr)) {
-            std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
-            fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
-            if (funcData->bDeleteSource) {
-                std::cout << "DELETING SOURCE [" << filenamePathStr << "]" << std::endl;
-                fs::remove(filenamePathStr);
-            }
-
+    if (!fs::exists(destinationPathStr)) {
+        if (fs::create_directories(destinationPathStr)) {
+            std::cout << "CREATED :" + destinationPathStr << std::endl;
         } else {
-            std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
+            std::cerr << "CREATED FAILED FOR :" + destinationPathStr << std::endl;
+        }
+    }
+
+    // Add filename to source and destination paths
+
+    filenamePathStr += filenameStr;
+    destinationPathStr += filenameStr;
+
+    // Currently only copy file if it doesn't already exist.
+
+    if (!fs::exists(destinationPathStr)) {
+        std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
+        fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
+        bSuccess=true;
+        if (funcData->bDeleteSource) {
+            std::cout << "DELETING SOURCE [" << filenamePathStr << "]" << std::endl;
+            fs::remove(filenamePathStr);
         }
 
-        //
-        // Catch any errors locally and report so that thread keeps running.
-        // 
-
-    } catch (const fs::filesystem_error & e) {
-        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
-    } catch (std::exception & e) {
-        std::cerr << "STL exception occured: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << "unknown exception occured" << std::endl;
+    } else {
+        std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
     }
+
+    return(bSuccess);
 
 }

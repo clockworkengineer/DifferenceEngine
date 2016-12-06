@@ -44,7 +44,7 @@
 // Create task and run in thread.
 //
 
-void createTaskAndActivate( std::string taskName, std::string watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
+void createTaskAndActivate( const std::string &taskName, const std::string &watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
 
     // ASSERT if pointer parameters NULL
     
