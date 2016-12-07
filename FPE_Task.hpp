@@ -60,8 +60,8 @@ namespace fs = boost::filesystem;
 
 // Task action function
 
-typedef bool (*TaskActionFcn)(std::string &filenamePathStr,  
-                              std::string &filenameStr, 
+typedef bool (*TaskActionFcn)(std::string filenamePathStr,  
+                              std::string filenameStr, 
                               std::shared_ptr<void>fnData);
 
 // Task class

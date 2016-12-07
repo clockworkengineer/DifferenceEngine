@@ -41,6 +41,7 @@ class ActionFuncsTests : public ::testing::Test {
 protected:
 
     ActionFuncsTests() {
+
         // Create function data (wrap in void shared pointer for passing to task).
         fnData.reset(new ActFnData{kWatchFolder, kDestinationFolder, "", false});
         funcData = static_cast<ActFnData *> (fnData.get());
@@ -48,43 +49,79 @@ protected:
     }
 
     virtual ~ActionFuncsTests() {
+        // Nothing here for present
+    }
+
+    virtual void SetUp() {
+
+        // Create watch directory.
+
+        if (!fs::exists(kWatchFolder)) {
+            fs::create_directory(kWatchFolder);
+        }
+
+        // Create kDestinationFolder directory.
+
+        if (!fs::exists(kDestinationFolder)) {
+            fs::create_directory(kDestinationFolder);
+        }
 
     }
 
-    std::shared_ptr<void> fnData;
+    virtual void TearDown() {
 
-    ActFnData *funcData;
+        // Remove any files created
+        
+        if ((filePath.length() != 0) && (fileName.length() != 0)) {
+            
+            if (fs::exists(filePath + fileName)) {
+                boost::filesystem::remove(filePath + fileName);
+            }
 
-    std::string filePath = "";
-    std::string fileName = "";
+            if (fs::exists(kDestinationFolder + fileName)) {
+                boost::filesystem::remove(kDestinationFolder + fileName);
+            }
+            
+            filePath = "";
+            fileName = "";
+            
+        }
 
-    static const std::string kWatchFolder;
-    static const std::string kDestinationFolder;
+    }
 
-    static const std::string kParamAssertion1;
-    static const std::string kParamAssertion2;
-    static const std::string kParamAssertion3;
+    std::shared_ptr<void> fnData;                   // Action function data shared pointer wrapper
+
+    ActFnData *funcData;                            // Action function data 
+
+    std::string filePath = "";                      // Test file path
+    std::string fileName = "";                      // Test file name
+
+    static const std::string kWatchFolder;          // Test Watch Folder
+    static const std::string kDestinationFolder;    // Test Destination folde
+
+    static const std::string kParamAssertion1;      // Missing parameter 1 Assert REGEX
+    static const std::string kParamAssertion2;      // Missing parameter 2 Assert REGEX
+    static const std::string kParamAssertion3;      // Missing parameter 3 Assert REGEX
 
 };
 
 const std::string ActionFuncsTests::kWatchFolder("/tmp/watch/");
 const std::string ActionFuncsTests::kDestinationFolder("/tmp/destination/");
 
-const std::string ActionFuncsTests::kParamAssertion1("Assertion*");
+const std::string ActionFuncsTests::kParamAssertion1("Assertion*"); // NEED TO MODIFY FOR SPECIFIC ASSERTS
 const std::string ActionFuncsTests::kParamAssertion2("Assertion*");
 const std::string ActionFuncsTests::kParamAssertion3("Assertion*");
 
 //
-// Create a file
+// Create a file for test purposes.
 //
 
 void createFile(std::string fileName) {
 
     std::ofstream outfile(fileName);
-
-    outfile << "my text here!" << std::endl;
-
+    outfile << "Happy XMAS!!!" << std::endl;
     outfile.close();
+    
 }
 
 //
@@ -147,18 +184,10 @@ TEST_F(ActionFuncsTests, TaskCopyFileSourceExists) {
     filePath = kWatchFolder;
     fileName = "temp1.txt";
 
-    // Create watch directory.
-
-    if (!fs::exists(kWatchFolder)) {
-        fs::create_directory(kWatchFolder);
-    }
-
     createFile(filePath + fileName);
 
     EXPECT_TRUE(copyFile(filePath, fileName, fnData));
 
-    boost::filesystem::remove(filePath + fileName);
-    boost::filesystem::remove(kDestinationFolder + fileName);
 
 }
 
@@ -171,19 +200,10 @@ TEST_F(ActionFuncsTests, TaskCopyFileDestinationExists) {
     filePath = kWatchFolder;
     fileName = "temp1.txt";
 
-    // Create watch directory.
-
-    if (!fs::exists(kWatchFolder)) {
-        fs::create_directory(kWatchFolder);
-    }
-
     createFile(filePath + fileName);
     createFile(kDestinationFolder + fileName);
 
     EXPECT_FALSE(copyFile(filePath, fileName, fnData));
-
-    boost::filesystem::remove(filePath + fileName);
-    boost::filesystem::remove(kDestinationFolder + fileName);
 
 }
 
@@ -226,8 +246,7 @@ TEST_F(ActionFuncsTests, TaskRunCommandAssertParam3) {
 }
 
 //
-// run command no file exists. At present use system ( but this doesn't return and error and isn't safe
-// so change in future.
+// run command no file exists. 
 //
 
 TEST_F(ActionFuncsTests, TaskRunCommandSourceNotExist) {
@@ -235,11 +254,11 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceNotExist) {
     filePath = kWatchFolder;
     fileName = "temp1.txt";
 
-    funcData->commandToRun = "echo %1%"; // Doesn't matter file doesn't exist so TRUE.
+    funcData->commandToRun = "echo %1%";    // Doesn't matter file doesn't exist so TRUE.
     EXPECT_TRUE(runCommand(filePath, fileName, fnData));
 
-    funcData->commandToRun = "ls %1%"; // Doesn't matter file doesn't exist so FALSE (but due to system FALSE (FIX)).
-    EXPECT_TRUE(runCommand(filePath, fileName, fnData));
+    funcData->commandToRun = "ls %1%";      // Does matter file doesn't exist so FALSE.
+    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
 
 
 }
@@ -248,18 +267,6 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceExists) {
 
     filePath = kWatchFolder;
     fileName = "temp1.txt";
-
-    // Create watch directory.
-
-    if (!fs::exists(kWatchFolder)) {
-        fs::create_directory(kWatchFolder);
-    }
-
-    // Create kDestinationFolder directory.
-
-    if (!fs::exists(kWatchFolder)) {
-        fs::create_directory(kWatchFolder);
-    }
 
     createFile(filePath + fileName);
 
@@ -270,9 +277,6 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceExists) {
     EXPECT_TRUE(runCommand(filePath, fileName, fnData));
 
     EXPECT_TRUE(fs::exists(kDestinationFolder + fileName));     // Destination should now
-
-    boost::filesystem::remove(filePath + fileName);
-    boost::filesystem::remove(kDestinationFolder + fileName);
 
 }
 
