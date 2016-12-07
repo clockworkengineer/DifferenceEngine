@@ -61,8 +61,7 @@ namespace {
 
 // Handbrake command and default command if --command not specified
 
-const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\" >> /home/pi/FPE_handbrake.log 2>&1";
-const std::string kCommandToRun = "echo %1%";
+const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
 
 void procCmdLine (int argc, char** argv, ParamArgData &argData);
 

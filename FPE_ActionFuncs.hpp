@@ -50,9 +50,9 @@ struct ActFnData {
 
 // Action function prototypes
 
-bool handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
-bool copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
-bool runCommand(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData);
+bool handBrake(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData);
+bool copyFile(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData);
+bool runCommand(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData);
 
 #endif /* FPE_ACTIONFUNCS_HPP */
 

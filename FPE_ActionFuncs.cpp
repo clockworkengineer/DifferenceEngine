@@ -45,54 +45,60 @@
 //
 
 int forkCommand(char *argv[]) {
-    
-    pid_t   pid;
-    int     status;
-    int     exitStatus=0;
+
+    pid_t pid;          // Process id
+    int status;         // wait status
+    int exitStatus = 0; // child exit status
 
     if ((pid = fork()) < 0) { /* fork a child process           */
+
         std::stringstream errStream;
         errStream << " ERROR: forking child process failed: " << errno;
         throw std::runtime_error(errStream.str());
-    } else if (pid == 0) {                  /* for the child process: */
-        if (execvp(*argv, argv) < 0) {      /* execute the command  */
+
+    } else if (pid == 0) { /* for the child process: */
+
+        if (execvp(*argv, argv) < 0) { /* execute the command  */
             std::cerr << "*** ERROR: exec() failed ***" << std::endl;
             exit(1);
         }
+
     } else { /* for the parent:      */
+
         while (wait(&status) != pid) { /* wait for completion  */
             continue;
         }
-        if (WIFEXITED(status)) {  // Set any exit status
-                exitStatus = WEXITSTATUS(status);
+
+        if (WIFEXITED(status)) { // Set any exit status
+            exitStatus = WEXITSTATUS(status);
         }
+
     }
+
     return (exitStatus);
 }
 
 //
 // Run shell command. Split command into argv components before passing onto exec.
-// NOTE: This function calls new and delete [] for the command and argv memory but
-// we are dealing with low level system calls so keep to a minimum.
 //
 
 int runShellCommand(std::string shellCommand) {
 
-    int exitStatus=0;
+    int exitStatus = 0;
     int argc = 0;
+    
     std::vector<char *> argvs;
-    char **argv;
-    char *commandStr;
+    std::unique_ptr<char*> argv;
+    std::unique_ptr<char> commandStr { new char[shellCommand.length() + 1] };
 
     // Take a 'C' string copy
-    
-    commandStr = new char[shellCommand.length() + 1];
-    commandStr[shellCommand.length()] = 0;
-    strncpy(commandStr, shellCommand.c_str(), shellCommand.length());
+
+    commandStr.get()[shellCommand.length()] = 0;
+    strncpy(commandStr.get(), shellCommand.c_str(), shellCommand.length());
 
     // Loop through command splitting into substrings for argv
-    
-    char *p2 = strtok(commandStr, " ");
+
+    char *p2 = strtok(commandStr.get(), " ");
 
     while (p2) {
         argvs.push_back(p2);
@@ -100,28 +106,19 @@ int runShellCommand(std::string shellCommand) {
     }
 
     // Allocate argv array and copy vector over
-    
-    argv = new char*[argvs.size() + 1];
+
+    argv.reset(new char*[argvs.size() + 1]);
 
     for (char *arg : argvs) {
-        argv[argc++] = arg;
+        argv.get()[argc++] = arg;
     }
 
-    argv[argc] = 0; // Last element null
-    
+    argv.get()[argc] = 0; // Last element null
+
     // Fork command
 
-    exitStatus = forkCommand(argv);
+    exitStatus = forkCommand(argv.get());
 
-    // Clean up.
-    
-    if (argv) {
-        delete [] argv;
-    }
-    if (commandStr) {
-        delete [] commandStr;
-    }
-    
     return (exitStatus);
 
 }
@@ -130,7 +127,7 @@ int runShellCommand(std::string shellCommand) {
 // Run a specified command on the file (%1% source, %2% destination)
 //
 
-bool runCommand(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void>fnData) {
+bool runCommand(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void>fnData) {
 
     // ASSERT for any invalid parameters.
 
@@ -182,7 +179,7 @@ bool runCommand(std::string filenamePathStr, std::string filenameStr, std::share
 // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
 //
 
-bool handBrake(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
+bool handBrake(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData) {
 
     // ASSERT for any invalid parameters.
 
@@ -229,7 +226,7 @@ bool handBrake(std::string filenamePathStr, std::string filenameStr, std::shared
 // keeping the sources directory structure.
 //
 
-bool copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_ptr<void> fnData) {
+bool copyFile(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData) {
 
     // ASSERT for any invalid parameters.
 
@@ -240,39 +237,43 @@ bool copyFile(std::string filenamePathStr, std::string filenameStr, std::shared_
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
+    // Form source and destination file paths
+
+    fs::path sourceFile(filenamePathStr);
+ 
     // Destination file path += ("filename path" - "watch folder path")
 
-    std::string destinationPathStr(funcData->destinationFolder.string() +
+    fs::path destinationFile(funcData->destinationFolder.string() +
             filenamePathStr.substr((funcData->watchFolder.string()).length()));
 
     // Construct full destination path if needed
 
-    if (!fs::exists(destinationPathStr)) {
-        if (fs::create_directories(destinationPathStr)) {
-            std::cout << "CREATED :" + destinationPathStr << std::endl;
+    if (!fs::exists(destinationFile)) {
+        if (fs::create_directories(destinationFile)) {
+            std::cout << "CREATED :" + destinationFile.string() << std::endl;
         } else {
-            std::cerr << "CREATED FAILED FOR :" + destinationPathStr << std::endl;
+            std::cerr << "CREATED FAILED FOR :" + destinationFile.string() << std::endl;
         }
     }
 
     // Add filename to source and destination paths
 
-    filenamePathStr += filenameStr;
-    destinationPathStr += filenameStr;
+    sourceFile /= filenameStr;
+    destinationFile /= filenameStr;
 
     // Currently only copy file if it doesn't already exist.
 
-    if (!fs::exists(destinationPathStr)) {
-        std::cout << "COPY FROM [" << filenamePathStr << "] TO [" << destinationPathStr << "]" << std::endl;
-        fs::copy_file(filenamePathStr, destinationPathStr, fs::copy_option::none);
+    if (!fs::exists(destinationFile)) {
+        std::cout << "COPY FROM [" << sourceFile.string() << "] TO [" << destinationFile.string() << "]" << std::endl;
+        fs::copy_file(sourceFile, destinationFile, fs::copy_option::none);
         bSuccess = true;
         if (funcData->bDeleteSource) {
-            std::cout << "DELETING SOURCE [" << filenamePathStr << "]" << std::endl;
-            fs::remove(filenamePathStr);
+            std::cout << "DELETING SOURCE [" << sourceFile.string() << "]" << std::endl;
+            fs::remove(sourceFile);
         }
 
     } else {
-        std::cout << "DESTINATION ALREADY EXISTS : " + destinationPathStr << std::endl;
+        std::cout << "DESTINATION ALREADY EXISTS : " + destinationFile.string() << std::endl;
     }
 
     return (bSuccess);

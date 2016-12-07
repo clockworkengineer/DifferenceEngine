@@ -98,6 +98,7 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
             
             if (vm.count("video")) {
                 argData.bVideoConversion=true;
+                argData.commandToRun = kHandbrakeCommand;
                 taskCount++;
             }
 
