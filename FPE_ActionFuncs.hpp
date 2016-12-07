@@ -1,5 +1,5 @@
 /*
- * File:   FPE_ActionFuncs.cpp
+ * File:   FPE_ActionFuncs.hpp
  * 
  * Author: Robert Tizzard
  *
@@ -37,7 +37,11 @@
 
 namespace fs = boost::filesystem;
 
+// Task action function
 
+typedef bool (*TaskActionFcn)(const std::string &filenamePathStr,  
+                              const std::string &filenameStr, 
+                              std::shared_ptr<void>fnData);
 
 // Action function data
 

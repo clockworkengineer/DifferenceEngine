@@ -1,3 +1,4 @@
+#include "FPE_HOST.hpp"
 /*
  * File:   FPE.cpp
  * 
@@ -28,13 +29,13 @@
  * THE SOFTWARE.
  */
 
-// Task class
-
-#include "FPE_Task.hpp" 
-
 // Task Action functions
 
 #include "FPE_ActionFuncs.hpp"
+
+// Task class
+
+#include "FPE_Task.hpp" 
 
 // Process command line arguments
 

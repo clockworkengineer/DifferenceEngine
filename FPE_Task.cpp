@@ -1,3 +1,4 @@
+#include "FPE_HOST.hpp"
 /*
  * File:   FPE_Task.cpp
  * 
@@ -27,6 +28,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+// Task Action functions
+
+#include "FPE_ActionFuncs.hpp"
+
+// Task class
 
 #include "FPE_Task.hpp"
 

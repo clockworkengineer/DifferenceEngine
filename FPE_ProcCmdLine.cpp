@@ -1,3 +1,4 @@
+#include "FPE_HOST.hpp"
 /*
  * File:   FPE_ProcCmdLine.cpp
  * 
@@ -28,9 +29,11 @@
  * THE SOFTWARE.
  */
 
+#include <iostream>
+
 // Task class
 
-#include "FPE_Task.hpp" 
+//#include "FPE_Task.hpp" 
 
 // Process command line arguments
 
