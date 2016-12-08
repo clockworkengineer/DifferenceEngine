@@ -47,8 +47,8 @@
 
 static int forkCommand(char *argv[]) {
 
-    pid_t pid;          // Process id
-    int status;         // wait status
+    pid_t pid; // Process id
+    int status; // wait status
     int exitStatus = 0; // child exit status
 
     if ((pid = fork()) < 0) { /* fork a child process           */
@@ -58,6 +58,11 @@ static int forkCommand(char *argv[]) {
         throw std::runtime_error(errStream.str());
 
     } else if (pid == 0) { /* for the child process: */
+        
+        // Redirect stdout/stderr
+        
+        freopen("/dev/null", "w", stdout);
+        freopen("/dev/null", "w", stderr);
 
         if (execvp(*argv, argv) < 0) { /* execute the command  */
             exit(1);
@@ -86,10 +91,10 @@ static int runShellCommand(std::string shellCommand) {
 
     int exitStatus = 0;
     int argc = 0;
-    
+
     std::vector<char *> argvs;
     std::unique_ptr<char*> argv;
-    std::unique_ptr<char> commandStr { new char[shellCommand.length() + 1] };
+    std::unique_ptr<char> commandStr{ new char[shellCommand.length() + 1]};
 
     // Take a 'C' string copy
 
@@ -202,6 +207,7 @@ bool handBrake(const std::string &filenamePathStr, const std::string &filenameSt
 
     std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
 
+    std::cout << "Converting file [" << sourceFile << "] To [" << destinationFile << "]" << std::endl;
     auto result = 0;
     if ((result = runShellCommand(command)) == 0) {
         bSuccess = true;
@@ -238,7 +244,7 @@ bool copyFile(const std::string &filenamePathStr, const std::string &filenameStr
     // Form source and destination file paths
 
     fs::path sourceFile(filenamePathStr);
- 
+
     // Destination file path += ("filename path" - "watch folder path")
 
     fs::path destinationFile(funcData->destinationFolder.string() +

@@ -140,7 +140,7 @@ const std::string ActionFuncsTests::kParamAssertion3("Assertion*");
 void createFile(std::string fileName) {
 
     std::ofstream outfile(fileName);
-    outfile << "Happy XMAS!!!" << std::endl;
+    outfile << "" << std::endl;
     outfile.close();
 
 }
@@ -395,7 +395,7 @@ TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam1) {
 }
 
 //
-// filePath length == 0 ASSERT
+// FilePath length == 0 ASSERT
 //
 
 TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam2) {
@@ -405,7 +405,7 @@ TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam2) {
 }
 
 //
-// fileName length == 0 ASSERT
+// FileName length == 0 ASSERT
 //
 
 TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam3) {
@@ -413,6 +413,47 @@ TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam3) {
     filePath = kWatchFolder;
 
     EXPECT_DEATH(handBrake(filePath, fileName, fnData), ActionFuncsTests::kParamAssertion3);
+
+}
+
+//
+// Convert file with invalid format/extension 
+//
+
+TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFile) {
+
+    filePath = kWatchFolder;
+    fileName = "temp1.txt";
+
+    createFile(filePath + fileName);
+
+    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should exist now 
+
+    funcData->commandToRun = kHandbrakeCommand;
+    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
+
+    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should have not been deleted
+
+}
+
+//
+// Convert file with invalid format/extension and delete source
+//
+
+TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFileDeleteSource) {
+
+    filePath = kWatchFolder;
+    fileName = "temp1.txt";
+
+    createFile(filePath + fileName);
+
+    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should exist now 
+
+    funcData->bDeleteSource = true;
+    funcData->commandToRun = kHandbrakeCommand;
+    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
+
+    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should have not been deleted
 
 }
 
