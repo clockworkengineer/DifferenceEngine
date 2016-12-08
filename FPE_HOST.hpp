@@ -38,9 +38,9 @@
 	/* POSIX compliant */
 #endif
 #else
-static_assert(false, "NOT POSIX SO NOW WHAT ?");
+static_assert(false, "TRYING TO BUILD FOR NON-POSIX UNIX PLATFORM.");
 #endif
 #else
-static_assert(false, "NOT UNIX SO NOW WHAT ?");
+static_assert(false, "TRYING TO BUILD FOR NON-UNIX PLATFORM.");
 #endif /* FPE_HOST_HPP */
 

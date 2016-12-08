@@ -47,8 +47,10 @@
 
 void createTaskAndActivate( const std::string &taskName, const std::string &watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
 
-    // ASSERT if pointer parameters NULL
+    // ASSERT if strings length 0 , pointer parameters NULL
     
+    assert(taskName.length() != 0);
+    assert(watchFolder.length() != 0);
     assert(taskActFcn!=nullptr);
     assert(fnData!=nullptr);
 
@@ -95,7 +97,6 @@ int main(int argc, char** argv) {
         
         if (!fs::exists(argData.destinationFolder)) {
             std::cout << "Destination Folder " << argData.destinationFolder << " DOES NOT EXIST." << std::endl;
-
             if (fs::create_directory(argData.destinationFolder)) {
                 std::cout << "Creating Destination Folder " << argData.destinationFolder << std::endl;
             }

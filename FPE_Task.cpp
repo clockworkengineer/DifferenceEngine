@@ -56,7 +56,7 @@ const uint32_t FPE_Task::kInotifyEventBuffLen = (1024 * (FPE_Task::kInotifyEvent
 
 
 //
-// Destructor is private
+// Destructor
 //
 
 FPE_Task::~FPE_Task() {

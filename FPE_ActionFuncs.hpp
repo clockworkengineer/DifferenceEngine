@@ -52,6 +52,11 @@ struct ActFnData {
     bool         bDeleteSource;      // Delete source file
 };
 
+//  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto
+//
+//  TaskActionFcn sampleLambda = [] (auto filenamePathStr, auto filenameStr, auto fnData) 
+//  -> bool { std::cout << "[" << filenamePathStr+filenameStr << "]" << std::endl; return true; };
+
 // Action function prototypes
 
 bool handBrake(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData);

@@ -45,7 +45,7 @@
 // Fork and execute Shell command
 //
 
-int forkCommand(char *argv[]) {
+static int forkCommand(char *argv[]) {
 
     pid_t pid;          // Process id
     int status;         // wait status
@@ -60,7 +60,6 @@ int forkCommand(char *argv[]) {
     } else if (pid == 0) { /* for the child process: */
 
         if (execvp(*argv, argv) < 0) { /* execute the command  */
-            std::cerr << "*** ERROR: exec() failed ***" << std::endl;
             exit(1);
         }
 
@@ -83,7 +82,7 @@ int forkCommand(char *argv[]) {
 // Run shell command. Split command into argv components before passing onto exec.
 //
 
-int runShellCommand(std::string shellCommand) {
+static int runShellCommand(std::string shellCommand) {
 
     int exitStatus = 0;
     int argc = 0;
@@ -202,8 +201,6 @@ bool handBrake(const std::string &filenamePathStr, const std::string &filenameSt
     // Convert file
 
     std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
-
-    std::cout << command << std::endl;
 
     auto result = 0;
     if ((result = runShellCommand(command)) == 0) {
