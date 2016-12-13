@@ -32,11 +32,36 @@
 #include "gtest/gtest.h"
 #include "FPE_ProcCmdLine.hpp"
 
+class ProcCmdLineTest : public ::testing::Test {
+protected:
+
+    ProcCmdLineTest() {
+
+    }
+
+    virtual ~ProcCmdLineTest() {
+
+        // Nothing here for present
+    }
+
+    virtual void SetUp() {
+
+    }
+
+    virtual void TearDown() {
+
+    }
+    
+    int argvLen (char *argv[]);
+    
+
+};
+
 //
 // Count length of argv to pass to procCmdLine.
 //
 
-int argvLen (char *argv[]) {
+int ProcCmdLineTest::argvLen (char *argv[]) {
     int argc = 0; 
     while(argv[++argc] != NULL);
     return(argc);
@@ -46,13 +71,13 @@ int argvLen (char *argv[]) {
 // Process command line with no options
 //
 
-TEST(ProcCmdLineTest, NoParameters) { 
+TEST_F(ProcCmdLineTest, NoParameters) { 
     
     ParamArgData argData;
     
     char *argv[] = { (char *)"fpe" ,  nullptr};
      
-    EXPECT_EXIT(procCmdLine(argvLen(argv), argv, argData), ::testing::ExitedWithCode(1), "FPE Error: the option '--destination' is required but missing");
+    EXPECT_EXIT(procCmdLine(this->argvLen(argv), argv, argData), ::testing::ExitedWithCode(1), "FPE Error: the option '--destination' is required but missing");
 
 }
 
@@ -60,7 +85,7 @@ TEST(ProcCmdLineTest, NoParameters) {
 // Command fpe --copy --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, TaskCopyFileNoDelete) {
+TEST_F(ProcCmdLineTest, TaskCopyFileNoDelete) {
 
     ParamArgData argData;
       
@@ -74,7 +99,7 @@ TEST(ProcCmdLineTest, TaskCopyFileNoDelete) {
         nullptr
     };
     
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
     
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -90,7 +115,7 @@ TEST(ProcCmdLineTest, TaskCopyFileNoDelete) {
 // Command fpe --delete --copy --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, TaskCopyFileDelete) {
+TEST_F(ProcCmdLineTest, TaskCopyFileDelete) {
 
     ParamArgData argData;
 
@@ -105,7 +130,7 @@ TEST(ProcCmdLineTest, TaskCopyFileDelete) {
         nullptr
     };
 
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
 
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -121,7 +146,7 @@ TEST(ProcCmdLineTest, TaskCopyFileDelete) {
 // Command fpe --video --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, TaskVideoFileConversionNoDelete) {
+TEST_F(ProcCmdLineTest, TaskVideoFileConversionNoDelete) {
     
     ParamArgData argData;
     
@@ -135,7 +160,7 @@ TEST(ProcCmdLineTest, TaskVideoFileConversionNoDelete) {
         nullptr
     };
  
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
   
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -151,7 +176,7 @@ TEST(ProcCmdLineTest, TaskVideoFileConversionNoDelete) {
 // Command fpe --delete --video --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, TaskVideoFileConversionDelete) {
+TEST_F(ProcCmdLineTest, TaskVideoFileConversionDelete) {
 
     ParamArgData argData;
 
@@ -166,7 +191,7 @@ TEST(ProcCmdLineTest, TaskVideoFileConversionDelete) {
         nullptr
     };
 
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
 
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -182,7 +207,7 @@ TEST(ProcCmdLineTest, TaskVideoFileConversionDelete) {
 // Command fpe --command "echo %1% -------> %2%" --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, TaskRunCommandCommandNoDelete) {
+TEST_F(ProcCmdLineTest, TaskRunCommandCommandNoDelete) {
     
     ParamArgData argData;
 
@@ -197,7 +222,7 @@ TEST(ProcCmdLineTest, TaskRunCommandCommandNoDelete) {
         nullptr
     };
 
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
 
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -214,7 +239,7 @@ TEST(ProcCmdLineTest, TaskRunCommandCommandNoDelete) {
 // Command fpe --delete --command "echo %1% -------> %2%" /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, TaskRunCommandCommandDelete) {
+TEST_F(ProcCmdLineTest, TaskRunCommandCommandDelete) {
     
     ParamArgData argData;
     
@@ -230,7 +255,7 @@ TEST(ProcCmdLineTest, TaskRunCommandCommandDelete) {
         nullptr
     };
  
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
  
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -247,7 +272,7 @@ TEST(ProcCmdLineTest, TaskRunCommandCommandDelete) {
 // Command fpe --copy --maxdepth 3 /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, TaskCopyFileMaxDepth3) {
+TEST_F(ProcCmdLineTest, TaskCopyFileMaxDepth3) {
     
     ParamArgData argData;
 
@@ -263,7 +288,7 @@ TEST(ProcCmdLineTest, TaskCopyFileMaxDepth3) {
         nullptr
     };
 
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
     
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -278,7 +303,7 @@ TEST(ProcCmdLineTest, TaskCopyFileMaxDepth3) {
 // Command fpe --delete /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, NoTaskDefaultCopyDelete) {
+TEST_F(ProcCmdLineTest, NoTaskDefaultCopyDelete) {
     
     ParamArgData argData;
 
@@ -292,7 +317,7 @@ TEST(ProcCmdLineTest, NoTaskDefaultCopyDelete) {
         nullptr
     };
     
-    procCmdLine(argvLen(argv), argv, argData);
+    procCmdLine(this->argvLen(argv), argv, argData);
  
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -308,7 +333,7 @@ TEST(ProcCmdLineTest, NoTaskDefaultCopyDelete) {
 // Command fpe --copy --video --delete /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST(ProcCmdLineTest, MultipleTasksSpecified) {
+TEST_F(ProcCmdLineTest, MultipleTasksSpecified) {
     
     ParamArgData argData;
 
@@ -323,7 +348,7 @@ TEST(ProcCmdLineTest, MultipleTasksSpecified) {
         nullptr
     };
  
-    EXPECT_EXIT (procCmdLine(argvLen(argv), argv, argData), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
+    EXPECT_EXIT (procCmdLine(this->argvLen(argv), argv, argData), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
  
 }
 

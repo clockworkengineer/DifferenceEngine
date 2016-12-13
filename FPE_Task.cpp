@@ -319,10 +319,13 @@ FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder, int maxWatc
 taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn{taskActFcn}, fnData{fnData}
 {
 
-    // ASSERT if passed psrameter pointers NULL
+    // ASSERT if passed parameters invalid
 
-    assert(taskActFcn != nullptr);
-    assert(fnData != nullptr);
+    assert(taskNameStr.length() != 0);  // Length == 0
+    assert(watchFolder.length() != 0);  // Length == 0
+    assert(maxWatchDepth >= -1);         // < -1
+    assert(taskActFcn != nullptr);      // nullptr
+    assert(fnData != nullptr);          // nulptr
 
     std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
 

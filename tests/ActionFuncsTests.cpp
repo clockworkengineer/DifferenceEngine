@@ -43,8 +43,8 @@ protected:
     ActionFuncsTests() {
 
         // Create function data (wrap in void shared pointer for passing to task).
-        fnData.reset(new ActFnData{kWatchFolder, kDestinationFolder, "", false});
-        funcData = static_cast<ActFnData *> (fnData.get());
+        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false});
+        this->funcData = static_cast<ActFnData *> (this->fnData.get());
 
     }
 
@@ -57,14 +57,14 @@ protected:
 
         // Create watch directory.
 
-        if (!fs::exists(kWatchFolder)) {
-            fs::create_directory(kWatchFolder);
+        if (!fs::exists( ActionFuncsTests::kWatchFolder)) {
+            fs::create_directory( ActionFuncsTests::kWatchFolder);
         }
 
-        // Create kDestinationFolder directory.
+        // Create  ActionFuncsTests::kDestinationFolder directory.
 
-        if (!fs::exists(kDestinationFolder)) {
-            fs::create_directory(kDestinationFolder);
+        if (!fs::exists( ActionFuncsTests::kDestinationFolder)) {
+            fs::create_directory( ActionFuncsTests::kDestinationFolder);
         }
 
         // Save and redirect stdout/stderr for tests
@@ -81,18 +81,18 @@ protected:
 
         // Remove any files created
 
-        if ((filePath.length() != 0) && (fileName.length() != 0)) {
+        if ((this->filePath.length() != 0) && (this->fileName.length() != 0)) {
 
-            if (fs::exists(filePath + fileName)) {
-                boost::filesystem::remove(filePath + fileName);
+            if (fs::exists(this->filePath + this->fileName)) {
+                boost::filesystem::remove(this->filePath + this->fileName);
             }
 
-            if (fs::exists(kDestinationFolder + fileName)) {
-                boost::filesystem::remove(kDestinationFolder + fileName);
+            if (fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName)) {
+                boost::filesystem::remove( ActionFuncsTests::kDestinationFolder + this->fileName);
             }
 
-            filePath = "";
-            fileName = "";
+            this->filePath = "";
+            this->fileName = "";
 
         }
 
@@ -103,6 +103,8 @@ protected:
 
     }
 
+    void createFile(std::string fileName);
+    
     // stdout/stderr redirect for tests
 
     std::streambuf* cout_sbuf = std::cout.rdbuf(); // save original sbuf
@@ -126,8 +128,8 @@ protected:
 
 };
 
-const std::string ActionFuncsTests::kWatchFolder("/tmp/watch/");
-const std::string ActionFuncsTests::kDestinationFolder("/tmp/destination/");
+const std::string ActionFuncsTests:: kWatchFolder("/tmp/watch/");
+const std::string ActionFuncsTests:: kDestinationFolder("/tmp/destination/");
 
 const std::string ActionFuncsTests::kParamAssertion1("Assertion*"); // NEED TO MODIFY FOR SPECIFIC ASSERTS
 const std::string ActionFuncsTests::kParamAssertion2("Assertion*");
@@ -137,10 +139,10 @@ const std::string ActionFuncsTests::kParamAssertion3("Assertion*");
 // Create a file for test purposes.
 //
 
-void createFile(std::string fileName) {
+void ActionFuncsTests::createFile(std::string fileName) {
 
     std::ofstream outfile(fileName);
-    outfile << "" << std::endl;
+    outfile << "TEST TEXT" << std::endl;
     outfile.close();
 
 }
@@ -157,7 +159,7 @@ void createFile(std::string fileName) {
 
 TEST_F(ActionFuncsTests, TaskCopyFileAssertParam1) {
 
-    EXPECT_DEATH(copyFile(filePath, fileName, nullptr), ActionFuncsTests::kParamAssertion1);
+    EXPECT_DEATH(copyFile(this->filePath, this->fileName, nullptr), ActionFuncsTests::kParamAssertion1);
 
 }
 
@@ -167,7 +169,7 @@ TEST_F(ActionFuncsTests, TaskCopyFileAssertParam1) {
 
 TEST_F(ActionFuncsTests, TaskCopyFileAssertParam2) {
 
-    EXPECT_DEATH(copyFile(filePath, fileName, fnData), ActionFuncsTests::kParamAssertion2);
+    EXPECT_DEATH(copyFile(this->filePath, this->fileName, this->fnData), ActionFuncsTests::kParamAssertion2);
 
 }
 
@@ -177,9 +179,9 @@ TEST_F(ActionFuncsTests, TaskCopyFileAssertParam2) {
 
 TEST_F(ActionFuncsTests, TaskCopyFileAssertParam3) {
 
-    filePath = kWatchFolder;
+    this->filePath =  ActionFuncsTests::kWatchFolder;
 
-    EXPECT_DEATH(copyFile(filePath, fileName, fnData), ActionFuncsTests::kParamAssertion3);
+    EXPECT_DEATH(copyFile(this->filePath, this->fileName, this->fnData), ActionFuncsTests::kParamAssertion3);
 
 }
 
@@ -189,10 +191,10 @@ TEST_F(ActionFuncsTests, TaskCopyFileAssertParam3) {
 
 TEST_F(ActionFuncsTests, TaskCopyFileSourceNotExist) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    EXPECT_THROW(copyFile(filePath, fileName, fnData), fs::filesystem_error);
+    EXPECT_THROW(copyFile(this->filePath, this->fileName, this->fnData), fs::filesystem_error);
 
 }
 
@@ -202,29 +204,76 @@ TEST_F(ActionFuncsTests, TaskCopyFileSourceNotExist) {
 
 TEST_F(ActionFuncsTests, TaskCopyFileSourceExists) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    createFile(filePath + fileName);
+    this->createFile(this->filePath + this->fileName);
 
-    EXPECT_TRUE(copyFile(filePath, fileName, fnData));
+    EXPECT_TRUE(copyFile(this->filePath, this->fileName, this->fnData));
+    
+    EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
 
 
 }
 
 //
-// File copied with destination existing.
+// File copied with destination existing. File is not copied.
 //
 
 TEST_F(ActionFuncsTests, TaskCopyFileDestinationExists) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    createFile(filePath + fileName);
-    createFile(kDestinationFolder + fileName);
+    this->createFile(this->filePath + this->fileName);
+    this->createFile( ActionFuncsTests::kDestinationFolder + this->fileName);
+    
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName));
+    EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
 
-    EXPECT_FALSE(copyFile(filePath, fileName, fnData));
+    EXPECT_FALSE(copyFile(this->filePath, this->fileName, this->fnData));
+
+}
+
+//
+// File copied correctly and delete source set. On sucessful copy (ie. command) delete source.
+//
+
+TEST_F(ActionFuncsTests, TaskCopyFileSourceExistsDeleteSource) {
+
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
+
+    this->createFile(this->filePath + this->fileName);
+
+    this->funcData->bDeleteSource = true;
+    EXPECT_TRUE(copyFile(this->filePath, this->fileName, this->fnData));
+    
+    EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
+    EXPECT_FALSE(fs::exists(this->filePath + this->fileName));
+
+
+}
+
+//
+// File copied with destination existing and delete source set. File not copied so
+// do not delete source.
+//
+
+TEST_F(ActionFuncsTests, TaskCopyFileDestinationExistsDeleteSource) {
+
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
+
+    this->createFile(this->filePath + this->fileName);
+    this->createFile( ActionFuncsTests::kDestinationFolder + this->fileName);
+    
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName));
+    EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
+
+    this->funcData->bDeleteSource = true;
+    EXPECT_FALSE(copyFile(this->filePath, this->fileName, this->fnData));
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName));
 
 }
 
@@ -235,34 +284,34 @@ TEST_F(ActionFuncsTests, TaskCopyFileDestinationExists) {
 //
 
 //
-// Function data null Assert
+// Function data null pointer Assert
 //
 
 TEST_F(ActionFuncsTests, TaskRunCommandAssertParam1) {
 
-    EXPECT_DEATH(runCommand(filePath, fileName, nullptr), ActionFuncsTests::kParamAssertion1);
+    EXPECT_DEATH(runCommand(this->filePath, this->fileName, nullptr), ActionFuncsTests::kParamAssertion1);
 
 }
 
 //
-// filePath length == 0 ASSERT
+// FilePath length == 0 ASSERT
 //
 
 TEST_F(ActionFuncsTests, TaskRunCommandAssertParam2) {
 
-    EXPECT_DEATH(runCommand(filePath, fileName, fnData), ActionFuncsTests::kParamAssertion2);
+    EXPECT_DEATH(runCommand(this->filePath, this->fileName, this->fnData), ActionFuncsTests::kParamAssertion2);
 
 }
 
 //
-// fileName length == 0 ASSERT
+// FileName length == 0 ASSERT
 //
 
 TEST_F(ActionFuncsTests, TaskRunCommandAssertParam3) {
 
-    filePath = kWatchFolder;
+    this->filePath =  ActionFuncsTests::kWatchFolder;
 
-    EXPECT_DEATH(runCommand(filePath, fileName, fnData), ActionFuncsTests::kParamAssertion3);
+    EXPECT_DEATH(runCommand(this->filePath, this->fileName, this->fnData), ActionFuncsTests::kParamAssertion3);
 
 }
 
@@ -272,14 +321,14 @@ TEST_F(ActionFuncsTests, TaskRunCommandAssertParam3) {
 
 TEST_F(ActionFuncsTests, TaskRunCommandSourceNotExist) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    funcData->commandToRun = "echo %1%"; // Doesn't matter file doesn't exist so TRUE.
-    EXPECT_TRUE(runCommand(filePath, fileName, fnData));
+    this->funcData->commandToRun = "echo %1%"; // Doesn't matter file doesn't exist so TRUE.
+    EXPECT_TRUE(runCommand(this->filePath, this->fileName, this->fnData));
 
-    funcData->commandToRun = "ls %1%"; // Does matter file doesn't exist so FALSE.
-    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
+    this->funcData->commandToRun = "ls %1%"; // Does matter file doesn't exist so FALSE.
+    EXPECT_FALSE(runCommand(this->filePath, this->fileName, this->fnData));
 
 
 }
@@ -290,18 +339,18 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceNotExist) {
 
 TEST_F(ActionFuncsTests, TaskRunCommandSourceExists) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    createFile(filePath + fileName);
+    this->createFile(this->filePath + this->fileName);
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should exist
-    EXPECT_FALSE(fs::exists(kDestinationFolder + fileName)); // Destination shouldn't
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist
+    EXPECT_FALSE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName)); // Destination shouldn't
 
-    funcData->commandToRun = "cp %1% %2%"; // Copy file using cp
-    EXPECT_TRUE(runCommand(filePath, fileName, fnData));
+    this->funcData->commandToRun = "cp %1% %2%"; // Copy file using cp
+    EXPECT_TRUE(runCommand(this->filePath, this->fileName, this->fnData));
 
-    EXPECT_TRUE(fs::exists(kDestinationFolder + fileName)); // Destination should now
+    EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName)); // Destination should now
 
 }
 
@@ -311,14 +360,14 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceExists) {
 
 TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommand) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    funcData->commandToRun = "echo %1%"; // Run a valid command
-    EXPECT_TRUE(runCommand(filePath, fileName, fnData));
+    this->funcData->commandToRun = "echo %1%"; // Run a valid command
+    EXPECT_TRUE(runCommand(this->filePath, this->fileName, this->fnData));
 
-    funcData->commandToRun = "foobar %1%"; // Now run foobar which is not a command
-    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
+    this->funcData->commandToRun = "foobar %1%"; // Now run foobar which is not a command
+    EXPECT_FALSE(runCommand(this->filePath, this->fileName, this->fnData));
 
 
 }
@@ -329,31 +378,31 @@ TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommand) {
 
 TEST_F(ActionFuncsTests, TaskRunCommandNoSourceTryToDelete) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    EXPECT_FALSE(fs::exists(filePath + fileName)); // File should not exist
+    EXPECT_FALSE(fs::exists(this->filePath + this->fileName)); // File should not exist
 
-    funcData->bDeleteSource = true;
-    funcData->commandToRun = "echo %1%"; // Run a valid command
-    EXPECT_TRUE(runCommand(filePath, fileName, fnData));
+    this->funcData->bDeleteSource = true;
+    this->funcData->commandToRun = "echo %1%"; // Run a valid command
+    EXPECT_TRUE(runCommand(this->filePath, this->fileName, this->fnData));
 
 }
 
 TEST_F(ActionFuncsTests, TaskRunCommandSourceExistsTryToDelete) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    createFile(filePath + fileName);
+    this->createFile(this->filePath + this->fileName);
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should not exist
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist
 
-    funcData->bDeleteSource = true;
-    funcData->commandToRun = "echo %1%"; // Run a valid command
-    EXPECT_TRUE(runCommand(filePath, fileName, fnData));
+    this->funcData->bDeleteSource = true;
+    this->funcData->commandToRun = "echo %1%"; // Run a valid command
+    EXPECT_TRUE(runCommand(this->filePath, this->fileName, this->fnData));
 
-    EXPECT_FALSE(fs::exists(filePath + fileName)); // File should have been deleted
+    EXPECT_FALSE(fs::exists(this->filePath + this->fileName)); // File should have been deleted
 
 }
 
@@ -363,18 +412,18 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceExistsTryToDelete) {
 
 TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommandSourceExistsTryToDelete) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    createFile(filePath + fileName);
+    this->createFile(this->filePath + this->fileName);
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should not exist
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist
 
-    funcData->bDeleteSource = true;
-    funcData->commandToRun = "foobar %1%"; // Run a invalid command
-    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
+    this->funcData->bDeleteSource = true;
+    this->funcData->commandToRun = "foobar %1%"; // Run a invalid command
+    EXPECT_FALSE(runCommand(this->filePath, this->fileName, this->fnData));
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should have not been deleted
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted
 
 }
 
@@ -385,12 +434,12 @@ TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommandSourceExistsTryToDelete) {
 //
 
 //
-// Function data null Assert
+// Function data null pointer ASSERT
 //
 
 TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam1) {
 
-    EXPECT_DEATH(handBrake(filePath, fileName, nullptr), ActionFuncsTests::kParamAssertion1);
+    EXPECT_DEATH(handBrake(this->filePath, this->fileName, nullptr), ActionFuncsTests::kParamAssertion1);
 
 }
 
@@ -400,7 +449,7 @@ TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam1) {
 
 TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam2) {
 
-    EXPECT_DEATH(handBrake(filePath, fileName, fnData), ActionFuncsTests::kParamAssertion2);
+    EXPECT_DEATH(handBrake(this->filePath, this->fileName, this->fnData), ActionFuncsTests::kParamAssertion2);
 
 }
 
@@ -410,9 +459,9 @@ TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam2) {
 
 TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam3) {
 
-    filePath = kWatchFolder;
+    this->filePath =  ActionFuncsTests::kWatchFolder;
 
-    EXPECT_DEATH(handBrake(filePath, fileName, fnData), ActionFuncsTests::kParamAssertion3);
+    EXPECT_DEATH(handBrake(this->filePath, this->fileName, this->fnData), ActionFuncsTests::kParamAssertion3);
 
 }
 
@@ -422,17 +471,17 @@ TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam3) {
 
 TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFile) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    createFile(filePath + fileName);
+    this->createFile(this->filePath + this->fileName);
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should exist now 
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist now 
 
-    funcData->commandToRun = kHandbrakeCommand;
-    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
+    this->funcData->commandToRun = kHandbrakeCommand;
+    EXPECT_FALSE(runCommand(this->filePath, this->fileName, this->fnData));
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should have not been deleted
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted
 
 }
 
@@ -442,22 +491,20 @@ TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFile) {
 
 TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFileDeleteSource) {
 
-    filePath = kWatchFolder;
-    fileName = "temp1.txt";
+    this->filePath =  ActionFuncsTests::kWatchFolder;
+    this->fileName = "temp1.txt";
 
-    createFile(filePath + fileName);
+    this->createFile(this->filePath + this->fileName);
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should exist now 
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist now 
 
-    funcData->bDeleteSource = true;
-    funcData->commandToRun = kHandbrakeCommand;
-    EXPECT_FALSE(runCommand(filePath, fileName, fnData));
+    this->funcData->bDeleteSource = true;
+    this->funcData->commandToRun = kHandbrakeCommand;
+    EXPECT_FALSE(runCommand(this->filePath, this->fileName, this->fnData));
 
-    EXPECT_TRUE(fs::exists(filePath + fileName)); // File should have not been deleted
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted
 
 }
-
-// ADD MORE LATER ....................
 
 //
 // RUN GOOGLE TEST
