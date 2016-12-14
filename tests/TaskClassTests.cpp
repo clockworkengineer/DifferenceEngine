@@ -158,8 +158,6 @@ void TaskClassTests::createFiles(int fileCount) {
     taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
 
     this->filePath = TaskClassTests::kWatchFolder;
-    this->fileName = "temp1.txt";
-
 
     for (auto cnt01 = 0; cnt01 < fileCount; cnt01++) {
         std::string file = (boost::format("temp%1%.txt") % cnt01).str();
