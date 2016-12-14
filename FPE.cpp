@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
     
        // Create function data (wrap in void shared pointer for passing to task).
 
-        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, argData.destinationFolder, argData.commandToRun, argData.bDeleteSource});
+        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, argData.extension});
  
         // Create task object
 

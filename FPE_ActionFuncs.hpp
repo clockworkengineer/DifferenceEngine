@@ -50,6 +50,7 @@ struct ActFnData {
     fs::path     destinationFolder;  // Destination Folder for copies.
     std::string  commandToRun;       // Command to run
     bool         bDeleteSource;      // Delete source file
+    std::string  extension;          // Override extension for destination file
 };
 
 //  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto

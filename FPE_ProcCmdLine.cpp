@@ -59,6 +59,7 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
         argData.bRunCommand = false;
         argData.maxWatchDepth = -1;
         argData.bDeleteSource = false;
+        argData.extension  = "";
 
         // Define and parse the program options
 
@@ -71,6 +72,7 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
                 ("copy", "Task = File Copy Watcher")
                 ("video", "Task = Video Conversion Watcher")
                 ("command", po::value<std::string>(&argData.commandToRun), "Task = Run Shell Command")
+                ("extension,e", po::value<std::string>(&argData.extension), "Overrde destination file extension")
                 ("delete", "Delete Source File");
 
         po::variables_map vm;

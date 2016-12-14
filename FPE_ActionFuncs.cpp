@@ -201,8 +201,13 @@ bool handBrake(const std::string &filenamePathStr, const std::string &filenameSt
     fs::path destinationFile(funcData->destinationFolder.string());
 
     destinationFile /= sourceFile.stem().string();
-    destinationFile.replace_extension(".mp4");
-
+    
+    if (funcData->extension.length() > 0) {
+         destinationFile.replace_extension(funcData->extension);
+    } else {
+        destinationFile.replace_extension(".mp4");
+    }
+    
     // Convert file
 
     std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
