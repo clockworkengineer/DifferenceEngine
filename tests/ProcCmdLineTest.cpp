@@ -33,6 +33,7 @@
 #include "FPE_ProcCmdLine.hpp"
 
 class ProcCmdLineTest : public ::testing::Test {
+    
 protected:
 
     ProcCmdLineTest() {
@@ -41,7 +42,6 @@ protected:
 
     virtual ~ProcCmdLineTest() {
 
-        // Nothing here for present
     }
 
     virtual void SetUp() {

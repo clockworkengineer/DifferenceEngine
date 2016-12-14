@@ -43,25 +43,24 @@ protected:
     ActionFuncsTests() {
 
         // Create function data (wrap in void shared pointer for passing to task).
+        
         this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false});
         this->funcData = static_cast<ActFnData *> (this->fnData.get());
 
     }
 
     virtual ~ActionFuncsTests() {
-
-        // Nothing here for present
     }
 
     virtual void SetUp() {
 
-        // Create watch directory.
+        // Create watch folder.
 
         if (!fs::exists( ActionFuncsTests::kWatchFolder)) {
             fs::create_directory( ActionFuncsTests::kWatchFolder);
         }
 
-        // Create  ActionFuncsTests::kDestinationFolder directory.
+        // Create destination folder.
 
         if (!fs::exists( ActionFuncsTests::kDestinationFolder)) {
             fs::create_directory( ActionFuncsTests::kDestinationFolder);
@@ -90,9 +89,6 @@ protected:
             if (fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName)) {
                 boost::filesystem::remove( ActionFuncsTests::kDestinationFolder + this->fileName);
             }
-
-            this->filePath = "";
-            this->fileName = "";
 
         }
 

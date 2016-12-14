@@ -36,7 +36,7 @@
 // Test Action function data
 
 struct TestActFnData {
-    int fnCalledCount;  // How many times action function called
+    int fnCalledCount; // How many times action function called
 };
 
 //
@@ -47,8 +47,9 @@ class TaskClassTests : public ::testing::Test {
 protected:
 
     TaskClassTests() {
-        
+
         // Create function data (wrap in void shared pointer for passing to task).
+        
         fnData.reset(new TestActFnData{0});
         funcData = static_cast<TestActFnData *> (fnData.get());
 
@@ -71,12 +72,6 @@ protected:
 
     virtual void TearDown() {
 
-        // Delete any created single test file
-        
-        if (fs::exists(this->filePath + this->fileName)) {
-            boost::filesystem::remove(this->filePath + this->fileName);
-        }
-
         // Restore stdout/stderr stream buffers
 
         std::cout.rdbuf(cout_sbuf);
@@ -85,8 +80,8 @@ protected:
 
     }
 
-    void createFile(std::string fileName);
-    void createFiles(int fileCount);
+    void createFile(std::string fileName); // Create a test file.
+    void createFiles(int fileCount); // Create fileCount files and check action function call count
 
     // stdout/stderr redirect for tests
 
@@ -95,8 +90,8 @@ protected:
     std::ofstream fileout{ "/dev/null"};
     std::ofstream fileerr{ "/dev/null"};
 
-    std::shared_ptr<void> fnData;   // Action function data shared pointer wrapper
-    TestActFnData *funcData;        // Action function data 
+    std::shared_ptr<void> fnData; // Action function data shared pointer wrapper
+    TestActFnData *funcData; // Action function data 
 
     std::string filePath = "";      // Test file path
     std::string fileName = "";      // Test file name
@@ -126,15 +121,6 @@ const std::string TaskClassTests::kParamAssertion3("Assertion*");
 const std::string TaskClassTests::kParamAssertion4("Assertion*");
 const std::string TaskClassTests::kParamAssertion5("Assertion*");
 
-
-bool testActionFunc(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void>fnData) {
-
-        TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
-        funcData->fnCalledCount++;
-        return true;
-        
-};
-
 //
 // Create a file for test purposes.
 //
@@ -151,15 +137,19 @@ void TaskClassTests::createFile(std::string fileName) {
 // Create fileCount files and check that action function called for each
 //
 
-void TaskClassTests::createFiles (int fileCount) {
-    
+void TaskClassTests::createFiles(int fileCount) {
+
     this->taskName = "Test";
     this->watchFolder = kWatchFolder;
     this->watchDepth = -1;
 
-    this->taskActFcn = testActionFunc;
+    this->taskActFcn = [] (auto filenamePathStr, auto filenameStr, auto fnData) -> bool {
+        TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
+        funcData->fnCalledCount++;
+        return true;
+    };
 
-    FPE_Task task {this->taskName, this->watchFolder,this->taskActFcn, this->fnData,  this->watchDepth, fileCount};
+    FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, fileCount};
 
     // Create task object thread and start to watch
 
@@ -210,21 +200,21 @@ TEST_F(TaskClassTests, TaskClassAssertParam2) {
 }
 
 //
-// Watch Depth < -1 ASSERT
+// Action Function Pointer == NULL ASSERT
 //
 
 TEST_F(TaskClassTests, TaskClassAssertParam3) {
 
     this->taskName = "Test";
     this->watchFolder = kWatchFolder;
-    this->watchDepth = -99;
+    this->watchDepth = -1;
 
-    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, this->fnData,  this->watchDepth), TaskClassTests::kParamAssertion3);
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, nullptr, this->fnData, this->watchDepth), TaskClassTests::kParamAssertion3);
 
 }
 
 //
-// Action Function Pointer == NULL ASSERT
+// Action Function Data Pointer == NULL ASSERT
 //
 
 TEST_F(TaskClassTests, TaskClassAssertParam4) {
@@ -233,21 +223,21 @@ TEST_F(TaskClassTests, TaskClassAssertParam4) {
     this->watchFolder = kWatchFolder;
     this->watchDepth = -1;
 
-    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, nullptr, this->fnData, this->watchDepth), TaskClassTests::kParamAssertion4);
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, nullptr, this->watchDepth), TaskClassTests::kParamAssertion4);
 
 }
 
 //
-// Action Function Data Pointer == NULL ASSERT
+// Watch Depth < -1 ASSERT
 //
 
 TEST_F(TaskClassTests, TaskClassAssertParam5) {
 
     this->taskName = "Test";
     this->watchFolder = kWatchFolder;
-    this->watchDepth = -1;
+    this->watchDepth = -99;
 
-    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, nullptr, this->watchDepth), TaskClassTests::kParamAssertion5);
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth), TaskClassTests::kParamAssertion5);
 
 }
 
@@ -257,8 +247,8 @@ TEST_F(TaskClassTests, TaskClassAssertParam5) {
 
 TEST_F(TaskClassTests, TaskClassCreateFile1) {
 
-    this->createFiles (1);
-    
+    this->createFiles(1);
+
 }
 
 //
@@ -267,8 +257,8 @@ TEST_F(TaskClassTests, TaskClassCreateFile1) {
 
 TEST_F(TaskClassTests, TaskClassCreateFile10) {
 
-    this->createFiles (10);
-    
+    this->createFiles(10);
+
 }
 
 //
@@ -277,8 +267,8 @@ TEST_F(TaskClassTests, TaskClassCreateFile10) {
 
 TEST_F(TaskClassTests, TaskClassCreateFile50) {
 
-    this->createFiles (50);
-    
+    this->createFiles(50);
+
 }
 
 //
@@ -287,8 +277,8 @@ TEST_F(TaskClassTests, TaskClassCreateFile50) {
 
 TEST_F(TaskClassTests, TaskClassCreateFile100) {
 
-    this->createFiles (100);
-    
+    this->createFiles(100);
+
 }
 
 //
@@ -297,8 +287,8 @@ TEST_F(TaskClassTests, TaskClassCreateFile100) {
 
 TEST_F(TaskClassTests, TaskClassCreateFile250) {
 
-    this->createFiles (250);
-    
+    this->createFiles(250);
+
 }
 
 //
@@ -307,8 +297,8 @@ TEST_F(TaskClassTests, TaskClassCreateFile250) {
 
 TEST_F(TaskClassTests, TaskClassCreateFile500) {
 
-    this->createFiles (500);
-    
+    this->createFiles(500);
+
 }
 
 //
