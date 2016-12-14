@@ -67,10 +67,11 @@ public:
 
     FPE_Task(std::string taskNameStr,         // Task name
             std::string watchFolder,          // Watch folder path
-            int maxWatchDepth,                // Maximum watch depth -1= all, 0=just watch folder
             TaskActionFcn taskActFcn,         // Task action function
-            std::shared_ptr<void> fnData);    // Task file process function data
-            
+            std::shared_ptr<void> fnData,     // Task file process function data
+            int maxWatchDepth,                // Maximum watch depth -1= all, 0=just watch folder
+            int killCount=0);                //  After killCount files processed stop task (0 = disabled)
+    
     // DESTRUCTOR
 
     virtual ~FPE_Task(); // Task class cleanup
@@ -95,9 +96,15 @@ private:
     void destroyWatchTable(void);                   // Clear watch table
     void worker(void);                              // Worker thread
 
+    // CONSTRUCTOR PARAMETERS
+    
     std::string  taskName;                                  // Task name
     std::string  watchFolder;                               // Watch Folder
     int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder,1=next level down etc.
+    TaskActionFcn taskActFcn;                               // Task action function 
+    std::shared_ptr<void> fnData;                           // Task action function data
+    int killCount;                                          // Files to process before stopping (-1 == disabled)
+    
     int fdNotify;                                           // inotify file descriptor
     std::mutex fileNamesMutex;                              // Queue Mutex
     std::queue <std::string> fileNames;                     // Queue of path/file names
@@ -105,9 +112,7 @@ private:
     std::unique_ptr<std::thread> workerThread;              // Worker thread for task to be performed.
     std::unordered_map<int32_t, std::string> watchMap;      // Watch table indexed by watch variable
     std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
-    TaskActionFcn taskActFcn;                               // Task action function 
-    std::shared_ptr<void> fnData;                           // Task action function data
-
+    
     static const uint32_t kInofityEvents;       // inotify events to monitor
     static const uint32_t kInotifyEventSize;    // inotify read event size
     static const uint32_t kInotifyEventBuffLen; // inotify read buffer length

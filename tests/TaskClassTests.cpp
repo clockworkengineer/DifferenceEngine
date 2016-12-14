@@ -30,9 +30,14 @@
 
 #include "gtest/gtest.h"
 
-
 #include "FPE_ActionFuncs.hpp"
 #include "FPE_Task.hpp" 
+
+// Test Action function data
+
+struct TestActFnData {
+    int fnCalledCount;  // How many times action function called
+};
 
 //
 // TaskClassTests fixtures and constants
@@ -42,62 +47,64 @@ class TaskClassTests : public ::testing::Test {
 protected:
 
     TaskClassTests() {
+        
+        // Create function data (wrap in void shared pointer for passing to task).
+        fnData.reset(new TestActFnData{0});
+        funcData = static_cast<TestActFnData *> (fnData.get());
 
     }
 
     virtual ~TaskClassTests() {
-        // Create function data (wrap in void shared pointer for passing to task).
-        fnData.reset(new ActFnData{kWatchFolder, kDestinationFolder, "", false});
-        funcData = static_cast<ActFnData *> (fnData.get());
     }
 
     virtual void SetUp() {
 
         // Save and redirect stdout/stderr for tests
 
-        cout_sbuf = std::cout.rdbuf();      // save original sbuf
-        std::cout.rdbuf(fileout.rdbuf());   // redirect 'cout'
+        cout_sbuf = std::cout.rdbuf(); // save original sbuf
+        std::cout.rdbuf(fileout.rdbuf()); // redirect 'cout'
 
-        cerr_sbuf = std::cerr.rdbuf();      // save original sbuf
-        std::cerr.rdbuf(fileerr.rdbuf());   // redirect 'cerr'
+        cerr_sbuf = std::cerr.rdbuf(); // save original sbuf
+        std::cerr.rdbuf(fileerr.rdbuf()); // redirect 'cerr'
 
     }
 
     virtual void TearDown() {
 
+        // Delete any created single test file
+        
+        if (fs::exists(this->filePath + this->fileName)) {
+            boost::filesystem::remove(this->filePath + this->fileName);
+        }
+
         // Restore stdout/stderr stream buffers
 
         std::cout.rdbuf(cout_sbuf);
         std::cout.rdbuf(cerr_sbuf);
-        
-        filePath = ""; // Test file path
-        fileName = ""; // Test file name
-    
-        watchDepth = -1;
-        taskName = "";
-        watchFolder = "";
+
 
     }
-    
+
+    void createFile(std::string fileName);
+    void createFiles(int fileCount);
+
     // stdout/stderr redirect for tests
 
     std::streambuf* cout_sbuf = std::cout.rdbuf(); // save original sbuf
     std::streambuf* cerr_sbuf = std::cerr.rdbuf(); // save original sbuf
     std::ofstream fileout{ "/dev/null"};
     std::ofstream fileerr{ "/dev/null"};
-    
-    std::shared_ptr<void> fnData; // Action function data shared pointer wrapper
 
-    ActFnData *funcData; // Action function data 
+    std::shared_ptr<void> fnData;   // Action function data shared pointer wrapper
+    TestActFnData *funcData;        // Action function data 
 
-    std::string filePath = ""; // Test file path
-    std::string fileName = ""; // Test file name
-    
-    int watchDepth = -1;
-    std::string taskName = "";
-    std::string watchFolder = "";
-    
-    TaskActionFcn taskActFcn;
+    std::string filePath = "";      // Test file path
+    std::string fileName = "";      // Test file name
+    int watchDepth = -1;            // Folder Watch depth
+    std::string taskName = "";      // Task Name
+    std::string watchFolder = "";   // Watch Folder
+
+    TaskActionFcn taskActFcn; // Task Action Function Data
 
     static const std::string kWatchFolder; // Test Watch Folder
     static const std::string kDestinationFolder; // Test Destination folder
@@ -119,54 +126,192 @@ const std::string TaskClassTests::kParamAssertion3("Assertion*");
 const std::string TaskClassTests::kParamAssertion4("Assertion*");
 const std::string TaskClassTests::kParamAssertion5("Assertion*");
 
-TEST_F(TaskClassTests, TaskClassAssertParam1) {
 
-   EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->watchDepth, this->taskActFcn, this->fnData), TaskClassTests::kParamAssertion1);
+bool testActionFunc(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void>fnData) {
+
+        TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
+        funcData->fnCalledCount++;
+        return true;
+        
+};
+
+//
+// Create a file for test purposes.
+//
+
+void TaskClassTests::createFile(std::string fileName) {
+
+    std::ofstream outfile(fileName);
+    outfile << "TEST TEXT" << std::endl;
+    outfile.close();
 
 }
+
+//
+// Create fileCount files and check that action function called for each
+//
+
+void TaskClassTests::createFiles (int fileCount) {
+    
+    this->taskName = "Test";
+    this->watchFolder = kWatchFolder;
+    this->watchDepth = -1;
+
+    this->taskActFcn = testActionFunc;
+
+    FPE_Task task {this->taskName, this->watchFolder,this->taskActFcn, this->fnData,  this->watchDepth, fileCount};
+
+    // Create task object thread and start to watch
+
+    std::unique_ptr<std::thread> taskThread;
+
+    taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
+
+    this->filePath = TaskClassTests::kWatchFolder;
+    this->fileName = "temp1.txt";
+
+
+    for (auto cnt01 = 0; cnt01 < fileCount; cnt01++) {
+        std::string file = (boost::format("temp%1%.txt") % cnt01).str();
+        this->createFile(this->filePath + file);
+    }
+
+    taskThread->join();
+
+    EXPECT_EQ(fileCount, funcData->fnCalledCount);
+
+    for (auto cnt01 = 0; cnt01 < fileCount; cnt01++) {
+        std::string file = (boost::format("temp%1%.txt") % cnt01).str();
+        boost::filesystem::remove(this->filePath + file);
+    }
+
+}
+
+//
+// Task Name lengh == 0 ASSERT
+//
+
+TEST_F(TaskClassTests, TaskClassAssertParam1) {
+
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth), TaskClassTests::kParamAssertion1);
+
+}
+
+//
+// Watch Folder Name lengh == 0 ASSERT
+//
 
 TEST_F(TaskClassTests, TaskClassAssertParam2) {
 
-   this->taskName="Test";
-   this->watchFolder= kWatchFolder;
-   
-    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->watchDepth, this->taskActFcn, this->fnData), TaskClassTests::kParamAssertion2);
+    this->taskName = "Test";
+
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth), TaskClassTests::kParamAssertion2);
 
 }
+
+//
+// Watch Depth < -1 ASSERT
+//
 
 TEST_F(TaskClassTests, TaskClassAssertParam3) {
 
-   this->taskName="Test";
-   this->watchFolder= kWatchFolder;
-   this->watchDepth = -99;
-   
-    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->watchDepth, this->taskActFcn, this->fnData), TaskClassTests::kParamAssertion3);
+    this->taskName = "Test";
+    this->watchFolder = kWatchFolder;
+    this->watchDepth = -99;
+
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, this->fnData,  this->watchDepth), TaskClassTests::kParamAssertion3);
 
 }
+
+//
+// Action Function Pointer == NULL ASSERT
+//
 
 TEST_F(TaskClassTests, TaskClassAssertParam4) {
 
-   this->taskName="Test";
-   this->watchFolder= kWatchFolder;
-   this->watchDepth = -1;
-   
-   EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->watchDepth, nullptr, this->fnData), TaskClassTests::kParamAssertion4);
+    this->taskName = "Test";
+    this->watchFolder = kWatchFolder;
+    this->watchDepth = -1;
+
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, nullptr, this->fnData, this->watchDepth), TaskClassTests::kParamAssertion4);
 
 }
+
+//
+// Action Function Data Pointer == NULL ASSERT
+//
 
 TEST_F(TaskClassTests, TaskClassAssertParam5) {
 
-   this->taskName="Test";
-   this->watchFolder= kWatchFolder;
-   this->watchDepth = -1;
-   this->taskActFcn = [] (auto filenamePathStr, auto filenameStr, auto fnData) -> bool 
-                   { std::cout << "[" << filenamePathStr+filenameStr << "]" << std::endl; return true; };
-   
-   EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->watchDepth, this->taskActFcn, nullptr),  TaskClassTests::kParamAssertion5);
+    this->taskName = "Test";
+    this->watchFolder = kWatchFolder;
+    this->watchDepth = -1;
+
+    EXPECT_DEATH(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, nullptr, this->watchDepth), TaskClassTests::kParamAssertion5);
 
 }
 
+//
+// Create 1 file in watcher folder
+//
 
+TEST_F(TaskClassTests, TaskClassCreateFile1) {
+
+    this->createFiles (1);
+    
+}
+
+//
+// Create 10 files in watcher folder
+//
+
+TEST_F(TaskClassTests, TaskClassCreateFile10) {
+
+    this->createFiles (10);
+    
+}
+
+//
+// Create 50 files in watcher folder
+//
+
+TEST_F(TaskClassTests, TaskClassCreateFile50) {
+
+    this->createFiles (50);
+    
+}
+
+//
+// Create 100 files in watcher folder
+//
+
+TEST_F(TaskClassTests, TaskClassCreateFile100) {
+
+    this->createFiles (100);
+    
+}
+
+//
+// Create 250 files in watcher folder
+//
+
+TEST_F(TaskClassTests, TaskClassCreateFile250) {
+
+    this->createFiles (250);
+    
+}
+
+//
+// Create 500 files in watcher folder
+//
+
+TEST_F(TaskClassTests, TaskClassCreateFile500) {
+
+    this->createFiles (500);
+    
+}
+
+//
 //
 // RUN GOOGLE TEST
 //

@@ -285,6 +285,11 @@ void FPE_Task::worker(void) {
                 } while (false); // lock guard out of scope so mutex off
                 if (bFilesToProcess) {
                     this->taskActFcn(filenamePathStr, filenameStr, this->fnData);
+                    if ((this->killCount != 0) && (--(this->killCount) == 0)) {
+                        std::cout << this->prefix() << "FPE_Task Kill Count reached." << std::endl;
+                        this->stop();
+                    }
+
                 }
             } while (bFilesToProcess);
 
@@ -314,18 +319,19 @@ void FPE_Task::worker(void) {
 // Task object constructor. 
 //
 
-FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder, int maxWatchDepth,
-        TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) :
-taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn{taskActFcn}, fnData{fnData}
+FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder,
+        TaskActionFcn taskActFcn, std::shared_ptr<void> fnData, int maxWatchDepth, int killCount) :
+taskName{taskNameStr}, taskActFcn{taskActFcn}, fnData{fnData}, watchFolder{watchFolder}, killCount{killCount}
 {
 
     // ASSERT if passed parameters invalid
 
-    assert(taskNameStr.length() != 0);  // Length == 0
-    assert(watchFolder.length() != 0);  // Length == 0
-    assert(maxWatchDepth >= -1);         // < -1
-    assert(taskActFcn != nullptr);      // nullptr
-    assert(fnData != nullptr);          // nulptr
+    assert(taskNameStr.length() != 0); // Length == 0
+    assert(watchFolder.length() != 0); // Length == 0
+    assert(maxWatchDepth >= -1);       // < -1
+    assert(taskActFcn != nullptr);     // nullptr
+    assert(fnData != nullptr);         // nulptr
+    assert(killCount >=0);             // < 0
 
     std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
 
@@ -389,7 +395,6 @@ void FPE_Task::monitor(void) {
 
         this->bDoWork = true;
         this->workerThread.reset(new std::thread(&FPE_Task::worker, this));
-        this->workerThread->detach();
 
         while (this->bDoWork.load()) {
 
@@ -429,6 +434,10 @@ void FPE_Task::monitor(void) {
             }
         }
 
+        // Wait for worker thread to exit
+        
+        this->workerThread->join();
+        
     } catch (const fs::filesystem_error& e) {
         std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
     } catch (std::runtime_error &e) {

@@ -56,7 +56,7 @@ void createTaskAndActivate( const std::string &taskName, const std::string &watc
 
     // Create task object
 
-    FPE_Task task(taskName, watchFolder, watchDepth, taskActFcn, fnData);
+    FPE_Task task(taskName, watchFolder, taskActFcn, fnData,  watchDepth);
  
     // Create task object thread and start to watch
 
