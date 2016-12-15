@@ -36,9 +36,9 @@
 #include <unistd.h>
 #if defined(_POSIX_VERSION)
 	/* POSIX compliant */
-#endif
 #else
 static_assert(false, "TRYING TO BUILD FOR NON-POSIX UNIX PLATFORM.");
+#endif
 #endif
 #else
 static_assert(false, "TRYING TO BUILD FOR NON-UNIX PLATFORM.");

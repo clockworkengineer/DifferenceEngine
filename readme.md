@@ -12,14 +12,15 @@ It is run from the command line and typing FPE --help gives its options
 
     File Processing Engine Application
     Options:
-      --help                          Print help messages
-      -w [ --watch ] arg              Watch Folder
-      -d [ --destination ] arg        Destination Folder
-      --maxdepth arg                  Maximum Watch Depth
-      --copy                          Task = File Copy Watcher
-      --video                         Task = Video Conversion Watcher
-      --command arg                   Task = Run Shell Command
-      --delete                        Delete Source File
+      --help 					 	Print help messages
+      -w [ --watch ] arg 			Watch Folder
+      -d [ --destination ] arg	 	Destination Folder
+      --maxdepth arg  				Maximum Watch Depth
+      --copy  						Task = File Copy Watcher
+      --video 						Task = Video Conversion Watcher
+      --command arg   				Task = Run Shell Command
+      -e [ --extension ] arg  		Overrde destination file extension
+      --delete						Delete Source File
  
 *watch* - Folder to watch for files created or moved into.
 
@@ -33,13 +34,15 @@ It is run from the command line and typing FPE --help gives its options
 
 *command* - Run command task (With this option it takes any file passed through and runs the specified shell script command substituting %1% in the command for the source file and %2% for any destination file).
 
+*extension* Override the extension on the desination file.
+
 *delete* - delete any source file after successful processing.
 
 **Note I tend to use the term folder/directory interchangeably coming from a mixed development environment.**
 
 # Building #
 
-At present this repository does not contain any build/make scripts but just the raw C++ source files. It will compile/link under Linux, is written in standard C++11, uses the [Boost library APis](http://www.boost.org/) and also the Linux kernel [inotify](https://en.wikipedia.org/wiki/Inotify) file event library. Make-files and build scripts might be deployed in a later time frame especially if the engine gets adapted for other platforms.
+At present this repository does not contain any build/make scripts but just the raw C++ source files. It will compile/link under Linux, is written in standard C++11, uses the [Boost library APis](http://www.boost.org/) and also the Linux kernel [inotify](https://en.wikipedia.org/wiki/Inotify) file event library. Make-files and build scripts might be deployed in a later time frame especially if the engine gets adapted for other platforms. Note that the sources not contains 3 google unit tests in folder 'tests' that require [google test](https://github.com/google/googletest) to be installed on the target platform to build and run.
 
 # Boost #
 
@@ -63,12 +66,15 @@ This function takes the file name and path passed as parameters and copies the c
 
 # Handbrake Video Conversion Task Function #
 
-This function takes the file name and path passed as parameters and creates a command to process the file into an ".mp4" file using handbrake. Please note that this command has a hard encoded path to my installation of handbrake and should be changed according to the target. The command is passed to the OS using the function call system(), which waits for completion and a returned status (nothing fancy is done with this except report success or failure). Note all output from handbrake (stdout/stderr) is  also redirected to a hard encoded log file.
+This function takes the file name and path passed as parameters and creates a command to process the file into an ".mp4" file using handbrake. Please note that this command has a hard encoded path to my installation of handbrake and should be changed according to the target. The command is passed to a function called **runCommand** that packs the command string into an argv[] that is further passed onto execvp() for execution. Before this a fork is performed and a wait is done for the forked process to exit and its status returned.
+
+# Shell command Task Function #
+
+This executes a simple shell script command (--command) for each file passed. It uses the same **runCommand** function used by the Handbrake Video Conversion Task.
 
 # To Do #
 
-1. The ability to drive program from tasksToRunDetails.json
-1. Add more task options such a torrent file download
+1. Add more task options such a using curl.
 2. Add more google tests.
 
 
