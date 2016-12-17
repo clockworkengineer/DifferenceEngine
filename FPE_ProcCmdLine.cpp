@@ -31,10 +31,6 @@
 
 #include <iostream>
 
-// Task class
-
-//#include "FPE_Task.hpp" 
-
 // Process command line arguments
 
 #include "FPE_ProcCmdLine.hpp"
@@ -44,6 +40,12 @@
 #include "boost/program_options.hpp" 
 
 namespace po = boost::program_options;
+
+// Boost file system and format libraries definitions
+
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 //
 // Read in and process command line arguments using boost.
@@ -66,8 +68,8 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
         po::options_description desc("Options");
         desc.add_options()
                 ("help", "Print help messages")
-                ("watch,w", po::value<fs::path>(&argData.watchFolder)->required(), "Watch Folder")
-                ("destination,d", po::value<fs::path>(&argData.destinationFolder)->required(), "Destination Folder")
+                ("watch,w", po::value<std::string>(&argData.watchFolder)->required(), "Watch Folder")
+                ("destination,d", po::value<std::string>(&argData.destinationFolder)->required(), "Destination Folder")
                 ("maxdepth", po::value<int>(&argData.maxWatchDepth), "Maximum Watch Depth")
                 ("copy", "Task = File Copy Watcher")
                 ("video", "Task = Video Conversion Watcher")
@@ -132,8 +134,8 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
 
             // Make watch/destination paths absolute
         
-            argData.watchFolder = fs::absolute(argData.watchFolder);
-            argData.destinationFolder = fs::absolute(argData.destinationFolder);
+            argData.watchFolder = fs::absolute(argData.watchFolder).string();
+            argData.destinationFolder = fs::absolute(argData.destinationFolder).string();
   
         } catch (po::error& e) {
             std::cerr << "FPE Error: " << e.what() << std::endl << std::endl;

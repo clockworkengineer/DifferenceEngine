@@ -29,6 +29,11 @@
  * THE SOFTWARE.
  */
 
+// STL definitions
+
+#include <sstream>
+#include <iostream>
+
 // Task Action functions
 
 #include "FPE_ActionFuncs.hpp"
@@ -40,6 +45,13 @@
 // Process wait definitions
 
 #include <sys/wait.h>
+
+// Boost file system and format libraries definitions
+
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+
+namespace fs = boost::filesystem;
 
 //
 // Fork and execute Shell command
@@ -146,7 +158,7 @@ bool runCommand(const std::string &filenamePathStr, const std::string &filenameS
     // Form source and destination file paths
 
     fs::path sourceFile(filenamePathStr + filenameStr);
-    fs::path destinationFile(funcData->destinationFolder.string() + filenameStr);
+    fs::path destinationFile(funcData->destinationFolder + filenameStr);
 
     // Create correct command for whether source and destination specified or just source or none
 
@@ -198,7 +210,7 @@ bool handBrake(const std::string &filenamePathStr, const std::string &filenameSt
     // Form source and destination file paths
 
     fs::path sourceFile(filenamePathStr + filenameStr);
-    fs::path destinationFile(funcData->destinationFolder.string());
+    fs::path destinationFile(funcData->destinationFolder);
 
     destinationFile /= sourceFile.stem().string();
     
@@ -252,8 +264,8 @@ bool copyFile(const std::string &filenamePathStr, const std::string &filenameStr
 
     // Destination file path += ("filename path" - "watch folder path")
 
-    fs::path destinationFile(funcData->destinationFolder.string() +
-            filenamePathStr.substr((funcData->watchFolder.string()).length()));
+    fs::path destinationFile(funcData->destinationFolder +
+            filenamePathStr.substr((funcData->watchFolder).length()));
 
     // Construct full destination path if needed
 

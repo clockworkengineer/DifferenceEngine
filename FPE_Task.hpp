@@ -33,33 +33,18 @@
 
 // STL definitions
 
-#include <string>
-#include <iostream>
-#include <cstdlib>
-#include <exception>
 #include <unordered_map>
 #include <thread>
-#include <fstream>
-#include <chrono>
 #include <queue>
 #include <condition_variable>
 #include <mutex>
 #include <atomic>
-#include <utility>
-#include <sstream> 
 
 // inotify definitions
 
 #include <sys/inotify.h>
 
-// Boost file system and format libraries definitions
-
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
-
-namespace fs = boost::filesystem;
-
-// Task options structure (OPTIONALLY PASS TO TASK)
+// Task options structure (OPTIONALLY PASSED TO TASK)
 
 struct TaskOptions {
     int killCount;      // After killCount files processed stop task (0 = disabled)

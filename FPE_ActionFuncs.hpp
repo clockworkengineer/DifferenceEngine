@@ -31,11 +31,8 @@
 #ifndef FPE_ACTIONFUNCS_HPP
 #define FPE_ACTIONFUNCS_HPP
 
-// Boost file system and format libraries definitions
-
-#include <boost/filesystem.hpp>
-
-namespace fs = boost::filesystem;
+#include <string>
+#include <memory>
 
 // Task action function
 
@@ -46,8 +43,8 @@ typedef bool (*TaskActionFcn)(const std::string &filenamePathStr,
 // Action function data
 
 struct ActFnData {
-    fs::path     watchFolder;        // Watch Folder
-    fs::path     destinationFolder;  // Destination Folder for copies.
+    std::string  watchFolder;        // Watch Folder
+    std::string  destinationFolder;  // Destination Folder for copies.
     std::string  commandToRun;       // Command to run
     bool         bDeleteSource;      // Delete source file
     std::string  extension;          // Override extension for destination file

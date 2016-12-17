@@ -33,6 +33,13 @@
 #include "FPE_ActionFuncs.hpp"
 #include "FPE_Task.hpp" 
 
+// Boost file system and format libraries definitions
+
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+
+namespace fs = boost::filesystem;
+
 // Test Action function data
 
 struct TestActFnData {
@@ -177,7 +184,7 @@ void TaskClassTests::createFiles(int fileCount) {
 
     for (auto cnt01 = 0; cnt01 < fileCount; cnt01++) {
         std::string file = (boost::format("temp%1%.txt") % cnt01).str();
-        boost::filesystem::remove(this->filePath + file);
+        fs::remove(this->filePath + file);
     }
 
 }

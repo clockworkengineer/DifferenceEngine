@@ -29,6 +29,11 @@
  * THE SOFTWARE.
  */
 
+// STL definitions
+
+#include <sstream>
+#include <iostream>
+
 // Task Action functions
 
 #include "FPE_ActionFuncs.hpp"
@@ -40,6 +45,12 @@
 // Process command line arguments
 
 #include "FPE_ProcCmdLine.hpp"
+
+// Boost file system and format libraries definitions
+
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 //
 // Create task and run in thread.
@@ -115,11 +126,11 @@ int main(int argc, char** argv) {
         // Create task object
 
         if (argData.bFileCopy) {
-            createTaskAndActivate(std::string("File Copy"), argData.watchFolder.string(), argData.maxWatchDepth, copyFile, fnData);
+            createTaskAndActivate(std::string("File Copy"), argData.watchFolder, argData.maxWatchDepth, copyFile, fnData);
         } else if (argData.bVideoConversion) {
-            createTaskAndActivate(std::string("Video Conversion"), argData.watchFolder.string(), argData.maxWatchDepth, handBrake, fnData);
+            createTaskAndActivate(std::string("Video Conversion"), argData.watchFolder, argData.maxWatchDepth, handBrake, fnData);
         } else {
-            createTaskAndActivate(std::string("Run Command"), argData.watchFolder.string(), argData.maxWatchDepth, runCommand, fnData);
+            createTaskAndActivate(std::string("Run Command"), argData.watchFolder, argData.maxWatchDepth, runCommand, fnData);
         }
         
         

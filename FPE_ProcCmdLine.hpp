@@ -31,18 +31,11 @@
 #ifndef FPE_PROCCMDLINE_HPP
 #define FPE_PROCCMDLINE_HPP
 
-// Boost file system and format libraries definitions
-
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
-
-namespace fs = boost::filesystem;
-
 // Command line parameter data
 
 struct ParamArgData {
-    fs::path     watchFolder;        // Watch Folder
-    fs::path     destinationFolder;  // Destination Folder for copies.
+    std::string  watchFolder;        // Watch Folder
+    std::string  destinationFolder;  // Destination Folder for copies.
     std::string  commandToRun;       // Command to run
     bool         bFileCopy;          // Task file copy
     bool         bVideoConversion;   // Task video conversion

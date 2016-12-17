@@ -33,6 +33,12 @@
 #include "FPE_ActionFuncs.hpp"
 #include "FPE_ProcCmdLine.hpp"
 
+// Boost file system and format libraries definitions
+
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 //
 // ActionFuncsTests fixtures and constants
 //
