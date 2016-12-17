@@ -236,16 +236,17 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
             std::cerr << this->prefix() << "Directory remove failed [" << pathStr << "] File [" << filename << "]" << std::endl;
         }
 
-        if (this->watchMap.size() == 1) {
-            std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
+        if (this->watchMap.size() == 0) {
+            std::cout << this->prefix() << "*** Watch Folder Deleted so terminating task. ***" << std::endl;
+            this->stop();
         }
 
     } catch (std::runtime_error &e) {
         // Report error 22 and carry on. From the documentation on this error the kernel has removed the watch for us.
         if (errno == EINVAL) {
-            std::cerr << this->prefix() << "Caught a runtime_error exception: " << e.what() << std::endl;
-            if (this->watchMap.size() == 1) {
-                std::cout << this->prefix() << "WATCH TABLE CLEARED." << std::endl;
+            if (this->watchMap.size() == 0) {
+                std::cout << this->prefix() << "*** Watch Folder Deleted so terminating task. ***" << std::endl;
+                this->stop();
             }
         } else {
             throw; // Throw exception back up the chain.
@@ -262,7 +263,6 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
 
 void FPE_Task::worker(void) {
 
-    bool bFilesToProcess;
     std::string filenamePathStr;
     std::string filenameStr;
 
@@ -272,28 +272,19 @@ void FPE_Task::worker(void) {
 
         try {
 
-            do {
-                do {
-                    std::lock_guard<std::mutex> guard(this->fileNamesMutex);
-                    bFilesToProcess = !this->fileNames.empty();
-                    if (bFilesToProcess) {
-                        filenamePathStr = this->fileNames.front();
-                        this->fileNames.pop();
-                        filenameStr = this->fileNames.front();
-                        this->fileNames.pop();
-                    }
-                } while (false); // lock guard out of scope so mutex off
-                if (bFilesToProcess) {
-                    this->taskActFcn(filenamePathStr, filenameStr, this->fnData);
-                    if ((this->killCount != 0) && (--(this->killCount) == 0)) {
-                        std::cout << this->prefix() << "FPE_Task Kill Count reached." << std::endl;
-                        this->stop();
-                    }
+            std::unique_lock<std::mutex> locker(this->fileNamesMutex);
+            
+            this->filesQueued.wait(locker, [&]() {
+                return (!this->fileNames.empty() || !this->bDoWork.load());
+            });
 
-                }
-            } while (bFilesToProcess);
-
-            std::this_thread::sleep_for(std::chrono::seconds(1)); // This works better than yield
+            if (this->bDoWork.load()) {
+                filenamePathStr = this->fileNames.front();
+                this->fileNames.pop();
+                filenameStr = this->fileNames.front();
+                this->fileNames.pop();
+                this->taskActFcn(filenamePathStr, filenameStr, this->fnData);
+            }
 
         } catch (const fs::filesystem_error& e) {
             std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
@@ -303,6 +294,11 @@ void FPE_Task::worker(void) {
             std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
         } catch (...) {
             std::cerr << this->prefix() << "unknown exception occured" << std::endl;
+        }
+
+        if ((this->taskOptions->killCount != 0) && (--(this->taskOptions->killCount) == 0)) {
+            std::cout << this->prefix() << "FPE_Task Kill Count reached." << std::endl;
+            this->stop();
         }
 
     }
@@ -320,18 +316,18 @@ void FPE_Task::worker(void) {
 //
 
 FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder,
-        TaskActionFcn taskActFcn, std::shared_ptr<void> fnData, int maxWatchDepth, int killCount) :
-taskName{taskNameStr}, taskActFcn{taskActFcn}, fnData{fnData}, watchFolder{watchFolder}, killCount{killCount}
+        TaskActionFcn taskActFcn, std::shared_ptr<void> fnData, int maxWatchDepth, std::shared_ptr<TaskOptions> taskOptions) :
+taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn{taskActFcn},
+fnData{fnData}, maxWatchDepth{maxWatchDepth}, taskOptions{taskOptions}
 {
 
     // ASSERT if passed parameters invalid
 
     assert(taskNameStr.length() != 0); // Length == 0
     assert(watchFolder.length() != 0); // Length == 0
-    assert(maxWatchDepth >= -1);       // < -1
-    assert(taskActFcn != nullptr);     // nullptr
-    assert(fnData != nullptr);         // nulptr
-    assert(killCount >=0);             // < 0
+    assert(maxWatchDepth >= -1); // < -1
+    assert(taskActFcn != nullptr); // nullptr
+    assert(fnData != nullptr); // nullptr
 
     std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
 
@@ -345,6 +341,13 @@ taskName{taskNameStr}, taskActFcn{taskActFcn}, fnData{fnData}, watchFolder{watch
     }
 
     std::cout << this->prefix() << "Watch Depth [" << maxWatchDepth << "]" << std::endl;
+
+    // No task option passed in so setup default
+    
+    if (!this->taskOptions) {
+        std::cout << this->prefix() << "No task options so using default." << std::endl;
+        this->taskOptions.reset(new TaskOptions{0});
+    }
 
     // Save away max watch depth and modify with watch folder depth value if not all (-1).
 
@@ -367,11 +370,13 @@ taskName{taskNameStr}, taskActFcn{taskActFcn}, fnData{fnData}, watchFolder{watch
 void FPE_Task::stop(void) {
 
     std::cout << this->prefix() << "Stop task threads." << std::endl;
-
+    
+    std::unique_lock<std::mutex> locker(this->fileNamesMutex);
     this->bDoWork = false;
-    if (fs::is_empty(this->watchFolder) || fs::exists(this->watchFolder)) {
-        std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
-    }
+    this->filesQueued.notify_one();
+    
+    std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
+    
     this->destroyWatchTable();
 
 }
@@ -422,9 +427,10 @@ void FPE_Task::monitor(void) {
                         break;
                     case IN_CLOSE_WRITE:
                     case IN_MOVED_TO:
-                        std::lock_guard<std::mutex> guard(this->fileNamesMutex);
+                        std::unique_lock<std::mutex> locker(this->fileNamesMutex);
                         this->fileNames.push(this->watchMap[event->wd]);
                         this->fileNames.push(event->name);
+                        this->filesQueued.notify_one();
                         break;
 
                 }
@@ -435,9 +441,9 @@ void FPE_Task::monitor(void) {
         }
 
         // Wait for worker thread to exit
-        
+
         this->workerThread->join();
-        
+
     } catch (const fs::filesystem_error& e) {
         std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
     } catch (std::runtime_error &e) {

@@ -52,6 +52,8 @@ protected:
         
         fnData.reset(new TestActFnData{0});
         funcData = static_cast<TestActFnData *> (fnData.get());
+        
+        this->taskOptions.reset(new TaskOptions { 0 });
 
     }
 
@@ -99,7 +101,8 @@ protected:
     std::string taskName = "";      // Task Name
     std::string watchFolder = "";   // Watch Folder
 
-    TaskActionFcn taskActFcn; // Task Action Function Data
+    TaskActionFcn taskActFcn;                   // Task Action Function Data
+    std::shared_ptr<TaskOptions> taskOptions;   // Task options
 
     static const std::string kWatchFolder; // Test Watch Folder
     static const std::string kDestinationFolder; // Test Destination folder
@@ -149,7 +152,11 @@ void TaskClassTests::createFiles(int fileCount) {
         return true;
     };
 
-    FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, fileCount};
+    // Set any task options required by test
+    
+    (this->taskOptions)->killCount=fileCount;
+    
+    FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
 
     // Create task object thread and start to watch
 

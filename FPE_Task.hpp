@@ -42,6 +42,7 @@
 #include <fstream>
 #include <chrono>
 #include <queue>
+#include <condition_variable>
 #include <mutex>
 #include <atomic>
 #include <utility>
@@ -58,6 +59,12 @@
 
 namespace fs = boost::filesystem;
 
+// Task options structure (OPTIONALLY PASS TO TASK)
+
+struct TaskOptions {
+    int killCount;      // After killCount files processed stop task (0 = disabled)
+};
+
 // Task class
 
 class FPE_Task {
@@ -65,12 +72,12 @@ public:
 
     // CONSTRUCTOR
 
-    FPE_Task(std::string taskNameStr,         // Task name
-            std::string watchFolder,          // Watch folder path
-            TaskActionFcn taskActFcn,         // Task action function
-            std::shared_ptr<void> fnData,     // Task file process function data
-            int maxWatchDepth,                // Maximum watch depth -1= all, 0=just watch folder
-            int killCount=0);                //  After killCount files processed stop task (0 = disabled)
+    FPE_Task(std::string taskNameStr,                               // Task name
+            std::string watchFolder,                                // Watch folder path
+            TaskActionFcn taskActFcn,                               // Task action function
+            std::shared_ptr<void> fnData,                           // Task file process function data
+            int maxWatchDepth,                                      // Maximum watch depth -1= all, 0=just watch folder
+            std::shared_ptr<TaskOptions> taskOptions=nullptr);     //  Task options. 
     
     // DESTRUCTOR
 
@@ -103,9 +110,10 @@ private:
     int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder,1=next level down etc.
     TaskActionFcn taskActFcn;                               // Task action function 
     std::shared_ptr<void> fnData;                           // Task action function data
-    int killCount;                                          // Files to process before stopping (-1 == disabled)
+    std::shared_ptr<TaskOptions> taskOptions;               // Files to process before stopping (-1 == disabled)
     
     int fdNotify;                                           // inotify file descriptor
+    std::condition_variable filesQueued;                    // Queued files considitional
     std::mutex fileNamesMutex;                              // Queue Mutex
     std::queue <std::string> fileNames;                     // Queue of path/file names
     std::atomic<bool> bDoWork;                              // doWork=true (run thread loops) false=(stop thread loops)
