@@ -65,6 +65,33 @@ const uint32_t FPE_Task::kInotifyEventSize = (sizeof (struct inotify_event));
 
 const uint32_t FPE_Task::kInotifyEventBuffLen = (1024 * (FPE_Task::kInotifyEventSize + 16));
 
+//
+// stdout trace output.
+//
+
+void FPE_Task::coutstr(const std::vector<std::string>& outstr) {
+
+    assert(this->taskOptions != nullptr);
+
+    if ((this->taskOptions)->coutstr != nullptr) {
+        (this->taskOptions)->coutstr(outstr);
+    }
+
+}
+
+//
+// stderr trace output.
+//
+
+void FPE_Task::cerrstr(const std::vector<std::string>& errstr) {
+
+    assert(this->taskOptions != nullptr);
+
+    if ((this->taskOptions)->cerrstr != nullptr) {
+        (this->taskOptions)->cerrstr(errstr);
+    }
+
+}
 
 //
 // Destructor
@@ -72,7 +99,7 @@ const uint32_t FPE_Task::kInotifyEventBuffLen = (1024 * (FPE_Task::kInotifyEvent
 
 FPE_Task::~FPE_Task() {
 
-   //std::cout << this->prefix() << "DESTRUCTOR CALLED." << std::endl;
+    coutstr({this->prefix(), "DESTRUCTOR CALLED."});
 
 }
 
@@ -89,6 +116,7 @@ int FPE_Task::pathDepth(std::string &pathStr) {
     auto i = 0;
     auto pos = pathStr.find("/");
     while (pos != std::string::npos) {
+
         i++;
         pos++;
         pos = pathStr.find("/", pos);
@@ -120,10 +148,11 @@ void FPE_Task::destroyWatchTable(void) {
             errStream << "inotify_rm_watch() error:  " << errno;
             throw std::runtime_error(errStream.str());
         } else {
-            //std::cout << this->prefix() << "Watch[" << it->first << "] removed." << std::endl;
+            coutstr({this->prefix(), "Watch[", std::to_string(it->first), "] removed.", "\n"});
         }
     }
     if (close(this->fdNotify) == -1) {
+
         std::stringstream errStream;
         errStream << "inotify close() error:  " << errno;
         throw std::runtime_error(errStream.str());
@@ -151,6 +180,7 @@ void FPE_Task::addWatchPath(std::string &pathStr) {
     // Add watch
 
     if ((watch = inotify_add_watch(this->fdNotify, pathStr.c_str(), FPE_Task::kInofityEvents)) == -1) {
+
         std::stringstream errStream;
         errStream << "inotify_add_watch() error:  " << errno;
         throw std::runtime_error(errStream.str());
@@ -161,7 +191,7 @@ void FPE_Task::addWatchPath(std::string &pathStr) {
     this->watchMap.insert({watch, pathStr});
     this->revWatchMap.insert({pathStr, watch});
 
-    //std::cout << this->prefix() << "Directory add [" << pathStr << "] watch = [" << this->revWatchMap[pathStr] << "]" << std::endl;
+    coutstr({this->prefix(), "Directory add [", pathStr, "] watch = [", std::to_string(this->revWatchMap[pathStr]), "]"});
 
 }
 
@@ -185,6 +215,7 @@ void FPE_Task::createWatchTable(void) {
         if (fs::is_directory(i->path())) {
             std::string pathStr = i->path().string() + "/";
             if (fs::exists(fs::path(pathStr))) {
+
                 this->addWatchPath(pathStr);
             }
         }
@@ -232,7 +263,7 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
         watch = this->revWatchMap[pathStr];
         if (watch) {
 
-            //std::cout << this->prefix() << "Directory remove [" << pathStr << "] watch = [" << watch << "] File [" << filename << "]" << std::endl;
+            coutstr({this->prefix(), "Directory remove [", pathStr, "] watch = [", std::to_string(watch), "] File [", filename, "]"});
 
             this->watchMap.erase(watch);
             this->revWatchMap.erase(pathStr);
@@ -244,11 +275,11 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
             }
 
         } else {
-            std::cerr << this->prefix() << "Directory remove failed [" << pathStr << "] File [" << filename << "]" << std::endl;
+            cerrstr({this->prefix(), "Directory remove failed [", pathStr, "] File [", filename, "]"});
         }
 
         if (this->watchMap.size() == 0) {
-            //std::cout << this->prefix() << "*** Watch Folder Deleted so terminating task. ***" << std::endl;
+            coutstr({this->prefix(), "*** Watch Folder Deleted so terminating task. ***"});
             this->stop();
         }
 
@@ -256,10 +287,11 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
         // Report error 22 and carry on. From the documentation on this error the kernel has removed the watch for us.
         if (errno == EINVAL) {
             if (this->watchMap.size() == 0) {
-                //std::cout << this->prefix() << "*** Watch Folder Deleted so terminating task. ***" << std::endl;
+                coutstr({this->prefix(), "*** Watch Folder Deleted so terminating task. ***"});
                 this->stop();
             }
         } else {
+
             throw; // Throw exception back up the chain.
         }
     }
@@ -277,14 +309,14 @@ void FPE_Task::worker(void) {
     std::string filenamePathStr;
     std::string filenameStr;
 
-    //std::cout << this->prefix() << "Worker thread started... " << std::endl;
+    coutstr({this->prefix(), "Worker thread started... "});
 
     while (this->bDoWork.load()) {
 
         try {
 
             std::unique_lock<std::mutex> locker(this->fileNamesMutex);
-            
+
             this->filesQueued.wait(locker, [&]() {
                 return (!this->fileNames.empty() || !this->bDoWork.load());
             });
@@ -298,23 +330,23 @@ void FPE_Task::worker(void) {
             }
 
         } catch (const fs::filesystem_error& e) {
-            std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
+            cerrstr({this->prefix(), "BOOST file system exception occured: ", e.what()});
         } catch (std::runtime_error &e) {
-            std::cerr << this->prefix() << "Caught a runtime_error exception: " << e.what() << std::endl;
+            cerrstr({this->prefix(), "Caught a runtime_error exception: ", e.what()});
         } catch (std::exception &e) {
-            std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
+            cerrstr({this->prefix(), "STL exception occured: ", e.what()});
         } catch (...) {
-            std::cerr << this->prefix() << "unknown exception occured" << std::endl;
+            cerrstr({this->prefix(), "unknown exception occured"});
         }
 
         if ((this->taskOptions->killCount != 0) && (--(this->taskOptions->killCount) == 0)) {
-            //std::cout << this->prefix() << "FPE_Task Kill Count reached." << std::endl;
+            coutstr({this->prefix(), "FPE_Task Kill Count reached."});
             this->stop();
         }
 
     }
 
-    //std::cout << this->prefix() << "Worker thread stopped. " << std::endl;
+    coutstr({this->prefix(), "Worker thread stopped. "});
 
 }
 
@@ -326,10 +358,10 @@ void FPE_Task::worker(void) {
 // Task object constructor. 
 //
 
-FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder,
-        TaskActionFcn taskActFcn, std::shared_ptr<void> fnData, int maxWatchDepth, std::shared_ptr<TaskOptions> taskOptions) :
-taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn{taskActFcn},
-fnData{fnData}, maxWatchDepth{maxWatchDepth}, taskOptions{taskOptions}
+FPE_Task::FPE_Task(std::string taskNameStr, std::string watchFolder,TaskActionFcn taskActFcn, std::shared_ptr<void> fnData,
+        int maxWatchDepth, std::shared_ptr<TaskOptions> taskOptions) :
+taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn{taskActFcn}, 
+        fnData{fnData}, maxWatchDepth{maxWatchDepth}, taskOptions{taskOptions}
 {
 
     // ASSERT if passed parameters invalid
@@ -340,25 +372,24 @@ fnData{fnData}, maxWatchDepth{maxWatchDepth}, taskOptions{taskOptions}
     assert(taskActFcn != nullptr); // nullptr
     assert(fnData != nullptr); // nullptr
 
-    //std::cout << this->prefix() << "Watch Folder [" << watchFolder << "]" << std::endl;
+    // No task option passed in so setup default. THIS NEEDS TO BE SETUP FIRST FOR COUTSTR/CERRSTR.
+
+    if (this->taskOptions == nullptr) {
+        this->taskOptions.reset(new TaskOptions{0, nullptr, nullptr});
+    }
+
+    coutstr({this->prefix(), "Watch Folder [", watchFolder, "]"});
 
     // Create watch directory.
 
     if (!fs::exists(watchFolder)) {
-        //std::cout << this->prefix() << "Watch Folder [" << watchFolder << "] DOES NOT EXIST." << std::endl;
+        coutstr({this->prefix(), "Watch Folder [", watchFolder, "] DOES NOT EXIST."});
         if (fs::create_directory(watchFolder)) {
-            //std::cout << this->prefix() << "Creating Watch Folder [" << watchFolder << "]" << std::endl;
+            coutstr({this->prefix(), "Creating Watch Folder [", watchFolder, "]"});
         }
     }
 
-    //std::cout << this->prefix() << "Watch Depth [" << maxWatchDepth << "]" << std::endl;
-
-    // No task option passed in so setup default
-    
-    if (!this->taskOptions) {
-        //std::cout << this->prefix() << "No task options so using default." << std::endl;
-        this->taskOptions.reset(new TaskOptions{0});
-    }
+    coutstr({this->prefix(), "Watch Depth [", std::to_string(maxWatchDepth), "]"});
 
     // Save away max watch depth and modify with watch folder depth value if not all (-1).
 
@@ -380,14 +411,14 @@ fnData{fnData}, maxWatchDepth{maxWatchDepth}, taskOptions{taskOptions}
 
 void FPE_Task::stop(void) {
 
-    //std::cout << this->prefix() << "Stop task threads." << std::endl;
-    
+    coutstr({this->prefix(), "Stop task threads."});
+
     std::unique_lock<std::mutex> locker(this->fileNamesMutex);
     this->bDoWork = false;
     this->filesQueued.notify_one();
-    
-    //std::cout << this->prefix() << "Close down folder watcher thread" << std::endl;
-    
+
+    coutstr({this->prefix(), "Close down folder watcher thread"});
+
     this->destroyWatchTable();
 
 }
@@ -403,7 +434,7 @@ void FPE_Task::monitor(void) {
 
     std::thread::id this_id = std::this_thread::get_id();
 
-    //std::cout << this->prefix() << "FPE_Task Monitor on Thread started [" << this_id << "]" << std::endl;
+    coutstr({this->prefix(), "FPE_Task Monitor on Thread started [", "]"});
 
     try {
 
@@ -456,15 +487,15 @@ void FPE_Task::monitor(void) {
         this->workerThread->join();
 
     } catch (const fs::filesystem_error& e) {
-        std::cerr << this->prefix() << "BOOST file system exception occured: " << e.what() << std::endl;
+        cerrstr({this->prefix(), "BOOST file system exception occured: ", e.what()});
     } catch (std::runtime_error &e) {
-        std::cerr << this->prefix() << "Caught a runtime_error exception: " << e.what() << std::endl;
+        cerrstr({this->prefix(), "Caught a runtime_error exception: ", e.what()});
     } catch (std::exception &e) {
-        std::cerr << this->prefix() << "STL exception occured: " << e.what() << std::endl;
+        cerrstr({this->prefix(), "STL exception occured: ", e.what()});
     } catch (...) {
-        std::cerr << this->prefix() << "unknown exception occured" << std::endl;
+        cerrstr({this->prefix(), "unknown exception occured"});
     }
 
-    //std::cout << this->prefix() << "FPE_Task Monitor on Thread stopped." << std::endl;
+    coutstr({this->prefix(), "FPE_Task Monitor on Thread stopped."});
 
 }

@@ -60,7 +60,7 @@ protected:
         fnData.reset(new TestActFnData{0});
         funcData = static_cast<TestActFnData *> (fnData.get());
         
-        this->taskOptions.reset(new TaskOptions { 0 });
+        this->taskOptions.reset(new TaskOptions { 0 , nullptr, nullptr });
 
     }
 
@@ -69,35 +69,14 @@ protected:
 
     virtual void SetUp() {
 
-        // Save and redirect stdout/stderr for tests
-
-        cout_sbuf = std::cout.rdbuf(); // save original sbuf
-        std::cout.rdbuf(fileout.rdbuf()); // redirect 'cout'
-
-        cerr_sbuf = std::cerr.rdbuf(); // save original sbuf
-        std::cerr.rdbuf(fileerr.rdbuf()); // redirect 'cerr'
-
     }
 
     virtual void TearDown() {
-
-        // Restore stdout/stderr stream buffers
-
-        std::cout.rdbuf(cout_sbuf);
-        std::cout.rdbuf(cerr_sbuf);
-
 
     }
 
     void createFile(std::string fileName); // Create a test file.
     void createFiles(int fileCount); // Create fileCount files and check action function call count
-
-    // stdout/stderr redirect for tests
-
-    std::streambuf* cout_sbuf = std::cout.rdbuf(); // save original sbuf
-    std::streambuf* cerr_sbuf = std::cerr.rdbuf(); // save original sbuf
-    std::ofstream fileout{ "/dev/null"};
-    std::ofstream fileerr{ "/dev/null"};
 
     std::shared_ptr<void> fnData; // Action function data shared pointer wrapper
     TestActFnData *funcData; // Action function data 

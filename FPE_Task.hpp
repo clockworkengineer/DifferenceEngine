@@ -48,6 +48,8 @@
 
 struct TaskOptions {
     int killCount;      // After killCount files processed stop task (0 = disabled)
+    void (*coutstr) (const std::vector<std::string>& outstr);  // coutstr output
+    void (*cerrstr) (const std::vector<std::string>& errstr);  // cerrstr output
 };
 
 // Task class
@@ -87,7 +89,10 @@ private:
     void createWatchTable(void);                    // Create a watch table for existing watch folder structure
     void destroyWatchTable(void);                   // Clear watch table
     void worker(void);                              // Worker thread
-
+    
+    void coutstr(const std::vector<std::string>& outstr);
+    void cerrstr(const std::vector<std::string>& outstr);
+    
     // CONSTRUCTOR PARAMETERS
     
     std::string  taskName;                                  // Task name
@@ -95,7 +100,7 @@ private:
     int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder,1=next level down etc.
     TaskActionFcn taskActFcn;                               // Task action function 
     std::shared_ptr<void> fnData;                           // Task action function data
-    std::shared_ptr<TaskOptions> taskOptions;               // Files to process before stopping (-1 == disabled)
+    std::shared_ptr<TaskOptions> taskOptions;               // Task passed options
     
     int fdNotify;                                           // inotify file descriptor
     std::condition_variable filesQueued;                    // Queued files considitional

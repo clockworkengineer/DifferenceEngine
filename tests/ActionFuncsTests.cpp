@@ -50,7 +50,7 @@ protected:
 
         // Create function data (wrap in void shared pointer for passing to task).
         
-        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false});
+        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, "", nullptr, nullptr});
         this->funcData = static_cast<ActFnData *> (this->fnData.get());
 
     }
@@ -72,14 +72,6 @@ protected:
             fs::create_directory( ActionFuncsTests::kDestinationFolder);
         }
 
-        // Save and redirect stdout/stderr for tests
-
-        cout_sbuf = std::cout.rdbuf();      // save original sbuf
-        std::cout.rdbuf(fileout.rdbuf());   // redirect 'cout'
-
-        cerr_sbuf = std::cerr.rdbuf();      // save original sbuf
-        std::cerr.rdbuf(fileerr.rdbuf());   // redirect 'cerr'
-
     }
 
     virtual void TearDown() {
@@ -98,22 +90,10 @@ protected:
 
         }
 
-        // Restore stdout/stderr stream buffers
-
-        std::cout.rdbuf(cout_sbuf);
-        std::cout.rdbuf(cerr_sbuf);
-
     }
 
     void createFile(std::string fileName);
     
-    // stdout/stderr redirect for tests
-
-    std::streambuf* cout_sbuf = std::cout.rdbuf(); // save original sbuf
-    std::streambuf* cerr_sbuf = std::cerr.rdbuf(); // save original sbuf
-    std::ofstream fileout{ "/dev/null"};
-    std::ofstream fileerr{ "/dev/null"};
-
     std::shared_ptr<void> fnData; // Action function data shared pointer wrapper
 
     ActFnData *funcData; // Action function data 

@@ -54,6 +54,34 @@
 namespace fs = boost::filesystem;
 
 //
+// stdout trace output.
+//
+
+static void coutstr(ActFnData *funcData, const std::vector<std::string>& outstr) {
+
+    assert(funcData != nullptr);
+
+    if (funcData->coutstr != nullptr) {
+        (funcData->coutstr)(outstr);
+    }
+
+}
+
+//
+// stderr trace output.
+//
+
+static void cerrstr(ActFnData *funcData, const std::vector<std::string>& errstr) {
+
+    assert(funcData != nullptr);
+
+    if (funcData->cerrstr != nullptr) {
+        (funcData->cerrstr)(errstr);
+    }
+
+}
+
+//
 // Fork and execute Shell command
 //
 
@@ -70,9 +98,9 @@ static int forkCommand(char *argv[]) {
         throw std::runtime_error(errStream.str());
 
     } else if (pid == 0) { /* for the child process: */
-        
+
         // Redirect stdout/stderr
-        
+
         freopen("/dev/null", "w", stdout);
         freopen("/dev/null", "w", stderr);
 
@@ -174,18 +202,18 @@ bool runCommand(const std::string &filenamePathStr, const std::string &filenameS
         command = funcData->commandToRun;
     }
 
-    std::cout << command << std::endl;
+    coutstr(funcData, {command});
 
     auto result = 0;
     if ((result = runShellCommand(command)) == 0) {
         bSuccess = true;
-        std::cout << "Command success." << std::endl;
+        coutstr(funcData, {"Command success." });
         if (funcData->bDeleteSource) {
-            std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
+            coutstr(funcData, {"DELETING SOURCE [", sourceFile.string(), "]"});
             fs::remove(sourceFile);
         }
     } else {
-        std::cout << "Command error: " << result << std::endl;
+           cerrstr(funcData, {"Command error: ", std::to_string(result)});
     }
 
     return (bSuccess);
@@ -213,29 +241,30 @@ bool handBrake(const std::string &filenamePathStr, const std::string &filenameSt
     fs::path destinationFile(funcData->destinationFolder);
 
     destinationFile /= sourceFile.stem().string();
-    
+
     if (funcData->extension.length() > 0) {
-         destinationFile.replace_extension(funcData->extension);
+        destinationFile.replace_extension(funcData->extension);
     } else {
         destinationFile.replace_extension(".mp4");
     }
-    
+
     // Convert file
 
     std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
 
-    std::cout << "Converting file [" << sourceFile << "] To [" << destinationFile << "]" << std::endl;
+    coutstr(funcData, {"Converting file [", sourceFile.string(), "] To [", destinationFile.string(), "]"});
+
     auto result = 0;
     if ((result = runShellCommand(command)) == 0) {
         bSuccess = true;
-        std::cout << "File conversion success." << std::endl;
+        coutstr(funcData,{"File conversion success."});
         if (funcData->bDeleteSource) {
-            std::cout << "DELETING SOURCE [" << sourceFile << "]" << std::endl;
+            coutstr(funcData,{"DELETING SOURCE [", sourceFile.string(), "]"});
             fs::remove(sourceFile);
         }
 
     } else {
-        std::cout << "File conversion error: " << result << std::endl;
+        coutstr(funcData, {"File conversion error: ", std::to_string(result)});
     }
 
     return (bSuccess);
@@ -271,9 +300,9 @@ bool copyFile(const std::string &filenamePathStr, const std::string &filenameStr
 
     if (!fs::exists(destinationFile)) {
         if (fs::create_directories(destinationFile)) {
-            std::cout << "CREATED :" + destinationFile.string() << std::endl;
+            coutstr(funcData,{"CREATED :", destinationFile.string()});
         } else {
-            std::cerr << "CREATED FAILED FOR :" + destinationFile.string() << std::endl;
+            cerrstr(funcData,{"CREATED FAILED FOR :", destinationFile.string()});
         }
     }
 
@@ -285,16 +314,16 @@ bool copyFile(const std::string &filenamePathStr, const std::string &filenameStr
     // Currently only copy file if it doesn't already exist.
 
     if (!fs::exists(destinationFile)) {
-        std::cout << "COPY FROM [" << sourceFile.string() << "] TO [" << destinationFile.string() << "]" << std::endl;
+        coutstr(funcData,{"COPY FROM [", sourceFile.string(), "] TO [", destinationFile.string(), "]"});
         fs::copy_file(sourceFile, destinationFile, fs::copy_option::none);
         bSuccess = true;
         if (funcData->bDeleteSource) {
-            std::cout << "DELETING SOURCE [" << sourceFile.string() << "]" << std::endl;
+            coutstr(funcData,{"DELETING SOURCE [", sourceFile.string(), "]"});
             fs::remove(sourceFile);
         }
 
     } else {
-        std::cout << "DESTINATION ALREADY EXISTS : " + destinationFile.string() << std::endl;
+        coutstr(funcData,{"DESTINATION ALREADY EXISTS : ", destinationFile.string()});
     }
 
     return (bSuccess);

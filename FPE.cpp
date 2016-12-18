@@ -33,6 +33,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <mutex>
 
 // Task Action functions
 
@@ -53,6 +54,38 @@
 namespace fs = boost::filesystem;
 
 //
+// Standard cout for string of vectors
+//
+
+void coutstr(const std::vector<std::string>& outstr) {
+
+    std::mutex mPrint;
+    std::unique_lock<std::mutex> locker(mPrint);
+    
+    for (auto str : outstr)
+        std::cout << str;
+
+    std::cout << std::endl;
+
+}
+
+//
+// Standard cerr for string of vectors
+//
+
+void cerrstr(const std::vector<std::string>& errstr) {
+
+    std::mutex mPrint;
+    std::unique_lock<std::mutex> locker(mPrint);
+   
+    for (auto str : errstr)
+        std::cerr << str;
+
+    std::cerr << std::endl;
+
+}
+
+//
 // Create task and run in thread.
 //
 
@@ -65,9 +98,15 @@ void createTaskAndActivate( const std::string &taskName, const std::string &watc
     assert(taskActFcn!=nullptr);
     assert(fnData!=nullptr);
 
+    std::shared_ptr<TaskOptions> taskOpt;
+    
+    // Set task options
+    
+    taskOpt.reset(new TaskOptions { 0, coutstr, cerrstr} ) ;
+             
     // Create task object
 
-    FPE_Task task(taskName, watchFolder, taskActFcn, fnData,  watchDepth);
+    FPE_Task task(taskName, watchFolder, taskActFcn, fnData,  watchDepth, taskOpt);
  
     // Create task object thread and start to watch
 
@@ -95,33 +134,33 @@ int main(int argc, char** argv) {
   
         // FPE up and running
         
-        std::cout << "FPE Running..." << std::endl;
+        coutstr({"FPE Running..."});
         
         // Display BOOST version
         
-        std::cout << "Using Boost " << BOOST_VERSION / 100000 << "." // major version
-                << BOOST_VERSION / 100 % 1000 << "." // minor version
-                << BOOST_VERSION % 100 // patch level
-                << std::endl;
+        coutstr({"Using Boost ", 
+                std::to_string(BOOST_VERSION / 100000), ".",      // major version
+                std::to_string(BOOST_VERSION / 100 % 1000), ".",  // minor version
+                std::to_string(BOOST_VERSION % 100)});            // patch level
   
         // Create destination folder for task
         
         if (!fs::exists(argData.destinationFolder)) {
-            std::cout << "Destination Folder " << argData.destinationFolder << " DOES NOT EXIST." << std::endl;
+            coutstr({"Destination folder ", argData.destinationFolder, " does not exist." });
             if (fs::create_directory(argData.destinationFolder)) {
-                std::cout << "Creating Destination Folder " << argData.destinationFolder << std::endl;
+                coutstr({"Creating destination folder ", argData.destinationFolder});
             }
         }
    
         // Signal source will be deleted on success
         
         if (argData.bDeleteSource) {
-            std::cout << "*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***" << std::endl;
+            coutstr({ "*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
         }
     
        // Create function data (wrap in void shared pointer for passing to task).
 
-        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, argData.extension});
+        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, argData.extension, coutstr, cerrstr});
  
         // Create task object
 
@@ -139,15 +178,16 @@ int main(int argc, char** argv) {
     //    
 
     } catch (const fs::filesystem_error & e) {
-        std::cerr << "BOOST file system exception occured: " << e.what() << std::endl;
+        cerrstr({"BOOST file system exception occured: ", e.what()});
         exit(ERROR_UNHANDLED_EXCEPTION);
-   } catch (std::runtime_error &e) {
-        std::cerr << "Caught a runtime_error exception: " << e.what() << std::endl;
+    } catch (std::runtime_error &e) {
+        cerrstr({"Caught a runtime_error exception: ", e.what()});
     } catch (std::exception & e) {
-        std::cerr << "STL exception occured: " << e.what() << std::endl;
-        exit( ERROR_UNHANDLED_EXCEPTION);
+        cerrstr({"STL exception occured: ", e.what()});
+        exit(ERROR_UNHANDLED_EXCEPTION);
     } catch (...) {
-        std::cerr << "unknown exception occured" << std::endl;
+        cerrstr({"unknown exception occured"});
+
         exit(ERROR_UNHANDLED_EXCEPTION);
     }
 
