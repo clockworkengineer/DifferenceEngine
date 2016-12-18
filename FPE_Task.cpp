@@ -32,7 +32,6 @@
 // STL definitions
 
 #include <sstream> 
-#include <iostream>
 
 // Task Action functions
 
@@ -180,7 +179,6 @@ void FPE_Task::addWatchPath(std::string &pathStr) {
     // Add watch
 
     if ((watch = inotify_add_watch(this->fdNotify, pathStr.c_str(), FPE_Task::kInofityEvents)) == -1) {
-
         std::stringstream errStream;
         errStream << "inotify_add_watch() error:  " << errno;
         throw std::runtime_error(errStream.str());
@@ -378,15 +376,15 @@ taskName{taskNameStr}, watchFolder{watchFolder}, taskActFcn{taskActFcn},
         this->taskOptions.reset(new TaskOptions{0, nullptr, nullptr});
     }
 
-    coutstr({this->prefix(), "Watch Folder [", watchFolder, "]"});
+    coutstr({this->prefix(), "Watch folder [", watchFolder, "]"});
 
     // Create watch directory.
 
     if (!fs::exists(watchFolder)) {
-        coutstr({this->prefix(), "Watch Folder [", watchFolder, "] DOES NOT EXIST."});
+        coutstr({this->prefix(), "Watch folder [", watchFolder, "] DOES NOT EXIST."});
         if (fs::create_directory(watchFolder)) {
-            coutstr({this->prefix(), "Creating Watch Folder [", watchFolder, "]"});
-        }
+            coutstr({this->prefix(), "Creating watch folder [", watchFolder, "]"});
+        } 
     }
 
     coutstr({this->prefix(), "Watch Depth [", std::to_string(maxWatchDepth), "]"});
@@ -434,7 +432,7 @@ void FPE_Task::monitor(void) {
 
     std::thread::id this_id = std::this_thread::get_id();
 
-    coutstr({this->prefix(), "FPE_Task Monitor on Thread started [", "]"});
+    coutstr({this->prefix(), "FPE_Task monitor on Thread started [", "]"});
 
     try {
 
@@ -496,6 +494,6 @@ void FPE_Task::monitor(void) {
         cerrstr({this->prefix(), "unknown exception occured"});
     }
 
-    coutstr({this->prefix(), "FPE_Task Monitor on Thread stopped."});
+    coutstr({this->prefix(), "FPE_Task monitor on thread stopped."});
 
 }
