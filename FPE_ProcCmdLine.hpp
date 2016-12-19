@@ -43,6 +43,7 @@ struct ParamArgData {
     int          maxWatchDepth;      // Watch depth -1=all,0=just watch folder,1=next level down etc.
     bool         bDeleteSource;      // Delete source file
     std::string  extension;          // Override destination file extension
+    bool         bQuiet;             // Quiet mode no tracing output.
 };
 
 // Command line exit status

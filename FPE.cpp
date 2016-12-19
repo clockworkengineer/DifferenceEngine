@@ -54,7 +54,8 @@
 namespace fs = boost::filesystem;
 
 //
-// Standard cout for string of vectors
+// Standard cout for string of vectors. All calls to this function from different
+// threads are guarded by mutex mPrint.
 //
 
 void coutstr(const std::vector<std::string>& outstr) {
@@ -70,7 +71,8 @@ void coutstr(const std::vector<std::string>& outstr) {
 }
 
 //
-// Standard cerr for string of vectors
+// Standard cerr for string of vectors. All calls to this function from different
+// threads are guarded by mutex mPrint.
 //
 
 void cerrstr(const std::vector<std::string>& errstr) {
@@ -98,11 +100,15 @@ void createTaskAndActivate( const std::string &taskName, const std::string &watc
     assert(taskActFcn!=nullptr);
     assert(fnData!=nullptr);
 
+    // Use function data to access set coutstr/cerrstr
+    
+    ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+    
+    // Set task options ( no kill count and all output to local coutstr/cerrstr.
+    
     std::shared_ptr<TaskOptions> taskOpt;
     
-    // Set task options
-    
-    taskOpt.reset(new TaskOptions { 0, coutstr, cerrstr} ) ;
+    taskOpt.reset(new TaskOptions { 0, funcData->coutstr, funcData->cerrstr} ) ;
              
     // Create task object
 
@@ -152,6 +158,30 @@ int main(int argc, char** argv) {
             }
         }
    
+        // Signal file copy task
+        
+        if (argData.bFileCopy) {
+            coutstr({ "*** FILE COPY TASK ***"});
+        }
+                
+        // Signal video conversion task
+        
+        if (argData.bVideoConversion) {
+            coutstr({ "*** VIDEO CONVERSION TASK ***"});
+        }
+  
+         // Signal run command task
+        
+        if (argData.bRunCommand) {
+            coutstr({ "*** RUN COMMAND TASK ***"});
+        }
+  
+        // Signal quiet mode
+        
+        if (argData.bQuiet) {
+            coutstr({ "*** QUIET MODE ***"});
+        }
+    
         // Signal source will be deleted on success
         
         if (argData.bDeleteSource) {
@@ -159,8 +189,9 @@ int main(int argc, char** argv) {
         }
     
        // Create function data (wrap in void shared pointer for passing to task).
-
-        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, argData.extension, coutstr, cerrstr});
+        
+        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, 
+        argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, argData.extension, ((argData.bQuiet)? nullptr : coutstr), ((argData.bQuiet)? nullptr :cerrstr)});
  
         // Create task object
 
@@ -172,6 +203,7 @@ int main(int argc, char** argv) {
             createTaskAndActivate(std::string("Run Command"), argData.watchFolder, argData.maxWatchDepth, runCommand, fnData);
         }
         
+        coutstr({"FPE Exiting."});
         
     //
     // Catch any errors
@@ -187,7 +219,6 @@ int main(int argc, char** argv) {
         exit(ERROR_UNHANDLED_EXCEPTION);
     } catch (...) {
         cerrstr({"unknown exception occured"});
-
         exit(ERROR_UNHANDLED_EXCEPTION);
     }
 

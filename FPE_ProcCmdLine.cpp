@@ -48,7 +48,10 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
 //
-// Read in and process command line arguments using boost.
+// Read in and process command line arguments using boost. Note this is the only 
+// component that uses std::cout and std:cerr directly and not the thread safe 
+// coutstr/cerrstr but that is not necessary as still in single thread mode when
+// reading and processing parameters.
 //
 
 void procCmdLine (int argc, char** argv, ParamArgData &argData) {
@@ -62,6 +65,7 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
         argData.maxWatchDepth = -1;
         argData.bDeleteSource = false;
         argData.extension  = "";
+        argData.bQuiet = false;
 
         // Define and parse the program options
 
@@ -74,7 +78,8 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
                 ("copy", "Task = File Copy Watcher")
                 ("video", "Task = Video Conversion Watcher")
                 ("command", po::value<std::string>(&argData.commandToRun), "Task = Run Shell Command")
-                ("extension,e", po::value<std::string>(&argData.extension), "Overrde destination file extension")
+                ("extension,e", po::value<std::string>(&argData.extension), "Override destination file extension")
+                ("quiet,q","Quiet mode (no trace output)")
                 ("delete", "Delete Source File");
 
         po::variables_map vm;
@@ -122,6 +127,12 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
                 argData.bDeleteSource=true;
              }
       
+            // No trace output
+            
+            if (vm.count("quiet")) {
+                argData.bQuiet=true;
+             }
+ 
             // Default task file copy. More than one task throw error.
             
             if (taskCount==0) {
