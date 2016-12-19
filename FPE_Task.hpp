@@ -86,7 +86,7 @@ private:
     void addWatchPath(std::string &pathStr);         // Add path to be watched
     void addWatch(struct inotify_event *event);     // Add a folder to watch
     void removeWatch(struct inotify_event *event);  // Remove a folder watch
-    void createWatchTable(void);                    // Create a watch table for existing watch folder structure
+    void createWatchTable(void);                    // Create a watch table for watch folder
     void destroyWatchTable(void);                   // Clear watch table
     void worker(void);                              // Worker thread
     

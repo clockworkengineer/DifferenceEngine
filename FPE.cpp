@@ -55,13 +55,13 @@ namespace fs = boost::filesystem;
 
 //
 // Standard cout for string of vectors. All calls to this function from different
-// threads are guarded by mutex mPrint.
+// threads are guarded by mutex mOutput.
 //
 
 void coutstr(const std::vector<std::string>& outstr) {
 
-    std::mutex mPrint;
-    std::unique_lock<std::mutex> locker(mPrint);
+    std::mutex mOutput;
+    std::unique_lock<std::mutex> locker(mOutput);
     
     for (auto str : outstr)
         std::cout << str;
@@ -72,13 +72,13 @@ void coutstr(const std::vector<std::string>& outstr) {
 
 //
 // Standard cerr for string of vectors. All calls to this function from different
-// threads are guarded by mutex mPrint.
+// threads are guarded by mutex mError.
 //
 
 void cerrstr(const std::vector<std::string>& errstr) {
 
-    std::mutex mPrint;
-    std::unique_lock<std::mutex> locker(mPrint);
+    std::mutex mError;
+    std::unique_lock<std::mutex> locker(mError);
    
     for (auto str : errstr)
         std::cerr << str;
@@ -148,7 +148,16 @@ int main(int argc, char** argv) {
                 std::to_string(BOOST_VERSION / 100000), ".",      // major version
                 std::to_string(BOOST_VERSION / 100 % 1000), ".",  // minor version
                 std::to_string(BOOST_VERSION % 100)});            // patch level
-  
+
+        // Create watch folder for task.
+
+        if (!fs::exists(argData.watchFolder)) {
+            coutstr({"Watch folder [", argData.watchFolder, "] DOES NOT EXIST."});
+            if (fs::create_directory(argData.watchFolder)) {
+                coutstr({"Creating watch folder [", argData.watchFolder, "]"});
+            }
+        }
+
         // Create destination folder for task
         
         if (!fs::exists(argData.destinationFolder)) {
@@ -210,15 +219,10 @@ int main(int argc, char** argv) {
     //    
 
     } catch (const fs::filesystem_error & e) {
-        cerrstr({"BOOST file system exception occured: ", e.what()});
+        cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
         exit(ERROR_UNHANDLED_EXCEPTION);
-    } catch (std::runtime_error &e) {
-        cerrstr({"Caught a runtime_error exception: ", e.what()});
     } catch (std::exception & e) {
-        cerrstr({"STL exception occured: ", e.what()});
-        exit(ERROR_UNHANDLED_EXCEPTION);
-    } catch (...) {
-        cerrstr({"unknown exception occured"});
+        cerrstr({"General exception occured: [", e.what(), "]"});
         exit(ERROR_UNHANDLED_EXCEPTION);
     }
 
