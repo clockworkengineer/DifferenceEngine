@@ -76,6 +76,7 @@ protected:
 
     virtual void TearDown() {
 
+        
         // Remove any files created
 
         if ((this->filePath.length() != 0) && (this->fileName.length() != 0)) {
@@ -89,6 +90,19 @@ protected:
             }
 
         }
+        
+        // Remove watch folder.
+
+        if (fs::exists( ActionFuncsTests::kWatchFolder)) {
+            fs::remove( ActionFuncsTests::kWatchFolder);
+        }
+
+        // Remove destination folder.
+
+        if (fs::exists( ActionFuncsTests::kDestinationFolder)) {
+            fs::remove( ActionFuncsTests::kDestinationFolder);
+        }
+
 
     }
 

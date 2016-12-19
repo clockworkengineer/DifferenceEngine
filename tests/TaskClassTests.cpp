@@ -68,10 +68,34 @@ protected:
     }
 
     virtual void SetUp() {
+        
+        // Create watch folder.
+
+        if (!fs::exists( TaskClassTests::kWatchFolder)) {
+            fs::create_directory( TaskClassTests::kWatchFolder);
+        }
+
+        // Create destination folder.
+
+        if (!fs::exists( TaskClassTests::kDestinationFolder)) {
+            fs::create_directory( TaskClassTests::kDestinationFolder);
+        }
 
     }
 
     virtual void TearDown() {
+        
+        // Remove watch folder.
+
+        if (fs::exists( TaskClassTests::kWatchFolder)) {
+            fs::remove( TaskClassTests::kWatchFolder);
+        }
+
+        // Remove destination folder.
+
+        if (fs::exists( TaskClassTests::kDestinationFolder)) {
+            fs::remove( TaskClassTests::kDestinationFolder);
+        }
 
     }
 
