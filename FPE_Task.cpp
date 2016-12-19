@@ -271,14 +271,15 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
 
 //
 // Worker thread. Remove path/filename from queue and process.
-// Access to fileNames queue controlled by lockguard(mutex) and 
-// loop is controlled by atomic bool doWork flag.
+// Access to fileNames queue controlled by mutex fileNamesMutex
+// and condition variable filesQueued. The loop is controlled by the 
+// atomic bool doWork flag (if set to false then stop thread).
 //
 
 void FPE_Task::worker(void) {
 
     std::string filenamePathStr;
-    std::string filenameStr;
+   // std::string filenameStr;
 
     coutstr({this->prefix(), "Worker thread started... "});
 
@@ -286,6 +287,9 @@ void FPE_Task::worker(void) {
 
         try {
 
+            // Wait for files to be queued and then process. (Note also wait on
+            // bDoWork which can be set to false to stop the worker thread).
+            
             std::unique_lock<std::mutex> locker(this->fileNamesMutex);
 
             this->filesQueued.wait(locker, [&]() {
@@ -295,9 +299,7 @@ void FPE_Task::worker(void) {
             if (this->bDoWork.load()) {
                 filenamePathStr = this->fileNames.front();
                 this->fileNames.pop();
-                filenameStr = this->fileNames.front();
-                this->fileNames.pop();
-                this->taskActFcn(filenamePathStr, filenameStr, this->fnData);
+                this->taskActFcn(filenamePathStr,this->fnData);
             }
 
         } catch (std::system_error &e) {
@@ -364,8 +366,7 @@ fnData{fnData}, maxWatchDepth{maxWatchDepth}, taskOptions{taskOptions}
 }
 
 //
-// Flag thread loops to stop. Folder watcher needs a push because of wait for read().
-// Also clean up any resources.
+// Flag thread loops to stop. This involves seding a notify to the worker thread.
 //
 
 void FPE_Task::stop(void) {
@@ -427,8 +428,7 @@ void FPE_Task::monitor(void) {
                     case IN_CLOSE_WRITE:
                     case IN_MOVED_TO:
                         std::unique_lock<std::mutex> locker(this->fileNamesMutex);
-                        this->fileNames.push(this->watchMap[event->wd]);
-                        this->fileNames.push(event->name);
+                        this->fileNames.push(this->watchMap[event->wd]+ std::string(event->name));
                         this->filesQueued.notify_one();
                         break;
 
@@ -449,7 +449,9 @@ void FPE_Task::monitor(void) {
 
     // Wait for worker thread to exit
 
-    this->workerThread->join();
+    if (this->workerThread!=nullptr) {
+        this->workerThread->join();
+    }
 
     coutstr({this->prefix(), "FPE_Task monitor on thread stopped."});
 

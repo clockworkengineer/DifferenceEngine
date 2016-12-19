@@ -31,7 +31,6 @@
 
 // STL definitions
 
-#include <sstream>
 #include <iostream>
 #include <mutex>
 
@@ -157,7 +156,7 @@ int main(int argc, char** argv) {
                 coutstr({"Creating watch folder [", argData.watchFolder, "]"});
             }
         }
-
+                
         // Create destination folder for task
         
         if (!fs::exists(argData.destinationFolder)) {
@@ -220,12 +219,12 @@ int main(int argc, char** argv) {
 
     } catch (const fs::filesystem_error & e) {
         cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
-        exit(ERROR_UNHANDLED_EXCEPTION);
+        exit(1);
     } catch (std::exception & e) {
         cerrstr({"General exception occured: [", e.what(), "]"});
-        exit(ERROR_UNHANDLED_EXCEPTION);
+        exit(1);
     }
 
-    exit(SUCCESS);
+    exit(0);
 
 } 

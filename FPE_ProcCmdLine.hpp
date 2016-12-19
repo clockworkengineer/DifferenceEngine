@@ -46,14 +46,6 @@ struct ParamArgData {
     bool         bQuiet;             // Quiet mode no tracing output.
 };
 
-// Command line exit status
-
-namespace { 
-    const size_t ERROR_IN_COMMAND_LINE = 1;
-    const size_t SUCCESS = 0;
-    const size_t ERROR_UNHANDLED_EXCEPTION = 2;
-}
-
 // Handbrake command and default command if --command not specified
 
 const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";

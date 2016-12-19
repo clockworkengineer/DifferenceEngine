@@ -38,7 +38,6 @@
 // Task action function
 
 typedef bool (*TaskActionFcn)(const std::string &filenamePathStr,  
-                              const std::string &filenameStr, 
                               std::shared_ptr<void>fnData);
 
 // Action function data
@@ -55,14 +54,14 @@ struct ActFnData {
 
 //  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto
 //
-//  TaskActionFcn sampleLambda = [] (auto filenamePathStr, auto filenameStr, auto fnData) 
+//  TaskActionFcn sampleLambda = [] (auto filenamePathStr, auto fnData) 
 //  -> bool { std::cout << "[" << filenamePathStr+filenameStr << "]" << std::endl; return true; };
 
 // Action function prototypes
 
-bool handBrake(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData);
-bool copyFile(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData);
-bool runCommand(const std::string &filenamePathStr, const std::string &filenameStr, std::shared_ptr<void> fnData);
+bool handBrake(const std::string &filenamePathStr, std::shared_ptr<void> fnData);
+bool copyFile(const std::string &filenamePathStr,  std::shared_ptr<void> fnData);
+bool runCommand(const std::string &filenamePathStr,  std::shared_ptr<void> fnData);
 
 #endif /* FPE_ACTIONFUNCS_HPP */
 

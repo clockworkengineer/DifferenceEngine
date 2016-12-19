@@ -156,7 +156,7 @@ void TaskClassTests::createFiles(int fileCount) {
     this->watchFolder = kWatchFolder;
     this->watchDepth = -1;
 
-    this->taskActFcn = [] (auto filenamePathStr, auto filenameStr, auto fnData) -> bool {
+    this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
         TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
         funcData->fnCalledCount++;
         return true;
