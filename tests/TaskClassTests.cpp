@@ -155,7 +155,9 @@ void TaskClassTests::createFiles(int fileCount) {
     this->taskName = "Test";
     this->watchFolder = kWatchFolder;
     this->watchDepth = -1;
-
+    
+    // Simple test action function that just increases call count
+    
     this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
         TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
         funcData->fnCalledCount++;
@@ -181,6 +183,8 @@ void TaskClassTests::createFiles(int fileCount) {
         this->createFile(this->filePath + file);
     }
 
+    // Thread should die after killCount files created
+    
     taskThread->join();
 
     EXPECT_EQ(fileCount, funcData->fnCalledCount);

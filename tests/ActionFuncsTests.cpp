@@ -76,19 +76,15 @@ protected:
 
     virtual void TearDown() {
 
-        
+
         // Remove any files created
 
-        if ((this->filePath.length() != 0) && (this->fileName.length() != 0)) {
+        if (fs::exists(this->filePath + this->fileName)) {
+            boost::filesystem::remove(this->filePath + this->fileName);
+        }
 
-            if (fs::exists(this->filePath + this->fileName)) {
-                boost::filesystem::remove(this->filePath + this->fileName);
-            }
-
-            if (fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName)) {
-                boost::filesystem::remove( ActionFuncsTests::kDestinationFolder + this->fileName);
-            }
-
+        if (fs::exists(ActionFuncsTests::kDestinationFolder + this->fileName)) {
+            boost::filesystem::remove(ActionFuncsTests::kDestinationFolder + this->fileName);
         }
         
         // Remove watch folder.
@@ -106,7 +102,7 @@ protected:
 
     }
 
-    void createFile(std::string fileName);
+    void createFile(std::string fileName);      // Create a temporary file for test
     
     std::shared_ptr<void> fnData; // Action function data shared pointer wrapper
 
@@ -129,7 +125,6 @@ const std::string ActionFuncsTests:: kDestinationFolder("/tmp/destination/");
 
 const std::string ActionFuncsTests::kParamAssertion1("Assertion*"); // NEED TO MODIFY FOR SPECIFIC ASSERTS
 const std::string ActionFuncsTests::kParamAssertion2("Assertion*");
-const std::string ActionFuncsTests::kParamAssertion3("Assertion*");
 
 //
 // Create a file for test purposes.
@@ -230,6 +225,9 @@ TEST_F(ActionFuncsTests, TaskCopyFileSourceExistsDeleteSource) {
 
     this->createFile(this->filePath + this->fileName);
 
+    EXPECT_TRUE(fs::exists(this->filePath + this->fileName));
+    EXPECT_FALSE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
+
     this->funcData->bDeleteSource = true;
     EXPECT_TRUE(copyFile(this->filePath+this->fileName, this->fnData));
     
@@ -295,6 +293,8 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceNotExist) {
 
     this->filePath =  ActionFuncsTests::kWatchFolder;
     this->fileName = "temp1.txt";
+    
+    EXPECT_FALSE(fs::exists(this->filePath + this->fileName));
 
     this->funcData->commandToRun = "echo %1%"; // Doesn't matter file doesn't exist so TRUE.
     EXPECT_TRUE(runCommand(this->filePath+this->fileName, this->fnData));
@@ -345,7 +345,7 @@ TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommand) {
 }
 
 //
-// Run command no source file and specify delete source
+// Run command, no source file and specify delete source
 //
 
 TEST_F(ActionFuncsTests, TaskRunCommandNoSourceTryToDelete) {
@@ -360,6 +360,10 @@ TEST_F(ActionFuncsTests, TaskRunCommandNoSourceTryToDelete) {
     EXPECT_TRUE(runCommand(this->filePath+this->fileName, this->fnData));
 
 }
+
+//
+// Run command, source exists and specify delete source
+//
 
 TEST_F(ActionFuncsTests, TaskRunCommandSourceExistsTryToDelete) {
 

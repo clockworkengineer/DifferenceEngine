@@ -199,7 +199,8 @@ int main(int argc, char** argv) {
        // Create function data (wrap in void shared pointer for passing to task).
         
         std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, 
-        argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, argData.extension, ((argData.bQuiet)? nullptr : coutstr), ((argData.bQuiet)? nullptr :cerrstr)});
+        argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, 
+        argData.extension, ((argData.bQuiet)? nullptr : coutstr), ((argData.bQuiet)? nullptr :cerrstr)});
  
         // Create task object
 
@@ -221,7 +222,7 @@ int main(int argc, char** argv) {
         cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
         exit(1);
     } catch (std::exception & e) {
-        cerrstr({"General exception occured: [", e.what(), "]"});
+        cerrstr({"Standard exception occured: [", e.what(), "]"});
         exit(1);
     }
 

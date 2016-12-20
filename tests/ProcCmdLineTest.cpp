@@ -1,5 +1,5 @@
 /*
- * File:   ProcCmdLineTest.cpp
+ * File:   ProcCmdLineTests.cpp
  * 
  * Author: Robert Tizzard
  *
@@ -32,15 +32,19 @@
 #include "gtest/gtest.h"
 #include "FPE_ProcCmdLine.hpp"
 
-class ProcCmdLineTest : public ::testing::Test {
+//
+// ProcCmdLineTests fixtures and constants
+//
+
+class ProcCmdLineTests : public ::testing::Test {
     
 protected:
 
-    ProcCmdLineTest() {
+    ProcCmdLineTests() {
 
     }
 
-    virtual ~ProcCmdLineTest() {
+    virtual ~ProcCmdLineTests() {
 
     }
 
@@ -61,7 +65,7 @@ protected:
 // Count length of argv to pass to procCmdLine.
 //
 
-int ProcCmdLineTest::argvLen (char *argv[]) {
+int ProcCmdLineTests::argvLen (char *argv[]) {
     int argc = 0; 
     while(argv[++argc] != NULL);
     return(argc);
@@ -71,7 +75,7 @@ int ProcCmdLineTest::argvLen (char *argv[]) {
 // Process command line with no options
 //
 
-TEST_F(ProcCmdLineTest, NoParameters) { 
+TEST_F(ProcCmdLineTests, NoParameters) { 
     
     ParamArgData argData;
     
@@ -85,7 +89,7 @@ TEST_F(ProcCmdLineTest, NoParameters) {
 // Command fpe --copy --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, TaskCopyFileNoDelete) {
+TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
 
     ParamArgData argData;
       
@@ -108,6 +112,8 @@ TEST_F(ProcCmdLineTest, TaskCopyFileNoDelete) {
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
     
 }
 
@@ -115,7 +121,7 @@ TEST_F(ProcCmdLineTest, TaskCopyFileNoDelete) {
 // Command fpe --delete --copy --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, TaskCopyFileDelete) {
+TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
 
     ParamArgData argData;
 
@@ -139,14 +145,16 @@ TEST_F(ProcCmdLineTest, TaskCopyFileDelete) {
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+  
 }
 
 //
 // Command fpe --video --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, TaskVideoFileConversionNoDelete) {
+TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
     
     ParamArgData argData;
     
@@ -169,6 +177,9 @@ TEST_F(ProcCmdLineTest, TaskVideoFileConversionNoDelete) {
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+
 
 }
 
@@ -176,7 +187,7 @@ TEST_F(ProcCmdLineTest, TaskVideoFileConversionNoDelete) {
 // Command fpe --delete --video --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, TaskVideoFileConversionDelete) {
+TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
 
     ParamArgData argData;
 
@@ -200,6 +211,9 @@ TEST_F(ProcCmdLineTest, TaskVideoFileConversionDelete) {
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+
     
 }
 
@@ -207,7 +221,7 @@ TEST_F(ProcCmdLineTest, TaskVideoFileConversionDelete) {
 // Command fpe --command "echo %1% -------> %2%" --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, TaskRunCommandCommandNoDelete) {
+TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
     
     ParamArgData argData;
 
@@ -232,6 +246,9 @@ TEST_F(ProcCmdLineTest, TaskRunCommandCommandNoDelete) {
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
     ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRun.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+
 
 }
 
@@ -239,7 +256,7 @@ TEST_F(ProcCmdLineTest, TaskRunCommandCommandNoDelete) {
 // Command fpe --delete --command "echo %1% -------> %2%" /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, TaskRunCommandCommandDelete) {
+TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
     
     ParamArgData argData;
     
@@ -265,6 +282,9 @@ TEST_F(ProcCmdLineTest, TaskRunCommandCommandDelete) {
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
     ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRun.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+
 
 }
 
@@ -272,7 +292,7 @@ TEST_F(ProcCmdLineTest, TaskRunCommandCommandDelete) {
 // Command fpe --copy --maxdepth 3 /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, TaskCopyFileMaxDepth3) {
+TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
     
     ParamArgData argData;
 
@@ -297,13 +317,16 @@ TEST_F(ProcCmdLineTest, TaskCopyFileMaxDepth3) {
     EXPECT_EQ(3, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+
 }
 
 //
 // Command fpe --delete /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, NoTaskDefaultCopyDelete) {
+TEST_F(ProcCmdLineTests, NoTaskDefaultCopyDelete) {
     
     ParamArgData argData;
 
@@ -326,6 +349,9 @@ TEST_F(ProcCmdLineTest, NoTaskDefaultCopyDelete) {
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+
  
 }
 
@@ -333,7 +359,7 @@ TEST_F(ProcCmdLineTest, NoTaskDefaultCopyDelete) {
 // Command fpe --copy --video --delete /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
-TEST_F(ProcCmdLineTest, MultipleTasksSpecified) {
+TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
     
     ParamArgData argData;
 
@@ -350,6 +376,75 @@ TEST_F(ProcCmdLineTest, MultipleTasksSpecified) {
  
     EXPECT_EXIT (procCmdLine(this->argvLen(argv), argv, argData), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
  
+}
+
+//
+// Command fpe --delete --video --extension ".mkv" --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+//
+
+TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
+
+    ParamArgData argData;
+
+    char *argv[] = {
+        (char *) "fpe",
+        (char *) "--video",
+        (char *) "--extension",
+        (char *) ".mkv",
+        (char *) "--watch",
+        (char *) "/home/pi/watchstuff/watch/",
+        (char *) "--destination",
+        (char *) "/home/pi/watchstuff/destination/",
+        nullptr
+    };
+
+    procCmdLine(this->argvLen(argv), argv, argData);
+
+    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(argData.bFileCopy);
+    EXPECT_FALSE(argData.bRunCommand);
+    EXPECT_TRUE(argData.bVideoConversion);
+    EXPECT_EQ(-1, argData.maxWatchDepth);
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
+    ASSERT_STREQ(".mkv", argData.extension.c_str());
+    EXPECT_FALSE(argData.bQuiet);
+
+    
+}
+
+//
+// Command fpe --video --quiet  --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+//
+
+TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
+
+    ParamArgData argData;
+
+    char *argv[] = {
+        (char *) "fpe",
+        (char *) "--video",
+        (char *) "--quiet",
+        (char *) "--watch",
+        (char *) "/home/pi/watchstuff/watch/",
+        (char *) "--destination",
+        (char *) "/home/pi/watchstuff/destination/",
+        nullptr
+    };
+
+    procCmdLine(this->argvLen(argv), argv, argData);
+
+    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(argData.bFileCopy);
+    EXPECT_FALSE(argData.bRunCommand);
+    EXPECT_TRUE(argData.bVideoConversion);
+    EXPECT_EQ(-1, argData.maxWatchDepth);
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
+    ASSERT_STREQ("", argData.extension.c_str());
+    EXPECT_TRUE(argData.bQuiet);
+
+    
 }
 
 int main(int argc, char **argv) {
