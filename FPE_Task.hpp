@@ -81,13 +81,15 @@ private:
     FPE_Task(const FPE_Task & orig) = delete;;
     FPE_Task(const FPE_Task && orig )= delete;;   
     
-    static int pathDepth(std::string &pathStr);      // Add path to be watched
-    std::string prefix(void);                       // Logging output prefix function
-    void addWatchPath(std::string &pathStr);         // Add path to be watched
+    static int pathDepth(std::string &pathStr);     // Add path to be watched
+    std::string prefix(void);                       // Logging output prefix 
+    
+    void addWatchPath(std::string &pathStr);        // Add path to be watched
     void addWatch(struct inotify_event *event);     // Add a folder to watch
     void removeWatch(struct inotify_event *event);  // Remove a folder watch
-    void createWatchTable(void);                    // Create a watch table for watch folder
+    void initWatchTable(void);                      // Create a watch table for watched folders
     void destroyWatchTable(void);                   // Clear watch table
+    
     void worker(void);                              // Worker thread
     
     void coutstr(const std::vector<std::string>& outstr);

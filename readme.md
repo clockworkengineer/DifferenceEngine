@@ -61,9 +61,9 @@ At the center of the class is an event loop which waits for inotify events and p
 
 The FPE_Task class has a separate worker thread which is created to handle files to be processed. The reason for this being is that if the processing required is intensive as in Handbrake video conversion then having this done on the same thread can cause the inotify event queue to stall. Any files to be processed are added to a queue which the worker thread then takes off to process. Access to this queue is controlled by a mutex and a conditional variable which waits in the worker thread until a file is queued and a notify sent by the monitor.
 
-It should be noted that a basic shutdown protocol is provided to close down any threads that the task class uses by calling task.stop(). This just sets an internal atomic boolean called bDoWork to false so that both the internal loops stop and the functions exit gracefully and so do the threads. This is just to give some control over thread termination which the C++ STL doesn't really provide; well in a subtle manner anyways. The shutdown can be actuated by either deleting the watch folder or by specifying a kill count in the optional task options parameter that can be passed in the classes constructor.
+It should be noted that a basic shutdown protocol is provided to close down any threads that the task class uses by calling task.stop(). This just sets an internal atomic boolean called bDoWork to false so that both the internal loops stop and the functions exit gracefully and so do the threads. This is just to give some control over thread termination which the C++ STL doesn't really provide; well in a subtle manner anyways. The shutdown can be actuated by either deleting the watch folder or by specifying a kill count in the optional task options structure parameter that can be passed in the classes constructor.
 
-The task options parameter also has two other members which are pointers to functions that handle all cout/cerr output from the class. These take as a parameter a vector of strings to output and if the option parameter is omitted or the pointers are nullptr then no output occurs. The FPE provides these two functions in the form of coutstr/coutstr which are passed in if --quiet is not specified nullptrs otherwise. All output is modeled this way was it enables the two functions in the FPE to use a mutex to control access to the output streams which are not thread safe and also to provide a --quiet mode and when it is implemented a output to log file option.
+The task options structure parameter also has two other members which are pointers to functions that handle all cout/cerr output from the class. These take as a parameter a vector of strings to output and if the option parameter is omitted or the pointers are nullptr then no output occurs. The FPE provides these two functions in the form of coutstr/coutstr which are passed in if --quiet is not specified nullptrs otherwise. All output is modeled this way was it enables the two functions in the FPE to use a mutex to control access to the output streams which are not thread safe and also to provide a --quiet mode and when it is implemented a output to log file option.
 
 # File Copy Task Function #
 
@@ -81,6 +81,8 @@ This executes a simple shell script command (--command) for each file name passe
 
 1. Add more task options such a using curl.
 2. Add more google tests.
+3. Look into using std::async instead of raw threads with task class.
+4. Separate out inotify functionality from task class.
 
 
 

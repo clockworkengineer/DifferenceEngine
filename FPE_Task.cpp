@@ -182,10 +182,10 @@ void FPE_Task::addWatchPath(std::string &pathStr) {
 }
 
 //
-// Initialize inotify and add watches for any existing directory structure.
+// Initialize inotify and add watch for watch folder.
 //
 
-void FPE_Task::createWatchTable(void) {
+void FPE_Task::initWatchTable(void) {
 
     // Initialize inotify 
 
@@ -279,7 +279,6 @@ void FPE_Task::removeWatch(struct inotify_event *event) {
 void FPE_Task::worker(void) {
 
     std::string filenamePathStr;
-   // std::string filenameStr;
 
     coutstr({this->prefix(), "Worker thread started... "});
 
@@ -306,10 +305,8 @@ void FPE_Task::worker(void) {
             cerrstr({this->prefix(), "Caught a runtime_error exception: [", e.what(), "]"});
         } catch (std::exception &e) {
             cerrstr({this->prefix(), "General exception occured: [", e.what(), "]"});
-        } catch (...) {
-            cerrstr({this->prefix(), "unknown exception occured."});
         }
-
+        
         if ((this->taskOptions->killCount != 0) && (--(this->taskOptions->killCount) == 0)) {
             coutstr({this->prefix(), "FPE_Task Kill Count reached."});
             this->stop();
@@ -398,7 +395,7 @@ void FPE_Task::monitor(void) {
 
     try {
 
-        this->createWatchTable();
+        this->initWatchTable();
 
         this->bDoWork = true;
         this->workerThread.reset(new std::thread(&FPE_Task::worker, this));
@@ -443,8 +440,6 @@ void FPE_Task::monitor(void) {
         cerrstr({this->prefix(), "Caught a runtime_error exception: [", e.what(), "]"});
     } catch (std::exception &e) {
         cerrstr({this->prefix(), "General exception occured: [", e.what(), "]"});
-    } catch (...) {
-        cerrstr({this->prefix(), "unknown exception occured."});
     }
 
     // Wait for worker thread to exit
