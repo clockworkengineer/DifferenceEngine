@@ -442,6 +442,12 @@ void FPE_Task::monitor(void) {
         cerrstr({this->prefix(), "General exception occured: [", e.what(), "]"});
     }
 
+    // Stop if an exception occurred
+    
+    if (this->bDoWork.load()) {
+         this->stop();
+    }
+ 
     // Wait for worker thread to exit
 
     if (this->workerThread!=nullptr) {

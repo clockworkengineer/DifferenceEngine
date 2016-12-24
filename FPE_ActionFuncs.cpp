@@ -137,8 +137,8 @@ static int runShellCommand(std::string shellCommand) {
 
     // Take a 'C' string copy
 
-    commandStr.get()[shellCommand.length()] = 0;
-    strncpy(commandStr.get(), shellCommand.c_str(), shellCommand.length());
+     shellCommand.copy(commandStr.get(), shellCommand.length());
+     commandStr.get()[shellCommand.length()] = 0;
 
     // Loop through command splitting into substrings for argv
 

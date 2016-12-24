@@ -59,7 +59,7 @@ namespace fs = boost::filesystem;
 
 void coutstr(const std::vector<std::string>& outstr) {
 
-    std::mutex mOutput;
+    static std::mutex mOutput;
     std::unique_lock<std::mutex> locker(mOutput);
     
     for (auto str : outstr)
@@ -76,7 +76,7 @@ void coutstr(const std::vector<std::string>& outstr) {
 
 void cerrstr(const std::vector<std::string>& errstr) {
 
-    std::mutex mError;
+    static std::mutex mError;
     std::unique_lock<std::mutex> locker(mError);
    
     for (auto str : errstr)
