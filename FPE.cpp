@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <system_error>
 
 // Task Action functions
 
@@ -55,7 +56,8 @@ namespace fs = boost::filesystem;
 
 //
 // Standard cout for string of vectors. All calls to this function from different
-// threads are guarded by mutex mOutput.
+// threads are guarded by mutex mOutput (this is static just to keep it local to the
+// function).
 //
 
 void coutstr(const std::vector<std::string>& outstr) {
@@ -76,7 +78,8 @@ void coutstr(const std::vector<std::string>& outstr) {
 
 //
 // Standard cerr for string of vectors. All calls to this function from different
-// threads are guarded by mutex mError.
+// threads are guarded by mutex mError (this is static just to keep it local to the
+// function).
 //
 
 void cerrstr(const std::vector<std::string>& errstr) {
@@ -129,7 +132,9 @@ void createTaskAndActivate( const std::string &taskName, const std::string &watc
     taskThread->join();
     
     //
-    // For Non thread variant just uncomment below
+    // For Non thread variant just uncomment below and comment out thread creation block
+    // above. (May make this a run time control parameter).
+    //
     // task.monitor();
     //
    
@@ -234,7 +239,10 @@ int main(int argc, char** argv) {
     } catch (const fs::filesystem_error & e) {
         cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
         exit(1);
-    } catch (std::exception & e) {
+   } catch (std::system_error &e) {
+        cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
+        exit(1);
+     } catch (std::exception & e) {
         cerrstr({"Standard exception occured: [", e.what(), "]"});
         exit(1);
     }

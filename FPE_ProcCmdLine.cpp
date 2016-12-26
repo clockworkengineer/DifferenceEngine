@@ -41,7 +41,7 @@
 
 namespace po = boost::program_options;
 
-// Boost file system and format libraries definitions
+// Boost file system library definitions
 
 #include <boost/filesystem.hpp>
 

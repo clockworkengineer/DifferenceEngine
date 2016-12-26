@@ -31,7 +31,7 @@
 
 // STL definitions
 
-#include <sstream>
+#include <system_error>
 
 // Task Action functions
 
@@ -91,11 +91,9 @@ static int forkCommand(char *argv[]) {
     int exitStatus = 0; // child exit status
 
     if ((pid = fork()) < 0) { /* fork a child process           */
-
-        std::stringstream errStream;
-        errStream << " ERROR: forking child process failed: " << errno;
-        throw std::runtime_error(errStream.str());
-
+        
+        throw std::system_error(std::error_code(errno, std::system_category()), "RROR: forking child process failed:");
+ 
     } else if (pid == 0) { /* for the child process: */
 
         // Redirect stdout/stderr
