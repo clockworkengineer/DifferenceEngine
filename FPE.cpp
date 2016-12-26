@@ -52,6 +52,7 @@
 
 namespace fs = boost::filesystem;
 
+
 //
 // Standard cout for string of vectors. All calls to this function from different
 // threads are guarded by mutex mOutput.
@@ -62,10 +63,14 @@ void coutstr(const std::vector<std::string>& outstr) {
     static std::mutex mOutput;
     std::unique_lock<std::mutex> locker(mOutput);
     
-    for (auto str : outstr)
-        std::cout << str;
+    if (!outstr.empty()) {
+        
+        for (auto str : outstr)
+            std::cout << str;
 
-    std::cout << std::endl;
+        std::cout << std::endl;
+
+    }
 
 }
 
@@ -79,10 +84,14 @@ void cerrstr(const std::vector<std::string>& errstr) {
     static std::mutex mError;
     std::unique_lock<std::mutex> locker(mError);
    
-    for (auto str : errstr)
-        std::cerr << str;
+    if (!errstr.empty()) {
 
-    std::cerr << std::endl;
+        for (auto str : errstr)
+            std::cerr << str;
+
+        std::cerr << std::endl;
+
+    }
 
 }
 
@@ -116,10 +125,14 @@ void createTaskAndActivate( const std::string &taskName, const std::string &watc
     // Create task object thread and start to watch
 
     std::unique_ptr<std::thread> taskThread;
-
     taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
-
     taskThread->join();
+    
+    //
+    // For Non thread variant just uncomment below
+    // task.monitor();
+    //
+   
 
 }
 

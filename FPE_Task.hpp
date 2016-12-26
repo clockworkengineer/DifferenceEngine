@@ -33,16 +33,11 @@
 
 // STL definitions
 
-#include <unordered_map>
 #include <thread>
-#include <queue>
-#include <condition_variable>
-#include <mutex>
-#include <atomic>
 
-// inotify definitions
+// IApprise file event watcher
 
-#include <sys/inotify.h>
+#include "IApprise.hpp"
 
 // Task options structure (OPTIONALLY PASSED TO TASK)
 
@@ -59,12 +54,12 @@ public:
 
     // CONSTRUCTOR
 
-    FPE_Task(std::string taskNameStr,                               // Task name
+    FPE_Task(std::string taskName,                                  // Task name
             std::string watchFolder,                                // Watch folder path
             TaskActionFcn taskActFcn,                               // Task action function
             std::shared_ptr<void> fnData,                           // Task file process function data
             int maxWatchDepth,                                      // Maximum watch depth -1= all, 0=just watch folder
-            std::shared_ptr<TaskOptions> taskOptions=nullptr);     //  Task options. 
+            std::shared_ptr<TaskOptions> taskOptions=nullptr);      //  Task options. 
     
     // DESTRUCTOR
 
@@ -73,49 +68,30 @@ public:
     // PUBLIC FUNCTIONS
 
     void monitor(void);     // Monitor watch folder for file events and process added files
-    void stop(void);        // Stop all threads
+    void stop(void);        // Stop task
  
 private:
 
-    FPE_Task() = delete;                                      // Use only provided constructors
-    FPE_Task(const FPE_Task & orig) = delete;;
-    FPE_Task(const FPE_Task && orig )= delete;;   
+    FPE_Task() = delete;                            // Use only provided constructors
+    FPE_Task(const FPE_Task & orig) = delete;
+    FPE_Task(const FPE_Task && orig )= delete;   
+
+    std::shared_ptr<IApprise> watcher;              // Folder watcher
+    std::shared_ptr<IAppriseOptions> watchOpt;      // folder watcher options
+    std::unique_ptr<std::thread> watcherThread;     // Folder watcher thread
     
-    static int pathDepth(std::string &pathStr);     // Add path to be watched
-    std::string prefix(void);                       // Logging output prefix 
+    std::string prefix(void);                       // Logging output prefix  
     
-    void addWatchPath(std::string &pathStr);        // Add path to be watched
-    void addWatch(struct inotify_event *event);     // Add a folder to watch
-    void removeWatch(struct inotify_event *event);  // Remove a folder watch
-    void initWatchTable(void);                      // Create a watch table for watched folders
-    void destroyWatchTable(void);                   // Clear watch table
-    
-    void worker(void);                              // Worker thread
-    
-    void coutstr(const std::vector<std::string>& outstr);
-    void cerrstr(const std::vector<std::string>& outstr);
+    void coutstr(const std::vector<std::string>& outstr);   // std::cout
+    void cerrstr(const std::vector<std::string>& outstr);   // std::cerr
     
     // CONSTRUCTOR PARAMETERS
     
     std::string  taskName;                                  // Task name
     std::string  watchFolder;                               // Watch Folder
-    int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder,1=next level down etc.
     TaskActionFcn taskActFcn;                               // Task action function 
     std::shared_ptr<void> fnData;                           // Task action function data
     std::shared_ptr<TaskOptions> taskOptions;               // Task passed options
-    
-    int fdNotify;                                           // inotify file descriptor
-    std::condition_variable filesQueued;                    // Queued files considitional
-    std::mutex fileNamesMutex;                              // Queue Mutex
-    std::queue <std::string> fileNames;                     // Queue of path/file names
-    std::atomic<bool> bDoWork;                              // doWork=true (run thread loops) false=(stop thread loops)
-    std::unique_ptr<std::thread> workerThread;              // Worker thread for task to be performed.
-    std::unordered_map<int32_t, std::string> watchMap;      // Watch table indexed by watch variable
-    std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
-    
-    static const uint32_t kInofityEvents;       // inotify events to monitor
-    static const uint32_t kInotifyEventSize;    // inotify read event size
-    static const uint32_t kInotifyEventBuffLen; // inotify read buffer length
 
 };
 #endif /* FPETASK_HPP */
