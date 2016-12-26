@@ -59,7 +59,7 @@ struct IAppriseOptions {
 enum IAppriseEventId { 
     Event_none=0,       // None
     Event_add,          // File added
-    Event_change,       // File changed
+    Event_change,       // File changed (not supported at present)
     Event_unlink,       // File deleted
     Event_addir,        // Directory added
     Event_unlinkdir,    // Directory deleted

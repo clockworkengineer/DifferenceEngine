@@ -44,7 +44,7 @@
 
 // inotify events to recieve
 
-const uint32_t IApprise::kInofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM | IN_DELETE_SELF | IN_CLOSE_WRITE | IN_MOVED_TO | IN_DELETE | IN_MODIFY;
+const uint32_t IApprise::kInofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM | IN_DELETE_SELF | IN_CLOSE_WRITE | IN_MOVED_TO | IN_DELETE;
 
 // inotify event structure size
 
@@ -423,7 +423,7 @@ void IApprise::watch(void) {
                         this->sendEvent(Event_unlink, this->watchMap[event->wd] + std::string(event->name));
                         break;
 
-                    case IN_CLOSE_WRITE:
+                    case IN_CLOSE_WRITE:    // This could signal an update too but just signal as an add for now
                     case IN_MOVED_TO:
                         this->sendEvent(Event_add, this->watchMap[event->wd] + std::string(event->name));
                         break;
