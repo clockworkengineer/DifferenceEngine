@@ -64,9 +64,9 @@ void coutstr(const std::vector<std::string>& outstr) {
 
     static std::mutex mOutput;
     std::unique_lock<std::mutex> locker(mOutput);
-    
+
     if (!outstr.empty()) {
-        
+
         for (auto str : outstr)
             std::cout << str;
 
@@ -86,7 +86,7 @@ void cerrstr(const std::vector<std::string>& errstr) {
 
     static std::mutex mError;
     std::unique_lock<std::mutex> locker(mError);
-   
+
     if (!errstr.empty()) {
 
         for (auto str : errstr)
@@ -102,42 +102,49 @@ void cerrstr(const std::vector<std::string>& errstr) {
 // Create task and run in thread.
 //
 
-void createTaskAndActivate( const std::string &taskName, const std::string &watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
+void createTaskAndActivate(const std::string &taskName, const std::string &watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
 
     // ASSERT if strings length 0 , pointer parameters NULL
-    
+
     assert(taskName.length() != 0);
     assert(watchFolder.length() != 0);
-    assert(taskActFcn!=nullptr);
-    assert(fnData!=nullptr);
+    assert(taskActFcn != nullptr);
+    assert(fnData != nullptr);
 
     // Use function data to access set coutstr/cerrstr
-    
+
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
-    
+
     // Set task options ( no kill count and all output to local coutstr/cerrstr.
-    
+
     std::shared_ptr<TaskOptions> taskOpt;
-    
-    taskOpt.reset(new TaskOptions { 0, funcData->coutstr, funcData->cerrstr} ) ;
-             
+
+    taskOpt.reset(new TaskOptions{0, funcData->coutstr, funcData->cerrstr});
+
     // Create task object
 
-    FPE_Task task(taskName, watchFolder, taskActFcn, fnData,  watchDepth, taskOpt);
- 
+    FPE_Task task(taskName, watchFolder, taskActFcn, fnData, watchDepth, taskOpt);
+
     // Create task object thread and start to watch
 
     std::unique_ptr<std::thread> taskThread;
     taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
     taskThread->join();
-    
+
     //
     // For Non thread variant just uncomment below and comment out thread creation block
     // above. (May make this a run time control parameter).
     //
     // task.monitor();
     //
-   
+    
+    //
+    // If an exception occurred rethrow (end of chain)
+    //
+    
+    if (task.getThrownException()) {
+        std::rethrow_exception(task.getThrownException());
+    }
 
 }
 
@@ -146,25 +153,25 @@ void createTaskAndActivate( const std::string &taskName, const std::string &watc
 //
 
 int main(int argc, char** argv) {
-    
+
     try {
-           
+
         // Process FPE command line arguments.
-  
+
         ParamArgData argData;
-   
-        procCmdLine(argc, argv, argData);  
-  
+
+        procCmdLine(argc, argv, argData);
+
         // FPE up and running
-        
+
         coutstr({"FPE Running..."});
-        
+
         // Display BOOST version
-        
-        coutstr({"Using Boost ", 
-                std::to_string(BOOST_VERSION / 100000), ".",      // major version
-                std::to_string(BOOST_VERSION / 100 % 1000), ".",  // minor version
-                std::to_string(BOOST_VERSION % 100)});            // patch level
+
+        coutstr({"Using Boost ",
+            std::to_string(BOOST_VERSION / 100000), ".", // major version
+            std::to_string(BOOST_VERSION / 100 % 1000), ".", // minor version
+            std::to_string(BOOST_VERSION % 100)}); // patch level
 
         // Create watch folder for task.
 
@@ -174,52 +181,52 @@ int main(int argc, char** argv) {
                 coutstr({"Creating watch folder [", argData.watchFolder, "]"});
             }
         }
-                
+
         // Create destination folder for task
-        
+
         if (!fs::exists(argData.destinationFolder)) {
-            coutstr({"Destination folder ", argData.destinationFolder, " does not exist." });
+            coutstr({"Destination folder ", argData.destinationFolder, " does not exist."});
             if (fs::create_directory(argData.destinationFolder)) {
                 coutstr({"Creating destination folder ", argData.destinationFolder});
             }
         }
-   
+
         // Signal file copy task
-        
+
         if (argData.bFileCopy) {
-            coutstr({ "*** FILE COPY TASK ***"});
+            coutstr({"*** FILE COPY TASK ***"});
         }
-                
+
         // Signal video conversion task
-        
+
         if (argData.bVideoConversion) {
-            coutstr({ "*** VIDEO CONVERSION TASK ***"});
+            coutstr({"*** VIDEO CONVERSION TASK ***"});
         }
-  
-         // Signal run command task
-        
+
+        // Signal run command task
+
         if (argData.bRunCommand) {
-            coutstr({ "*** RUN COMMAND TASK ***"});
+            coutstr({"*** RUN COMMAND TASK ***"});
         }
-  
+
         // Signal quiet mode
-        
+
         if (argData.bQuiet) {
-            coutstr({ "*** QUIET MODE ***"});
+            coutstr({"*** QUIET MODE ***"});
         }
-    
+
         // Signal source will be deleted on success
-        
+
         if (argData.bDeleteSource) {
-            coutstr({ "*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
+            coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
         }
-    
-       // Create function data (wrap in void shared pointer for passing to task).
-        
-        std::shared_ptr<void> fnData(new ActFnData {argData.watchFolder, 
-        argData.destinationFolder, argData.commandToRun, argData.bDeleteSource, 
-        argData.extension, ((argData.bQuiet)? nullptr : coutstr), ((argData.bQuiet)? nullptr :cerrstr)});
- 
+
+        // Create function data (wrap in void shared pointer for passing to task).
+
+        std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
+            argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
+            argData.extension, ((argData.bQuiet) ? nullptr : coutstr), ((argData.bQuiet) ? nullptr : cerrstr)});
+
         // Create task object
 
         if (argData.bFileCopy) {
@@ -229,24 +236,21 @@ int main(int argc, char** argv) {
         } else {
             createTaskAndActivate(std::string("Run Command"), argData.watchFolder, argData.maxWatchDepth, runCommand, fnData);
         }
-        
-        coutstr({"FPE Exiting."});
-        
-    //
-    // Catch any errors
-    //    
+
+        //
+        // Catch any errors
+        //    
 
     } catch (const fs::filesystem_error & e) {
         cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
-        exit(1);
-   } catch (std::system_error &e) {
+    } catch (const std::system_error &e) {
         cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
-        exit(1);
-     } catch (std::exception & e) {
+    } catch (const std::exception & e) {
         cerrstr({"Standard exception occured: [", e.what(), "]"});
-        exit(1);
     }
-
+    
+    coutstr({"FPE Exiting."});
+        
     exit(0);
 
 } 

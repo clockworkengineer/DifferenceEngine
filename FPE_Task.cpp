@@ -52,10 +52,10 @@
 
 void FPE_Task::coutstr(const std::vector<std::string>& outstr) {
 
-    assert(this->taskOptions != nullptr);
+    assert(this->options != nullptr);
 
-    if ((this->taskOptions)->coutstr != nullptr) {
-        (this->taskOptions)->coutstr(outstr);
+    if ((this->options)->coutstr != nullptr) {
+        (this->options)->coutstr(outstr);
     }
 
 }
@@ -66,10 +66,10 @@ void FPE_Task::coutstr(const std::vector<std::string>& outstr) {
 
 void FPE_Task::cerrstr(const std::vector<std::string>& errstr) {
 
-    assert(this->taskOptions != nullptr);
+    assert(this->options != nullptr);
 
-    if ((this->taskOptions)->cerrstr != nullptr) {
-        (this->taskOptions)->cerrstr(errstr);
+    if ((this->options)->cerrstr != nullptr) {
+        (this->options)->cerrstr(errstr);
     }
 
 }
@@ -107,8 +107,8 @@ std::string FPE_Task::prefix(void) {
 //
 
 FPE_Task::FPE_Task(std::string taskName, std::string watchFolder, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData,
-        int maxWatchDepth, std::shared_ptr<TaskOptions> taskOptions) :
-        taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, taskOptions{taskOptions}
+        int maxWatchDepth, std::shared_ptr<TaskOptions> options) :
+taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, options{options}
 {
 
     // ASSERT if passed parameters invalid
@@ -121,13 +121,13 @@ FPE_Task::FPE_Task(std::string taskName, std::string watchFolder, TaskActionFcn 
 
     // No task option passed in so setup default. THIS NEEDS TO BE SETUP FIRST FOR COUTSTR/CERRSTR.
 
-    if (this->taskOptions == nullptr) {
-        this->taskOptions.reset(new TaskOptions{0, nullptr, nullptr});
+    if (this->options == nullptr) {
+        this->options.reset(new TaskOptions{0, nullptr, nullptr});
     }
-    
+
     // Create IApprise watcher object. Use same stdout/stderr functions as Task.
 
-    this->watchOpt.reset(new IAppriseOptions{nullptr, this->taskOptions->coutstr, this->taskOptions->cerrstr});
+    this->watchOpt.reset(new IAppriseOptions{nullptr, this->options->coutstr, this->options->cerrstr});
 
     this->watcher.reset(new IApprise{watchFolder, maxWatchDepth, watchOpt});
 
@@ -138,13 +138,23 @@ FPE_Task::FPE_Task(std::string taskName, std::string watchFolder, TaskActionFcn 
 }
 
 //
+// Check whether termination of FPE_Task was the result of any thrown exception
+//
+
+std::exception_ptr FPE_Task::getThrownException() {
+    
+    return (this->thrownException); 
+
+}
+
+//
 // Flag watcher and task loops to stop.
 //
 
 void FPE_Task::stop(void) {
 
     coutstr({this->prefix(), "Stop task."});
-    
+
     this->watcher->stop();
 
 }
@@ -155,32 +165,51 @@ void FPE_Task::stop(void) {
 
 void FPE_Task::monitor(void) {
 
-    coutstr({this->prefix(), "FPE_Task monitor started."});
+    try {
 
-    // Loop until watcher stopped
-    
-    while (this->watcher->stillWatching()) {
+        coutstr({this->prefix(), "FPE_Task monitor started."});
 
-        IAppriseEvent evt;
+        // Loop until watcher stopped
 
-        this->watcher->getEvent(evt);
+        while (this->watcher->stillWatching()) {
 
-        if ((evt.id == Event_add) && !evt.message.empty()) {
+            IAppriseEvent evt;
 
-            this->taskActFcn(evt.message, this->fnData);
+            this->watcher->getEvent(evt);
 
-            if ((this->taskOptions->killCount != 0) && (--(this->taskOptions->killCount) == 0)) {
-                coutstr({this->prefix(), "FPE_Task kill count reached."});
-                this->watcher->stop();
+            if ((evt.id == Event_add) && !evt.message.empty()) {
+
+                this->taskActFcn(evt.message, this->fnData);
+
+                if ((this->options->killCount != 0) && (--(this->options->killCount) == 0)) {
+                    coutstr({this->prefix(), "FPE_Task kill count reached."});
+                    this->watcher->stop();
+                }
+
+            } else if ((evt.id == Event_error) && !evt.message.empty()) {
+                coutstr({evt.message});
             }
 
-        } else if ((evt.id == Event_error) && !evt.message.empty()) {
-            coutstr({evt.message});
+        }
+        
+        // Pass any IApprise exceptions up chain
+        
+        if (this->watcher->getThrownException()){
+            this->thrownException = this->watcher->getThrownException();
         }
 
+    } catch (...) {
+        // Pass any FPE_Task thrown exceptions up chain
+        this->thrownException = std::current_exception();
     }
 
-    this->watcherThread->join(); 
+    // IApprise still flagged as running so close down 
+    
+    if (this->watcher->stillWatching()) {
+        this->watcher->stop();
+    }
+    
+    this->watcherThread->join();
 
     coutstr({this->prefix(), "FPE_Task monitor on stopped."});
 

@@ -1,5 +1,5 @@
 /*
- * File:  IApprise.hpp
+ * File:   IApprise.hpp
  * 
  * Author: Robert Tizzard
  * 
@@ -41,6 +41,9 @@
 #include <condition_variable>
 #include <mutex>
 #include <atomic>
+#include <system_error>
+#include <cassert>
+#include <algorithm>
 
 // inotify definitions
 
@@ -54,7 +57,7 @@ struct IAppriseOptions {
     void (*cerrstr) (const std::vector<std::string>& errstr);  // cerrstr output
 };
 
-// Event ids
+// Apprise Event ids
 
 enum IAppriseEventId { 
     Event_none=0,       // None
@@ -66,7 +69,7 @@ enum IAppriseEventId {
     Event_error         // Exception error
 };
 
-// Event structure
+// Apprise Event structure
 
 struct IAppriseEvent {
     IAppriseEventId     id;        // Event id
@@ -83,55 +86,63 @@ public:
 
     IApprise(std::string watchFolder,                               // Watch folder path
              int maxWatchDepth,                                     // Maximum watch depth -1= all, 0=just watch folder
-             std::shared_ptr<IAppriseOptions> options=nullptr);     // IApprise Options
+             std::shared_ptr<IAppriseOptions> options=nullptr);     // IApprise Options (OPTIONAL)
     
     // DESTRUCTOR
 
     virtual ~IApprise(); // Task class cleanup
 
-    // PUBLIC FUNCTIONS
+    // PUBLIC MEMBER FUNCTIONS
 
-    void watch(void);                       // Watch folder for file events to convert for IApprise.
-    void stop(void);                        // Stop watch loop/thread
-    void getEvent(IAppriseEvent& fileName); // Get IApprise event (waiting if necessary)
-    bool stillWatching(void);               // Watcher is still active.
+    void watch(void);                           // Watch folder for file events to convert for IApprise.
+    void stop(void);                            // Stop watch loop/thread
+    void getEvent(IAppriseEvent& message);      // Get IApprise event (waiting if necessary)
+    bool stillWatching(void);                   // Watcher is still active.
+    std::exception_ptr getThrownException();    // Get any exception thrown by watcher to pass down chain
  
 private:
+    
+    // DISABLED CONSTRUCTORS
 
-    IApprise() = delete;                            // Use only provided constructors
-    IApprise(const IApprise & orig) = delete;;
-    IApprise(const IApprise && orig )= delete;;   
+    IApprise() = delete; 
+    IApprise(const IApprise & orig) = delete;
+    IApprise(const IApprise && orig )= delete;
     
-    static int pathDepth(std::string &pathStr);     // Add path to be watched
-    std::string prefix(void);                       // Logging output prefix 
+     // PRIVATE MEMBER FUNCTIONS
     
-    void addWatchPath(std::string &pathStr);        // Add path to be watched
-    void addWatch(struct inotify_event *event);     // Add a folder to watch
-    void removeWatch(struct inotify_event *event);  // Remove a folder watch
-    void initWatchTable(void);                      // Create a watch table for watched folders
-    void destroyWatchTable(void);                   // Clear watch table
+    void addWatch(std::string& filePath);           // Add path to be watched
+    void removeWatch(std::string& filePath);        // Remove path being watched
+    void initWatchTable(void);                      // Initialise table for watched folders
+    void destroyWatchTable(void);                   // Tare down watch table
     
     void coutstr(const std::vector<std::string>& outstr);       // std::cout
     void cerrstr(const std::vector<std::string>& outstr);       // std::cerr
     
     void sendEvent(IAppriseEventId id, std::string fileName);   // Queue IApprise event
     
-    // CONSTRUCTOR PARAMETERS
+    // PRIVATE VARIABLES
     
     std::string  watchFolder;                               // Watch Folder
     int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder,1=next level down etc.
     std::shared_ptr<IAppriseOptions> options;               // IApprise options
      
-    int fdNotify;                                           // inotify file descriptor
+    int inotifyFd;                                          // inotify file 
+    uint32_t inotifyWatchMask;                              // inotify watch event mask
+    
+    std::exception_ptr thrownException=nullptr;             // Pointer to any exception thrown
     
     std::atomic<bool> bDoWork;                              // doWork=true (run watcher loop) false=(stop watcher loop)
     
-    std::condition_variable eventsQueued;                   // Queued events considitional
-    std::mutex queuedEventsMutex;                           // Queue Mutex
+    std::condition_variable queuedEventsWaiting;            // Queued events considitional
+    std::mutex queuedEventsMutex;                           // Queued events mutex
     std::queue <IAppriseEvent> queuedEvents;                // Queue of IApprise events
     
     std::unordered_map<int32_t, std::string> watchMap;      // Watch table indexed by watch variable
     std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
+    
+    // CONSTANTS
+    
+    static const std::string kLogPrefix;        // Logging output prefix 
     
     static const uint32_t kInofityEvents;       // inotify events to monitor
     static const uint32_t kInotifyEventSize;    // inotify read event size

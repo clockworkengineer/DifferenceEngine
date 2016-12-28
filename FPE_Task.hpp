@@ -39,7 +39,7 @@
 
 #include "IApprise.hpp"
 
-// Task options structure (OPTIONALLY PASSED TO TASK)
+// Task options structure (optionally pass to FPE_Task constructor)
 
 struct TaskOptions {
     int killCount;      // After killCount files processed stop task (0 = disabled)
@@ -50,6 +50,7 @@ struct TaskOptions {
 // Task class
 
 class FPE_Task {
+    
 public:
 
     // CONSTRUCTOR
@@ -65,34 +66,43 @@ public:
 
     virtual ~FPE_Task(); // Task class cleanup
 
-    // PUBLIC FUNCTIONS
+    // PUBLIC MEMBER FUNCTIONS
 
-    void monitor(void);     // Monitor watch folder for file events and process added files
-    void stop(void);        // Stop task
+    void monitor(void);                         // Monitor watch folder for file events and process added files
+    void stop(void);                            // Stop task
+    std::exception_ptr getThrownException();    // Get any exception thrown by task to pass down chain
+    
+ 
  
 private:
 
+    // DISABLED CONSTRUCTORS
+    
     FPE_Task() = delete;                            // Use only provided constructors
     FPE_Task(const FPE_Task & orig) = delete;
     FPE_Task(const FPE_Task && orig )= delete;   
+    
+    // PRIVATE MEMBER FUNCTIONS
 
+    void coutstr(const std::vector<std::string>& outstr);   // std::cout
+    void cerrstr(const std::vector<std::string>& outstr);   // std::cerr
+
+    std::string prefix(void);                       // Logging output prefix 
+    
+    // PRIVATE VARIABLES
+    
+    std::string  taskName;                          // Task name
+    std::string  watchFolder;                       // Watch Folder
+    TaskActionFcn taskActFcn;                       // Task action function 
+    std::shared_ptr<void> fnData;                   // Task action function data
+    std::shared_ptr<TaskOptions> options;           // Task passed options
+    
     std::shared_ptr<IApprise> watcher;              // Folder watcher
     std::shared_ptr<IAppriseOptions> watchOpt;      // folder watcher options
     std::unique_ptr<std::thread> watcherThread;     // Folder watcher thread
-    
-    std::string prefix(void);                       // Logging output prefix  
-    
-    void coutstr(const std::vector<std::string>& outstr);   // std::cout
-    void cerrstr(const std::vector<std::string>& outstr);   // std::cerr
-    
-    // CONSTRUCTOR PARAMETERS
-    
-    std::string  taskName;                                  // Task name
-    std::string  watchFolder;                               // Watch Folder
-    TaskActionFcn taskActFcn;                               // Task action function 
-    std::shared_ptr<void> fnData;                           // Task action function data
-    std::shared_ptr<TaskOptions> taskOptions;               // Task passed options
-
+    std::exception_ptr thrownException=nullptr;     // Pointer to any exception thrown
+ 
+       
 };
 #endif /* FPETASK_HPP */
 
