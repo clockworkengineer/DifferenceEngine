@@ -30,15 +30,22 @@
 
 #include "gtest/gtest.h"
 
+#include <stdexcept>
+
 #include "FPE_ActionFuncs.hpp"
 #include "FPE_Task.hpp" 
 
 // Boost file system and format libraries definitions
 
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
+#include <boost/filesystem.hpp> 
+#include <boost/format.hpp> 
 
 namespace fs = boost::filesystem;
+
+// Use if tracing wanted to test/create new tests
+
+void coutstr(const std::vector<std::string>& outstr);
+void cerrstr(const std::vector<std::string>& errstr);
 
 // Test Action function data
 
@@ -56,11 +63,11 @@ protected:
     TaskClassTests() {
 
         // Create function data (wrap in void shared pointer for passing to task).
-        
+
         fnData.reset(new TestActFnData{0});
         funcData = static_cast<TestActFnData *> (fnData.get());
-        
-        this->taskOptions.reset(new TaskOptions { 0 , nullptr, nullptr });
+
+        this->taskOptions.reset(new TaskOptions{0, nullptr, nullptr});
 
     }
 
@@ -68,51 +75,52 @@ protected:
     }
 
     virtual void SetUp() {
-        
+
         // Create watch folder.
 
-        if (!fs::exists( TaskClassTests::kWatchFolder)) {
-            fs::create_directory( TaskClassTests::kWatchFolder);
+        if (!fs::exists(TaskClassTests::kWatchFolder)) {
+            fs::create_directory(TaskClassTests::kWatchFolder);
         }
 
         // Create destination folder.
 
-        if (!fs::exists( TaskClassTests::kDestinationFolder)) {
-            fs::create_directory( TaskClassTests::kDestinationFolder);
+        if (!fs::exists(TaskClassTests::kDestinationFolder)) {
+            fs::create_directory(TaskClassTests::kDestinationFolder);
         }
 
     }
 
     virtual void TearDown() {
-        
+
         // Remove watch folder.
 
-        if (fs::exists( TaskClassTests::kWatchFolder)) {
-            fs::remove( TaskClassTests::kWatchFolder);
+        if (fs::exists(TaskClassTests::kWatchFolder)) {
+            fs::remove(TaskClassTests::kWatchFolder);
         }
 
         // Remove destination folder.
 
-        if (fs::exists( TaskClassTests::kDestinationFolder)) {
-            fs::remove( TaskClassTests::kDestinationFolder);
+        if (fs::exists(TaskClassTests::kDestinationFolder)) {
+            fs::remove(TaskClassTests::kDestinationFolder);
         }
 
     }
 
     void createFile(std::string fileName); // Create a test file.
     void createFiles(int fileCount); // Create fileCount files and check action function call count
+    void generateException(std::exception_ptr e);
 
     std::shared_ptr<void> fnData; // Action function data shared pointer wrapper
     TestActFnData *funcData; // Action function data 
 
-    std::string filePath = "";      // Test file path
-    std::string fileName = "";      // Test file name
-    int watchDepth = -1;            // Folder Watch depth
-    std::string taskName = "";      // Task Name
-    std::string watchFolder = "";   // Watch Folder
+    std::string filePath = ""; // Test file path
+    std::string fileName = ""; // Test file name
+    int watchDepth = -1; // Folder Watch depth
+    std::string taskName = ""; // Task Name
+    std::string watchFolder = ""; // Watch Folder
 
-    TaskActionFcn taskActFcn;                   // Task Action Function Data
-    std::shared_ptr<TaskOptions> taskOptions;   // Task options
+    TaskActionFcn taskActFcn; // Task Action Function Data
+    std::shared_ptr<TaskOptions> taskOptions; // Task options
 
     static const std::string kWatchFolder; // Test Watch Folder
     static const std::string kDestinationFolder; // Test Destination folder
@@ -155,9 +163,9 @@ void TaskClassTests::createFiles(int fileCount) {
     this->taskName = "Test";
     this->watchFolder = kWatchFolder;
     this->watchDepth = -1;
-    
+
     // Simple test action function that just increases call count
-    
+
     this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
         TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
         funcData->fnCalledCount++;
@@ -165,9 +173,9 @@ void TaskClassTests::createFiles(int fileCount) {
     };
 
     // Set any task options required by test
-    
-    (this->taskOptions)->killCount=fileCount;
-    
+
+    (this->taskOptions)->killCount = fileCount;
+
     FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
 
     // Create task object thread and start to watch
@@ -184,7 +192,7 @@ void TaskClassTests::createFiles(int fileCount) {
     }
 
     // Thread should die after killCount files created
-    
+
     taskThread->join();
 
     EXPECT_EQ(fileCount, funcData->fnCalledCount);
@@ -194,6 +202,17 @@ void TaskClassTests::createFiles(int fileCount) {
         fs::remove(this->filePath + file);
     }
 
+}
+
+//
+// Re-throw any exception passed.
+//
+
+void TaskClassTests::generateException(std::exception_ptr e) {
+
+    if (e) {
+        std::rethrow_exception(e);
+    }
 }
 
 //
@@ -317,6 +336,85 @@ TEST_F(TaskClassTests, TaskClassCreateFile250) {
 TEST_F(TaskClassTests, TaskClassCreateFile500) {
 
     this->createFiles(500);
+
+}
+
+//
+// Watch folder does not exist exception.
+//
+
+TEST_F(TaskClassTests, TaskClassNoWatchFolder) {
+
+    this->taskName = "Test";
+    this->watchFolder = "/tmp/tnothere";
+    this->watchDepth = -1;
+
+    // Simple test action function that does nothing
+
+    this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
+        TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
+        return true;
+    };
+
+
+    FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
+
+    // Create task object thread and start to watch
+
+    std::unique_ptr<std::thread> taskThread;
+
+    taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
+
+    // Thread should die after killCount files created
+
+    taskThread->join();
+
+    EXPECT_THROW(this->generateException(task.getThrownException()), std::system_error);
+
+}
+
+//
+// Task action throw exception capture.
+//
+
+TEST_F(TaskClassTests, TaskClassTaskActionFunctionException) {
+
+    this->taskName = "Test";
+    this->watchFolder = kWatchFolder;
+    this->fileName = "tmp.txt";
+    this->watchDepth = -1;
+
+    // Simple test action function that just throws an exception
+
+    this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
+        TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
+        throw std::logic_error("Just an example.");
+        return true;
+    };
+
+    // Set any task options required by test
+
+    (this->taskOptions)->killCount = 1;
+
+    FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
+
+    // Create task object thread and start to watch
+
+    std::unique_ptr<std::thread> taskThread;
+
+    taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
+
+    this->createFile(this->watchFolder + this->fileName);
+
+    // Thread should die after killCount files created
+
+    taskThread->join();
+
+    EXPECT_THROW(this->generateException(task.getThrownException()), std::logic_error);
+
+    if (fs::exists(this->watchFolder + this->fileName)) {
+        fs::remove(this->watchFolder + this->fileName);
+    }
 
 }
 

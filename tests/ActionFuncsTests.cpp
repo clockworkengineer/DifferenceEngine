@@ -39,6 +39,12 @@
 
 namespace fs = boost::filesystem;
 
+// Use if tracing wanted to test/create new tests
+
+void coutstr(const std::vector<std::string>& outstr);
+void cerrstr(const std::vector<std::string>& errstr);
+
+
 //
 // ActionFuncsTests fixtures and constants
 //

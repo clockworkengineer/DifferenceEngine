@@ -32,6 +32,11 @@
 #include "gtest/gtest.h"
 #include "FPE_ProcCmdLine.hpp"
 
+// Use if tracing wanted to test/create new tests
+
+void coutstr(const std::vector<std::string>& outstr);
+void cerrstr(const std::vector<std::string>& errstr);
+
 //
 // ProcCmdLineTests fixtures and constants
 //
