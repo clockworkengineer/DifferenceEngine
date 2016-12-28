@@ -1,3 +1,4 @@
+#include "HOST.hpp"
 /*
  * File:   TaskClassTests.cpp
  * 
@@ -176,6 +177,8 @@ void TaskClassTests::createFiles(int fileCount) {
 
     (this->taskOptions)->killCount = fileCount;
 
+    // Create task object
+    
     FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
 
     // Create task object thread and start to watch
@@ -213,6 +216,7 @@ void TaskClassTests::generateException(std::exception_ptr e) {
     if (e) {
         std::rethrow_exception(e);
     }
+    
 }
 
 //
@@ -356,7 +360,8 @@ TEST_F(TaskClassTests, TaskClassNoWatchFolder) {
         return true;
     };
 
-
+    // Create task object
+    
     FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
 
     // Create task object thread and start to watch
@@ -395,6 +400,8 @@ TEST_F(TaskClassTests, TaskClassTaskActionFunctionException) {
     // Set any task options required by test
 
     (this->taskOptions)->killCount = 1;
+    
+    // Create task object
 
     FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
 
@@ -403,6 +410,8 @@ TEST_F(TaskClassTests, TaskClassTaskActionFunctionException) {
     std::unique_ptr<std::thread> taskThread;
 
     taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
+    
+    // Create one file to trigger action function
 
     this->createFile(this->watchFolder + this->fileName);
 

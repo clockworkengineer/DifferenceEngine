@@ -1,10 +1,9 @@
-#include "HOST.hpp"
 /*
- * File:   FPE_ProcCmdLine.hpp
+ * File:  HOST.hpp
  * 
  * Author: Robert Tizzard
- *
- * Created on October 24, 2016, 2:34 PM
+ * 
+ * Created on October 24, 2016, 2:33 PM
  *
  * The MIT License
  *
@@ -28,30 +27,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#ifndef HOST_HPP
+#define HOST_HPP
 
-#ifndef FPE_PROCCMDLINE_HPP
-#define FPE_PROCCMDLINE_HPP
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
+	/* UNIX-style OS. ------------------------------------------- */
+#include <unistd.h>
+#if defined(_POSIX_VERSION)
+	/* POSIX compliant */
+#else
+static_assert(false, "TRYING TO BUILD FOR NON-POSIX UNIX PLATFORM.");
+#endif
+#else
+static_assert(false, "TRYING TO BUILD FOR NON-UNIX PLATFORM.");
+#endif
 
-// Command line parameter data
-
-struct ParamArgData {
-    std::string  watchFolder;        // Watch Folder
-    std::string  destinationFolder;  // Destination Folder for copies.
-    std::string  commandToRun;       // Command to run
-    bool         bFileCopy;          // Task file copy
-    bool         bVideoConversion;   // Task video conversion
-    bool         bRunCommand;        // Task perform command
-    int          maxWatchDepth;      // Watch depth -1=all,0=just watch folder,1=next level down etc.
-    bool         bDeleteSource;      // Delete source file
-    std::string  extension;          // Override destination file extension
-    bool         bQuiet;             // Quiet mode no tracing output.
-};
-
-// Handbrake command and default command if --command not specified
-
-const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
-
-void procCmdLine (int argc, char** argv, ParamArgData &argData);
-
-#endif /* FPE_PROCCMDLINE_HPP */
+#endif /* HOST_HPP */
 
