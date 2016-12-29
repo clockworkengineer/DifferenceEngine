@@ -102,14 +102,18 @@ void cerrstr(const std::vector<std::string>& errstr) {
 // Create task and run in thread.
 //
 
-void createTaskAndActivate(const std::string& taskName, const std::string& watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
+void createTaskAndActivate(const std::string& taskName, ParamArgData& argData, TaskActionFcn taskActFcn) {
 
     // ASSERT if strings length 0 , pointer parameters NULL
 
     assert(taskName.length() != 0);
-    assert(watchFolder.length() != 0);
     assert(taskActFcn != nullptr);
-    assert(fnData != nullptr);
+
+    // Create function data (wrap in void shared pointer for passing to task).
+
+    std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
+        argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
+        argData.extension, ((argData.bQuiet) ? nullptr : coutstr), ((argData.bQuiet) ? nullptr : cerrstr)});
 
     // Use function data to access set coutstr/cerrstr
 
@@ -119,29 +123,26 @@ void createTaskAndActivate(const std::string& taskName, const std::string& watch
 
     std::shared_ptr<TaskOptions> options;
 
-    options.reset(new TaskOptions{0, funcData->coutstr, funcData->cerrstr});
+    options.reset(new TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
 
     // Create task object
 
-    FPE_Task task(taskName, watchFolder, taskActFcn, fnData, watchDepth, options);
+    FPE_Task task(taskName, argData.watchFolder, taskActFcn, fnData, argData.maxWatchDepth, options);
 
-    // Create task object thread and start to watch
+    // Create task object thread and start to watch else use FPE thread.
 
-    std::unique_ptr<std::thread> taskThread;
-    taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
-    taskThread->join();
+    if (!argData.bSingleThread) {
+        std::unique_ptr<std::thread> taskThread;
+        taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
+        taskThread->join();
+    } else {
+        task.monitor();
+    }
 
-    //
-    // For Non thread variant just uncomment below and comment out thread creation block
-    // above. (May make this a run time control parameter).
-    //
-    // task.monitor();
-    //
-    
     //
     // If an exception occurred rethrow (end of chain)
     //
-    
+
     if (task.getThrownException()) {
         std::rethrow_exception(task.getThrownException());
     }
@@ -221,20 +222,26 @@ int main(int argc, char** argv) {
             coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
         }
 
-        // Create function data (wrap in void shared pointer for passing to task).
+        // Signal using single thread
 
-        std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
-            argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-            argData.extension, ((argData.bQuiet) ? nullptr : coutstr), ((argData.bQuiet) ? nullptr : cerrstr)});
+        if (argData.bSingleThread) {
+            coutstr({"*** SINGLE THREAD ***"});
+        }
+
+        // Signal using killCount
+
+        if (argData.killCount) {
+            coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
+        }
 
         // Create task object
 
         if (argData.bFileCopy) {
-            createTaskAndActivate(std::string("File Copy"), argData.watchFolder, argData.maxWatchDepth, copyFile, fnData);
+            createTaskAndActivate(std::string("File Copy"), argData, copyFile);
         } else if (argData.bVideoConversion) {
-            createTaskAndActivate(std::string("Video Conversion"), argData.watchFolder, argData.maxWatchDepth, handBrake, fnData);
+            createTaskAndActivate(std::string("Video Conversion"), argData, handBrake);
         } else {
-            createTaskAndActivate(std::string("Run Command"), argData.watchFolder, argData.maxWatchDepth, runCommand, fnData);
+            createTaskAndActivate(std::string("Run Command"), argData, runCommand);
         }
 
         //
@@ -248,9 +255,9 @@ int main(int argc, char** argv) {
     } catch (const std::exception & e) {
         cerrstr({"Standard exception occured: [", e.what(), "]"});
     }
-    
+
     coutstr({"FPE Exiting."});
-        
+
     exit(0);
 
 } 

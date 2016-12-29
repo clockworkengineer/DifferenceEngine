@@ -127,9 +127,9 @@ taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, options{options}
 
     // Create IApprise watcher object. Use same stdout/stderr functions as Task.
 
-    this->watchOpt.reset(new IAppriseOptions{nullptr, this->options->coutstr, this->options->cerrstr});
+    this->watcherOptions.reset(new IAppriseOptions{nullptr, this->options->coutstr, this->options->cerrstr});
 
-    this->watcher.reset(new IApprise{watchFolder, maxWatchDepth, watchOpt});
+    this->watcher.reset(new IApprise{watchFolder, maxWatchDepth, watcherOptions});
 
     // Create IApprise object thread and start to watch
 
@@ -183,7 +183,7 @@ void FPE_Task::monitor(void) {
 
                 if ((this->options->killCount != 0) && (--(this->options->killCount) == 0)) {
                     coutstr({this->prefix(), "FPE_Task kill count reached."});
-                    this->watcher->stop();
+                    break;
                 }
 
             } else if ((evt.id == Event_error) && !evt.message.empty()) {

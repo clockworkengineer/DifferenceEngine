@@ -96,7 +96,7 @@ void IApprise::destroyWatchTable(void) {
         if (inotify_rm_watch(this->inotifyFd, it->first) == -1) {
             throw std::system_error(std::error_code(errno, std::system_category()), "inotify_rm_watch() error");
         } else {
-            coutstr({IApprise::kLogPrefix, "Watch[", std::to_string(it->first), "] removed.", "\n"});
+            coutstr({IApprise::kLogPrefix, "Watch[", std::to_string(it->first), "] removed."});
         }
 
     }

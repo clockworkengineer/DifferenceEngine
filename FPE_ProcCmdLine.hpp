@@ -45,6 +45,9 @@ struct ParamArgData {
     bool         bDeleteSource;      // Delete source file
     std::string  extension;          // Override destination file extension
     bool         bQuiet;             // Quiet mode no tracing output.
+    int          killCount;          // Kill Count
+    bool         bSingleThread;      // Run task in the main thread
+    std::string  logFileName;        // Log file name (NEED TO IMPLEMENT)
 };
 
 // Handbrake command and default command if --command not specified

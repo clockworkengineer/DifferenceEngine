@@ -99,7 +99,7 @@ private:
     std::shared_ptr<TaskOptions> options;           // Task passed options
     
     std::shared_ptr<IApprise> watcher;              // Folder watcher
-    std::shared_ptr<IAppriseOptions> watchOpt;      // folder watcher options
+    std::shared_ptr<IAppriseOptions> watcherOptions;// folder watcher options
     std::unique_ptr<std::thread> watcherThread;     // Folder watcher thread
     std::exception_ptr thrownException=nullptr;     // Pointer to any exception thrown
  

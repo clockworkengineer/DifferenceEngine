@@ -66,6 +66,9 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
         argData.bDeleteSource = false;
         argData.extension  = "";
         argData.bQuiet = false;
+        argData.killCount = 0;
+        argData.bSingleThread = false;
+        argData.logFileName = "";
 
         // Define and parse the program options
 
@@ -80,7 +83,10 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
                 ("maxdepth", po::value<int>(&argData.maxWatchDepth), "Maximum Watch Depth")
                  ("extension,e", po::value<std::string>(&argData.extension), "Override destination file extension")
                 ("quiet,q","Quiet mode (no trace output)")
-                ("delete", "Delete Source File");
+                ("delete", "Delete Source File")
+                ("log,l",po::value<std::string>(&argData.logFileName), "Log file" )
+                ("single,s","Run task in main thread")
+                ("killcount,k",po::value<int>(&argData.killCount), "Files to process before closedown");
 
         po::variables_map vm;
 
@@ -131,6 +137,12 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
             
             if (vm.count("quiet")) {
                 argData.bQuiet=true;
+             }
+ 
+            // Use main thread for task.
+            
+            if (vm.count("single")) {
+                argData.bSingleThread=true;
              }
  
             // Default task file copy. More than one task throw error.

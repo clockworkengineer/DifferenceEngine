@@ -119,7 +119,7 @@ private:
     void coutstr(const std::vector<std::string>& outstr);       // std::cout
     void cerrstr(const std::vector<std::string>& outstr);       // std::cerr
     
-    void sendEvent(IAppriseEventId id, const std::string& fileName);   // Queue IApprise event
+    void sendEvent(IAppriseEventId id, const std::string& message);   // Queue IApprise event
     
     // PRIVATE VARIABLES
     
