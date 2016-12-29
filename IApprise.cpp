@@ -113,7 +113,7 @@ void IApprise::destroyWatchTable(void) {
 // Add watch for newly added directory
 //
 
-void IApprise::addWatch(std::string& filePath) {
+void IApprise::addWatch(const std::string& filePath) {
 
     int watch;
 
@@ -158,7 +158,7 @@ void IApprise::initWatchTable(void) {
 //  Remove watch for deleted or moved directory
 //
 
-void IApprise::removeWatch(std::string& filePath) {
+void IApprise::removeWatch(const std::string& filePath) {
 
     try {
 
@@ -203,7 +203,7 @@ void IApprise::removeWatch(std::string& filePath) {
 // Queue IApprise event
 //
 
-void IApprise::sendEvent(IAppriseEventId id, std::string fileName) {
+void IApprise::sendEvent(IAppriseEventId id, const std::string& fileName) {
 
     std::unique_lock<std::mutex> locker(this->queuedEventsMutex);
     this->queuedEvents.push({id, fileName});
@@ -219,7 +219,7 @@ void IApprise::sendEvent(IAppriseEventId id, std::string fileName) {
 // IApprise object constructor. 
 //
 
-IApprise::IApprise(std::string watchFolder, int maxWatchDepth, std::shared_ptr<IAppriseOptions> options) : watchFolder{watchFolder}, maxWatchDepth{maxWatchDepth}, options{options}
+IApprise::IApprise(const std::string& watchFolder, int maxWatchDepth, std::shared_ptr<IAppriseOptions> options) : watchFolder{watchFolder}, maxWatchDepth{maxWatchDepth}, options{options}
 {
 
     // ASSERT if passed parameters invalid
@@ -281,7 +281,7 @@ bool IApprise::stillWatching(void) {
 // Check whether termination of IApprise was the result of any thrown exception
 //
 
-std::exception_ptr IApprise::getThrownException() {
+std::exception_ptr IApprise::getThrownException(void) {
     
     return (this->thrownException); 
 

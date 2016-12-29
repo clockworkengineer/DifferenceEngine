@@ -51,7 +51,7 @@ struct ParamArgData {
 
 const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
 
-void procCmdLine (int argc, char** argv, ParamArgData &argData);
+void procCmdLine (int argc, char** argv, ParamArgData& argData);
 
 #endif /* FPE_PROCCMDLINE_HPP */
 

@@ -106,7 +106,7 @@ std::string FPE_Task::prefix(void) {
 // Task object constructor. 
 //
 
-FPE_Task::FPE_Task(std::string taskName, std::string watchFolder, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData,
+FPE_Task::FPE_Task(const std::string& taskName, const std::string& watchFolder, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData,
         int maxWatchDepth, std::shared_ptr<TaskOptions> options) :
 taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, options{options}
 {
@@ -141,7 +141,7 @@ taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, options{options}
 // Check whether termination of FPE_Task was the result of any thrown exception
 //
 
-std::exception_ptr FPE_Task::getThrownException() {
+std::exception_ptr FPE_Task::getThrownException(void) {
     
     return (this->thrownException); 
 

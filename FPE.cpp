@@ -102,7 +102,7 @@ void cerrstr(const std::vector<std::string>& errstr) {
 // Create task and run in thread.
 //
 
-void createTaskAndActivate(const std::string &taskName, const std::string &watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
+void createTaskAndActivate(const std::string& taskName, const std::string& watchFolder, int watchDepth, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData) {
 
     // ASSERT if strings length 0 , pointer parameters NULL
 
@@ -117,13 +117,13 @@ void createTaskAndActivate(const std::string &taskName, const std::string &watch
 
     // Set task options ( no kill count and all output to local coutstr/cerrstr.
 
-    std::shared_ptr<TaskOptions> taskOpt;
+    std::shared_ptr<TaskOptions> options;
 
-    taskOpt.reset(new TaskOptions{0, funcData->coutstr, funcData->cerrstr});
+    options.reset(new TaskOptions{0, funcData->coutstr, funcData->cerrstr});
 
     // Create task object
 
-    FPE_Task task(taskName, watchFolder, taskActFcn, fnData, watchDepth, taskOpt);
+    FPE_Task task(taskName, watchFolder, taskActFcn, fnData, watchDepth, options);
 
     // Create task object thread and start to watch
 

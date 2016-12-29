@@ -85,7 +85,7 @@ public:
 
     // CONSTRUCTOR
 
-    IApprise(std::string watchFolder,                               // Watch folder path
+    IApprise(const std::string& watchFolder,                        // Watch folder path
              int maxWatchDepth,                                     // Maximum watch depth -1= all, 0=just watch folder
              std::shared_ptr<IAppriseOptions> options=nullptr);     // IApprise Options (OPTIONAL)
     
@@ -95,11 +95,11 @@ public:
 
     // PUBLIC MEMBER FUNCTIONS
 
-    void watch(void);                           // Watch folder for file events to convert for IApprise.
-    void stop(void);                            // Stop watch loop/thread
-    void getEvent(IAppriseEvent& message);      // Get IApprise event (waiting if necessary)
-    bool stillWatching(void);                   // Watcher is still active.
-    std::exception_ptr getThrownException();    // Get any exception thrown by watcher to pass down chain
+    void watch(void);                               // Watch folder for file events to convert for IApprise.
+    void stop(void);                                // Stop watch loop/thread
+    void getEvent(IAppriseEvent& message);          // Get IApprise event (waiting if necessary)
+    bool stillWatching(void);                       // Watcher is still active.
+    std::exception_ptr getThrownException(void);    // Get any exception thrown by watcher to pass down chain
  
 private:
     
@@ -111,15 +111,15 @@ private:
     
      // PRIVATE MEMBER FUNCTIONS
     
-    void addWatch(std::string& filePath);           // Add path to be watched
-    void removeWatch(std::string& filePath);        // Remove path being watched
-    void initWatchTable(void);                      // Initialise table for watched folders
-    void destroyWatchTable(void);                   // Tare down watch table
+    void addWatch(const std::string& filePath);      // Add path to be watched
+    void removeWatch(const std::string& filePath);   // Remove path being watched
+    void initWatchTable(void);                       // Initialise table for watched folders
+    void destroyWatchTable(void);                    // Tare down watch table
     
     void coutstr(const std::vector<std::string>& outstr);       // std::cout
     void cerrstr(const std::vector<std::string>& outstr);       // std::cerr
     
-    void sendEvent(IAppriseEventId id, std::string fileName);   // Queue IApprise event
+    void sendEvent(IAppriseEventId id, const std::string& fileName);   // Queue IApprise event
     
     // PRIVATE VARIABLES
     

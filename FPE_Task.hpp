@@ -56,8 +56,8 @@ public:
 
     // CONSTRUCTOR
 
-    FPE_Task(std::string taskName,                                  // Task name
-            std::string watchFolder,                                // Watch folder path
+    FPE_Task(const std::string& taskName,                           // Task name
+            const std::string& watchFolder,                         // Watch folder path
             TaskActionFcn taskActFcn,                               // Task action function
             std::shared_ptr<void> fnData,                           // Task file process function data
             int maxWatchDepth,                                      // Maximum watch depth -1= all, 0=just watch folder
@@ -71,7 +71,7 @@ public:
 
     void monitor(void);                         // Monitor watch folder for file events and process added files
     void stop(void);                            // Stop task
-    std::exception_ptr getThrownException();    // Get any exception thrown by task to pass down chain
+    std::exception_ptr getThrownException(void);// Get any exception thrown by task to pass down chain
     
  
  

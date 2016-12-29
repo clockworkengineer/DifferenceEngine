@@ -56,7 +56,7 @@ namespace fs = boost::filesystem;
 // stdout trace output.
 //
 
-static void coutstr(ActFnData *funcData, const std::vector<std::string>& outstr) {
+static void coutstr(const ActFnData *funcData, const std::vector<std::string>& outstr) {
 
     assert(funcData != nullptr);
 
@@ -70,7 +70,7 @@ static void coutstr(ActFnData *funcData, const std::vector<std::string>& outstr)
 // stderr trace output.
 //
 
-static void cerrstr(ActFnData *funcData, const std::vector<std::string>& errstr) {
+static void cerrstr(const ActFnData *funcData, const std::vector<std::string>& errstr) {
 
     assert(funcData != nullptr);
 
@@ -124,7 +124,7 @@ static int forkCommand(char *argv[]) {
 // Run shell command. Split command into argv components before passing onto exec.
 //
 
-static int runShellCommand(std::string shellCommand) {
+static int runShellCommand(const std::string& shellCommand) {
 
     int exitStatus = 0;
     int argc = 0;
@@ -169,19 +169,19 @@ static int runShellCommand(std::string shellCommand) {
 // Run a specified command on the file (%1% source, %2% destination)
 //
 
-bool runCommand(const std::string &filenamePathStr, std::shared_ptr<void>fnData) {
+bool runCommand(const std::string &filenamePath, const std::shared_ptr<void>fnData) {
 
     // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
-    assert(filenamePathStr.length() != 0);
+    assert(filenamePath.length() != 0);
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
     // Form source and destination file paths
 
-    fs::path sourceFile(filenamePathStr);
+    fs::path sourceFile(filenamePath);
     fs::path destinationFile(funcData->destinationFolder + sourceFile.filename().string());
 
     // Create correct command for whether source and destination specified or just source or none
@@ -220,19 +220,19 @@ bool runCommand(const std::string &filenamePathStr, std::shared_ptr<void>fnData)
 // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
 //
 
-bool handBrake(const std::string &filenamePathStr, std::shared_ptr<void> fnData) {
+bool handBrake(const std::string& filenamePath, const std::shared_ptr<void> fnData) {
 
     // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
-    assert(filenamePathStr.length() != 0);
+    assert(filenamePath.length() != 0);
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
     // Form source and destination file paths
 
-    fs::path sourceFile(filenamePathStr);
+    fs::path sourceFile(filenamePath);
     fs::path destinationFile(funcData->destinationFolder);
 
     destinationFile /= sourceFile.stem().string();
@@ -271,24 +271,24 @@ bool handBrake(const std::string &filenamePathStr, std::shared_ptr<void> fnData)
 // keeping the sources directory structure.
 //
 
-bool copyFile(const std::string &filenamePathStr, std::shared_ptr<void> fnData) {
+bool copyFile(const std::string &filenamePath, const std::shared_ptr<void> fnData) {
 
     // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
-    assert(filenamePathStr.length() != 0);
+    assert(filenamePath.length() != 0);
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
     // Form source and destination file paths
 
-    fs::path sourceFile(filenamePathStr);
+    fs::path sourceFile(filenamePath);
 
     // Destination file path += ("filename path" - "watch folder path")
 
     fs::path destinationFile(funcData->destinationFolder +
-            filenamePathStr.substr((funcData->watchFolder).length()));
+            filenamePath.substr((funcData->watchFolder).length()));
 
     // Construct full destination path if needed
 

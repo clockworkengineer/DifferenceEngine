@@ -72,13 +72,13 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
         po::options_description desc("Options");
         desc.add_options()
                 ("help", "Print help messages")
-                ("watch,w", po::value<std::string>(&argData.watchFolder)->required(), "Watch Folder")
-                ("destination,d", po::value<std::string>(&argData.destinationFolder)->required(), "Destination Folder")
-                ("maxdepth", po::value<int>(&argData.maxWatchDepth), "Maximum Watch Depth")
                 ("copy", "Task = File Copy Watcher")
                 ("video", "Task = Video Conversion Watcher")
                 ("command", po::value<std::string>(&argData.commandToRun), "Task = Run Shell Command")
-                ("extension,e", po::value<std::string>(&argData.extension), "Override destination file extension")
+                ("watch,w", po::value<std::string>(&argData.watchFolder)->required(), "Watch Folder")
+                ("destination,d", po::value<std::string>(&argData.destinationFolder)->required(), "Destination Folder")
+                ("maxdepth", po::value<int>(&argData.maxWatchDepth), "Maximum Watch Depth")
+                 ("extension,e", po::value<std::string>(&argData.extension), "Override destination file extension")
                 ("quiet,q","Quiet mode (no trace output)")
                 ("delete", "Delete Source File");
 
