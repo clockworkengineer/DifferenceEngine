@@ -45,6 +45,10 @@
 
 #include "FPE_Task.hpp" 
 
+// Redirect Class
+
+#include "Redirect.hpp" 
+
 // Process command line arguments
 
 #include "FPE_ProcCmdLine.hpp"
@@ -157,18 +161,17 @@ void createTaskAndActivate(const std::string& taskName, ParamArgData& argData, T
 
 int main(int argc, char** argv) {
 
-    // Log to file
-    
-    std::unique_ptr<std::ofstream> out;
-    std::unique_ptr<std::streambuf> coutbuf;
+
 
     try {
-          
+
+        Redirect logFile{ std::cout };
+
         // Process FPE command line arguments.
 
         ParamArgData argData;
 
-        procCmdLine(argc, argv, argData);    
+        procCmdLine(argc, argv, argData);
 
         // FPE up and running
 
@@ -240,15 +243,13 @@ int main(int argc, char** argv) {
         if (argData.killCount) {
             coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
         }
-            
+
         // Output to log file ( redirect cout is the simplest solution)
-        
+
         if (!argData.logFileName.empty()) {
             coutstr({"*** LOG FILE = ", argData.logFileName, " ***"});
-            out.reset( new std::ofstream { argData.logFileName, std::ofstream::out | std::ofstream::app });
-            coutbuf.reset(std::cout.rdbuf());
-            std::cout.rdbuf(out->rdbuf());
-            coutstr ({std::string(80,'=')});
+            logFile.change(argData.logFileName);
+            coutstr({std::string(80, '=')});
         }
 
         // Create task object
@@ -271,12 +272,6 @@ int main(int argc, char** argv) {
         cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
     } catch (const std::exception & e) {
         cerrstr({"Standard exception occured: [", e.what(), "]"});
-    }
-    
-    // Restore stdout
-    
-    if (coutbuf.get()) {
-        std::cout.rdbuf(coutbuf.get());
     }
 
     coutstr({"FPE Exiting."});
