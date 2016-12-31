@@ -60,8 +60,8 @@ public:
             const std::string& watchFolder,                         // Watch folder path
             TaskActionFcn taskActFcn,                               // Task action function
             std::shared_ptr<void> fnData,                           // Task file process function data
-            int maxWatchDepth,                                      // Maximum watch depth -1= all, 0=just watch folder
-            std::shared_ptr<TaskOptions> taskOptions=nullptr);      //  Task options. 
+            int watchDepth,                                         // Watch depth -1= all, 0=just watch folder
+            std::shared_ptr<TaskOptions> options=nullptr);      // Task options. 
     
     // DESTRUCTOR
 

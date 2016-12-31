@@ -130,7 +130,7 @@ void coutstr_ts(const std::vector<std::string>& outstr) {
 }
 
 //
-// Add timestamp to cerstr output
+// Add timestamp to cerrstr output
 //
 
 void cerrstr_ts(const std::vector<std::string>& errstr) {

@@ -107,7 +107,7 @@ std::string FPE_Task::prefix(void) {
 //
 
 FPE_Task::FPE_Task(const std::string& taskName, const std::string& watchFolder, TaskActionFcn taskActFcn, std::shared_ptr<void> fnData,
-        int maxWatchDepth, std::shared_ptr<TaskOptions> options) :
+        int watchDepth, std::shared_ptr<TaskOptions> options) :
 taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, options{options}
 {
 
@@ -115,7 +115,7 @@ taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, options{options}
 
     assert(taskName.length() != 0); // Length == 0
     assert(watchFolder.length() != 0); // Length == 0
-    assert(maxWatchDepth >= -1); // < -1
+    assert(watchDepth >= -1); // < -1
     assert(taskActFcn != nullptr); // nullptr
     assert(fnData != nullptr); // nullptr
 
@@ -129,7 +129,7 @@ taskName{taskName}, taskActFcn{taskActFcn}, fnData{fnData}, options{options}
 
     this->watcherOptions.reset(new IAppriseOptions{nullptr, this->options->coutstr, this->options->cerrstr});
 
-    this->watcher.reset(new IApprise{watchFolder, maxWatchDepth, watcherOptions});
+    this->watcher.reset(new IApprise{watchFolder, watchDepth, watcherOptions});
 
     // Create IApprise object thread and start to watch
 

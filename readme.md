@@ -48,11 +48,18 @@ At present this repository does not contain any build/make scripts but just the 
 
 # Boost #
 
-So that as much of the engine as possible is portable across platforms any functionality that cannot be provided by the C++ STL uses the boost set of library APis. The two main areas that this is used in are the [file-system](http://www.boost.org/doc/libs/1_62_0/libs/filesystem/doc/index.htm) and [parameter parsing](http://www.boost.org/doc/libs/1_62_0/libs/parameter/doc/html/index.html).Unfortunately the boost file-system does not provide any file watching functionality so for the inaugural version as mentioned earlier  inotify is used. Note: The task class itself no longer uses boost and the only reliance on it is in the main program and the task action functions.
+So that as much of the engine as possible is portable across platforms any functionality that cannot be provided by the C++ STL uses the boost set of library APis. The three main areas that this is used in are the [file-system](http://www.boost.org/doc/libs/1_62_0/libs/filesystem/doc/index.htm) , [parameter parsing](http://www.boost.org/doc/libs/1_62_0/libs/parameter/doc/html/index.html)  and [date time.](http://www.boost.org/doc/libs/1_61_0/doc/html/date_time.html)Unfortunately the boost file-system does not provide any file watching functionality so for the inaugural version as mentioned earlier  inotify is used. Note: The task/IApprise classes no longer uses boost and the only reliance on it is in the main program and the task action functions.
 
 # Task Class #
 
-The core for the file processing engine is provided by the FPE_Task class whose constructor takes five arguments, the task name (std::string), the folder to be watched (std::string), an integer specifying the watch depth (-1=all,0=just watch folder,1=next level down etc.) a pointer to a task action function that is called for each file that is copied/moved into the watch folder hierarchy and a pointer to data that may be needed by the action function. 
+The core for the file processing engine is provided by the FPE_Task class whose constructor takes five arguments, 
+
+- ***taskName*** The task name (std::string).
+- ***watchFolder*** The folder to be watched (std::string).
+- ***taskActFcn*** A pointer to a task action function that is called for each file that is copied/moved into the watch folder hierarchy.
+- ***fnData*** A pointer to data that may be needed by the action function.
+- ***watchDepth*** An integer specifying the watch depth (-1=all,0=just watch folder,1=next level down etc.)
+- ***options***(optional) This structure passes in values used in any low level functionality (ie. killCount) and can be implementation specific such as providing a trace routine for low level inotify events or  pointers to the generic coutsr/coutstr trace functions.
 
 The engine comes with three built in variants of the task action function, a file copy, file handbrake encoder and a run shell script (any new function should adhere to these functions template). To start watching/processing files call this classes monitor function; the code within FPE.cpp creates a separate thread for this but it can be run in the main programs thread by just calling task.monitor() without any thread creation wrappper code (--single  option).
 
@@ -64,7 +71,9 @@ The task options structure parameter also has two other members which are pointe
 
 # IApprise Class #
 
-This is class was created to be a standalone class / abstraction of the inotify file event handling code that used to be contained in FPE_Task. Its constructor has 3 parameters:
+This is class was created to be a standalone class / abstraction of the inotify file event handling code that used to be contained in FPE_Task. 
+
+Its constructor has 3 parameters:
 
 - ***watchFolder*** Folder to watch for files created or moved into.
 - ***watchDepth***  The watch depth is how far down the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc).
@@ -95,6 +104,10 @@ Notes:
 
 - Events *addir*/unlinkdir will result in new watch folders being added/removed from the internal watch table maps (depending on the value of watchDepth).
 - The change event is currently unsupported and not required by FPE_Task but is pencilled in to be added in future.
+
+# Redirect Class #
+
+This is a small self contained utility class designed for FPE logging output. Its prime functionality is to provide a wrapper for pretty generic code that saves away an output streams read buffer, creates a file stream and redirects the output stream to it. The code to restore the original output streams is called from the objects destructor thus providing convenient for restoring the original stream. Its primary use within the FPE is to redirect std::cout to a log file.
 
 # File Copy Task Function #
 
