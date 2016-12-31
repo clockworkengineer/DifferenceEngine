@@ -29,12 +29,11 @@
  */
 
 #ifndef REDIRECT_HPP
+#define REDIRECT_HPP
 
 #include <iostream>
 #include <memory>
 #include <fstream>
-
-#define REDIRECT_HPP
 
 class Redirect {
     
@@ -46,7 +45,6 @@ public:
 
     void change(std::string outfileName, std::ios_base::openmode mode = std::ios_base::out);
     void restore(void);
-
 
 private:
 

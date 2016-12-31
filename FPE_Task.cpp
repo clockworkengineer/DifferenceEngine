@@ -94,7 +94,7 @@ FPE_Task::~FPE_Task() {
 
 std::string FPE_Task::prefix(void) {
 
-    return ("TASK [" + this->taskName + "] ");
+    return ("[TASK " + this->taskName + "] ");
 
 }
 

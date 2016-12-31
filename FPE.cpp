@@ -53,12 +53,14 @@
 
 #include "FPE_ProcCmdLine.hpp"
 
-// Boost file system and format libraries definitions
+// Boost file system and date and time libraries definitions
 
 #include <boost/filesystem.hpp>
 
-namespace fs = boost::filesystem;
+#include <boost/date_time.hpp>
 
+namespace fs = boost::filesystem;
+namespace pt = boost::posix_time;
 
 //
 // Standard cout for string of vectors. All calls to this function from different
@@ -103,6 +105,42 @@ void cerrstr(const std::vector<std::string>& errstr) {
     }
 
 }
+//
+// Get string for current date time
+//
+
+const std::string date_and_time() {
+
+    return(pt::to_simple_string(pt::second_clock::local_time()));
+
+}
+
+//
+// Add timestamp to coutstr output
+//
+
+void coutstr_ts(const std::vector<std::string>& outstr) {
+
+    if (!outstr.empty()) {
+        std::vector<std::string> newstr { "[" + date_and_time() + "]" };
+        newstr.insert(newstr.end(), outstr.begin(), outstr.end() );
+        coutstr(newstr);
+    }
+
+}
+
+//
+// Add timestamp to cerstr output
+//
+
+void cerrstr_ts(const std::vector<std::string>& errstr) {
+
+    if (!errstr.empty()) {
+        std::vector<std::string> newstr { "[" + date_and_time() + "]" };
+        newstr.insert(newstr.end(), errstr.begin(), errstr.end() );
+        cerrstr(errstr);
+    }
+}
 
 //
 // Create task and run in thread.
@@ -119,13 +157,13 @@ void createTaskAndActivate(const std::string& taskName, ParamArgData& argData, T
 
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
         argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-        argData.extension, ((argData.bQuiet) ? nullptr : coutstr), ((argData.bQuiet) ? nullptr : cerrstr)});
+        argData.extension, ((argData.bQuiet) ? nullptr : coutstr_ts), ((argData.bQuiet) ? nullptr : cerrstr_ts)});
 
     // Use function data to access set coutstr/cerrstr
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
 
-    // Set task options ( no kill count and all output to local coutstr/cerrstr.
+    // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
 
     std::shared_ptr<TaskOptions> options;
 
@@ -165,7 +203,7 @@ int main(int argc, char** argv) {
 
     try {
 
-        Redirect logFile{ std::cout };
+        Redirect logFile{ std::cout};
 
         // Process FPE command line arguments.
 
@@ -248,8 +286,8 @@ int main(int argc, char** argv) {
 
         if (!argData.logFileName.empty()) {
             coutstr({"*** LOG FILE = ", argData.logFileName, " ***"});
-            logFile.change(argData.logFileName);
-            coutstr({std::string(80, '=')});
+            logFile.change(argData.logFileName, std::ios_base::out | std::ios_base::app);
+            coutstr({std::string(100, '=')});
         }
 
         // Create task object

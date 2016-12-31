@@ -30,18 +30,26 @@
 
 #include "Redirect.hpp"
 
+// Create Redirect specifying output stream
+
 Redirect::Redirect(std::ostream& outStream) {
     this->outStream = &outStream;
 }
+
+// Create Redirect specifying output stream, output file and start the redirect
 
 Redirect::Redirect(std::ostream& outStream, std::string outfileName, std::ios_base::openmode mode) {
     this->outStream = &outStream;
     this->change(outfileName, mode);
 }
 
+// Restore old output stream
+
 Redirect::~Redirect() {
     restore();
 }
+
+// Change output for stream to file 
 
 void Redirect::change(std::string outfileName, std::ios_base::openmode mode) {
     this->fileStream.reset(new std::ofstream{outfileName, mode});
@@ -49,10 +57,16 @@ void Redirect::change(std::string outfileName, std::ios_base::openmode mode) {
     outStream->rdbuf((this->fileStream)->rdbuf());
 }
 
+
+// Restore old output stream
+
 void Redirect::restore() {
 
     if (this->outBuffer) {
         outStream->rdbuf(this->outBuffer);
     }
-
+    if (this->fileStream) {
+        this->fileStream->close();
+    }
+    
 }
