@@ -282,7 +282,8 @@ int main(int argc, char** argv) {
             coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
         }
 
-        // Output to log file ( redirect cout is the simplest solution)
+        // Output to log file ( Redirect(std::cout) is the simplest solution). Once the try is exited
+        // Redirect object will be destroyed and cout restored.
 
         if (!argData.logFileName.empty()) {
             coutstr({"*** LOG FILE = ", argData.logFileName, " ***"});
