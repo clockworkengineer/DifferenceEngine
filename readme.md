@@ -91,7 +91,10 @@ and they are contained within a structure of form
     	std::string message;   	// Event file name / error message string
     };
     
-Note: Events addir/unlinkdir will result in new watch folders being added/removed depending on the value of watchDepth.
+Notes: 
+
+- Events *addir*/unlinkdir will result in new watch folders being added/removed from the internal watch table maps (depending on the value of watchDepth).
+- The change event is currently unsupported and not required by FPE_Task but is pencilled in to be added in future.
 
 # File Copy Task Function #
 
