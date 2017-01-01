@@ -109,6 +109,10 @@ Notes:
 
 This is a small self contained utility class designed for FPE logging output. Its prime functionality is to provide a wrapper for pretty generic code that saves away an output streams read buffer, creates a file stream and redirects the output stream to it. The code to restore the original output streams is called from the objects destructor thus providing convenient for restoring the original stream. Its primary use within the FPE is to redirect std::cout to a log file.
 
+# Exceptions #
+
+Both the FPE_Task and IApprise classes are designed to run in a separate thread although the former can run in the main thread quite happily. As such any exceptions thrown by them could be lost and so that they are not a copy is taken inside each objects main catch clause and stored away in a std::exception_ptr. This value can then by retrieved with method getThrownException() and either re-thrown if the and of the chain has been reached or stored away again to retrieved by another getThrownException() when the enclosing object closes down (as in the case FPE_Task and IApprise class having thrown the exception).
+
 # File Copy Task Function #
 
 This function takes the file name  passed in as a parameter and copies it to  the the specified destination (--destination). It does this with the aid of boost file system API's. Note that any directories that need to be created in the destination tree for the source path specified are done by BOOST function create_directories().
