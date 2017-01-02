@@ -1,4 +1,3 @@
-#include "HOST.hpp"
 /*
  * File:  FPE_Task.hpp
  * 
@@ -56,11 +55,11 @@ public:
 
     // CONSTRUCTOR
 
-    FPE_Task(const std::string& taskName,                           // Task name
-            const std::string& watchFolder,                         // Watch folder path
-            TaskActionFcn taskActFcn,                               // Task action function
-            std::shared_ptr<void> fnData,                           // Task file process function data
-            int watchDepth,                                         // Watch depth -1= all, 0=just watch folder
+    FPE_Task(const std::string& taskName,                       // Task name
+            const std::string& watchFolder,                     // Watch folder path
+            TaskActionFcn taskActFcn,                           // Task action function
+            std::shared_ptr<void> fnData,                       // Task file process function data
+            int watchDepth,                                     // Watch depth -1= all, 0=just watch folder
             std::shared_ptr<TaskOptions> options=nullptr);      // Task options. 
     
     // DESTRUCTOR
@@ -72,8 +71,6 @@ public:
     void monitor(void);                         // Monitor watch folder for file events and process added files
     void stop(void);                            // Stop task
     std::exception_ptr getThrownException(void);// Get any exception thrown by task to pass down chain
-    
- 
  
 private:
 
@@ -85,9 +82,6 @@ private:
     
     // PRIVATE MEMBER FUNCTIONS
 
-    void coutstr(const std::vector<std::string>& outstr);   // std::cout
-    void cerrstr(const std::vector<std::string>& outstr);   // std::cerr
-
     std::string prefix(void);                       // Logging output prefix 
     
     // PRIVATE VARIABLES
@@ -95,14 +89,20 @@ private:
     std::string  taskName;                          // Task name
     std::string  watchFolder;                       // Watch Folder
     TaskActionFcn taskActFcn;                       // Task action function 
-    std::shared_ptr<void> fnData;                   // Task action function data
-    std::shared_ptr<TaskOptions> options;           // Task passed options
-    
+    std::shared_ptr<void> fnData;                   // Task action function data   
+    int killCount=0;                                // Task Kill Count
+
     std::shared_ptr<IApprise> watcher;              // Folder watcher
     std::shared_ptr<IAppriseOptions> watcherOptions;// folder watcher options
     std::unique_ptr<std::thread> watcherThread;     // Folder watcher thread
     std::exception_ptr thrownException=nullptr;     // Pointer to any exception thrown
- 
+    
+     // Trace functions default do nothing (Im sure a batter solution exists but fix later).
+
+    void (*coutstr) (const std::vector<std::string>& outstr) = [] (const std::vector<std::string>& outstr) {
+    };
+    void (*cerrstr) (const std::vector<std::string>& errstr) = [] (const std::vector<std::string>& errstr) {
+    }; 
        
 };
 #endif /* FPETASK_HPP */

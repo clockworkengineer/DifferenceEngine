@@ -56,7 +56,6 @@
 // Boost file system and date and time libraries definitions
 
 #include <boost/filesystem.hpp>
-
 #include <boost/date_time.hpp>
 
 namespace fs = boost::filesystem;
@@ -109,7 +108,7 @@ void cerrstr(const std::vector<std::string>& errstr) {
 // Get string for current date time
 //
 
-const std::string date_and_time() {
+const std::string currentDateAndTime() {
 
     return(pt::to_simple_string(pt::second_clock::local_time()));
 
@@ -119,10 +118,10 @@ const std::string date_and_time() {
 // Add timestamp to coutstr output
 //
 
-void coutstr_ts(const std::vector<std::string>& outstr) {
+void coutstrTimeStamped(const std::vector<std::string>& outstr) {
 
     if (!outstr.empty()) {
-        std::vector<std::string> newstr { "[" + date_and_time() + "]" };
+        std::vector<std::string> newstr { "[" + currentDateAndTime() + "]" };
         newstr.insert(newstr.end(), outstr.begin(), outstr.end() );
         coutstr(newstr);
     }
@@ -133,10 +132,10 @@ void coutstr_ts(const std::vector<std::string>& outstr) {
 // Add timestamp to cerrstr output
 //
 
-void cerrstr_ts(const std::vector<std::string>& errstr) {
+void cerrstrTimeStamped(const std::vector<std::string>& errstr) {
 
     if (!errstr.empty()) {
-        std::vector<std::string> newstr { "[" + date_and_time() + "]" };
+        std::vector<std::string> newstr { "[" + currentDateAndTime() + "]" };
         newstr.insert(newstr.end(), errstr.begin(), errstr.end() );
         cerrstr(errstr);
     }
@@ -146,7 +145,7 @@ void cerrstr_ts(const std::vector<std::string>& errstr) {
 // Create task and run in thread.
 //
 
-void createTaskAndActivate(const std::string& taskName, ParamArgData& argData, TaskActionFcn taskActFcn) {
+void createTaskAndRun(const std::string& taskName, ParamArgData& argData, TaskActionFcn taskActFcn) {
 
     // ASSERT if strings length 0 , pointer parameters NULL
 
@@ -157,7 +156,7 @@ void createTaskAndActivate(const std::string& taskName, ParamArgData& argData, T
 
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
         argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-        argData.extension, ((argData.bQuiet) ? nullptr : coutstr_ts), ((argData.bQuiet) ? nullptr : cerrstr_ts)});
+        argData.extension, ((argData.bQuiet) ? nullptr : coutstrTimeStamped), ((argData.bQuiet) ? nullptr : cerrstrTimeStamped)});
 
     // Use function data to access set coutstr/cerrstr
 
@@ -199,11 +198,11 @@ void createTaskAndActivate(const std::string& taskName, ParamArgData& argData, T
 
 int main(int argc, char** argv) {
 
-
-
     try {
 
-        Redirect logFile{ std::cout};
+        // std::cout to logfile if parameter specified.
+        
+        Redirect logFile{std::cout};
 
         // Process FPE command line arguments.
 
@@ -294,11 +293,11 @@ int main(int argc, char** argv) {
         // Create task object
 
         if (argData.bFileCopy) {
-            createTaskAndActivate(std::string("File Copy"), argData, copyFile);
+            createTaskAndRun(std::string("File Copy"), argData, copyFile);
         } else if (argData.bVideoConversion) {
-            createTaskAndActivate(std::string("Video Conversion"), argData, handBrake);
+            createTaskAndRun(std::string("Video Conversion"), argData, handBrake);
         } else {
-            createTaskAndActivate(std::string("Run Command"), argData, runCommand);
+            createTaskAndRun(std::string("Run Command"), argData, runCommand);
         }
 
         //

@@ -60,15 +60,15 @@ struct IAppriseOptions {
 
 // Apprise Event ids
 
-enum IAppriseEventId { 
-    Event_none=0,       // None
-    Event_add,          // File added
-    Event_change,       // File changed (not supported at present)
-    Event_unlink,       // File deleted
-    Event_addir,        // Directory added
-    Event_unlinkdir,    // Directory deleted
-    Event_error         // Exception error
-};
+ enum IAppriseEventId { 
+    	Event_none=0,   	// None
+    	Event_add,  		// File added to watched folder hierachy
+    	Event_change,   	// File changed (not supported at present)
+    	Event_unlink,   	// File deleted from watched folder hierachy
+    	Event_addir,		// Directory added to watched folder hierachy
+    	Event_unlinkdir,	// Directory deleted from watched folder hierachy
+    	Event_error 		// Exception error
+ };
 
 // Apprise Event structure
 
@@ -85,9 +85,9 @@ public:
 
     // CONSTRUCTOR
 
-    IApprise(const std::string& watchFolder,                        // Watch folder path
-             int maxWatchDepth,                                     // Maximum watch depth -1= all, 0=just watch folder
-             std::shared_ptr<IAppriseOptions> options=nullptr);     // IApprise Options (OPTIONAL)
+    IApprise(const std::string& watchFolder,                      // Watch folder path
+             int watchDepth,                                      // Watch depth -1= all, 0=just watch folder
+             std::shared_ptr<IAppriseOptions> options=nullptr);   // IApprise Options (OPTIONAL)
     
     // DESTRUCTOR
 
@@ -115,20 +115,17 @@ private:
     void removeWatch(const std::string& filePath);   // Remove path being watched
     void initWatchTable(void);                       // Initialise table for watched folders
     void destroyWatchTable(void);                    // Tare down watch table
-    
-    void coutstr(const std::vector<std::string>& outstr);       // std::cout
-    void cerrstr(const std::vector<std::string>& outstr);       // std::cerr
-    
+       
     void sendEvent(IAppriseEventId id, const std::string& message);   // Queue IApprise event
-    
+ 
     // PRIVATE VARIABLES
     
     std::string  watchFolder;                               // Watch Folder
-    int maxWatchDepth;                                      // Watch depth -1=all,0=just watch folder,1=next level down etc.
-    std::shared_ptr<IAppriseOptions> options;               // IApprise options
+    int watchDepth;                                         // Watch depth -1=all,0=just watch folder,1=next level down etc.
      
     int inotifyFd;                                          // inotify file 
     uint32_t inotifyWatchMask;                              // inotify watch event mask
+    std::unique_ptr<std::uint8_t> inotifyBuffer;            // inotify read buffer
     
     std::exception_ptr thrownException=nullptr;             // Pointer to any exception thrown
     
@@ -141,10 +138,18 @@ private:
     std::unordered_map<int32_t, std::string> watchMap;      // Watch table indexed by watch variable
     std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
     
+    // Trace functions default do nothing (Im sure a batter solution exists but fix later).
+
+    void (*displayInotifyEvent)(struct inotify_event *event) = [] (struct inotify_event *event) {
+    };
+    void (*coutstr) (const std::vector<std::string>& outstr) = [] (const std::vector<std::string>& outstr) {
+    };
+    void (*cerrstr) (const std::vector<std::string>& errstr) = [] (const std::vector<std::string>& errstr) {
+    }; 
+     
     // CONSTANTS
     
     static const std::string kLogPrefix;        // Logging output prefix 
-    
     static const uint32_t kInofityEvents;       // inotify events to monitor
     static const uint32_t kInotifyEventSize;    // inotify read event size
     static const uint32_t kInotifyEventBuffLen; // inotify read buffer length

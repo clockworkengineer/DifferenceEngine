@@ -29,6 +29,8 @@
  * THE SOFTWARE.
  */
 
+// STL definitions
+
 #include <iostream>
 
 // Process command line arguments

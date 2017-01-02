@@ -65,6 +65,7 @@ void Redirect::restore() {
     if (this->outBuffer) {
         outStream->rdbuf(this->outBuffer);
     }
+    
     if (this->fileStream) {
         this->fileStream->close();
     }

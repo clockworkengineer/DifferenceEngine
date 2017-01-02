@@ -39,7 +39,8 @@
 
 // inotify events to recieve
 
-const uint32_t IApprise::kInofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM | IN_DELETE_SELF | IN_CLOSE_WRITE | IN_DELETE;
+const uint32_t IApprise::kInofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM | 
+                                          IN_DELETE_SELF | IN_CLOSE_WRITE | IN_DELETE;
 
 // inotify event structure size
 
@@ -58,35 +59,7 @@ const std::string IApprise::kLogPrefix = "[IApprise] ";
 //
 
 //
-// stdout trace output.
-//
-
-void IApprise::coutstr(const std::vector<std::string>& outstr) {
-
-    assert(this->options != nullptr);
-
-    if ((this->options)->coutstr != nullptr) {
-        (this->options)->coutstr(outstr);
-    }
-
-}
-
-//
-// stderr trace output.
-//
-
-void IApprise::cerrstr(const std::vector<std::string>& errstr) {
-
-    assert(this->options != nullptr);
-
-    if ((this->options)->cerrstr != nullptr) {
-        (this->options)->cerrstr(errstr);
-    }
-
-}
-
-//
-// Clean up inotifier plus its watch variables and clear watch maps.
+// Clean up inotify plus its watch variables and clear watch maps.
 //
 
 void IApprise::destroyWatchTable(void) {
@@ -96,7 +69,7 @@ void IApprise::destroyWatchTable(void) {
         if (inotify_rm_watch(this->inotifyFd, it->first) == -1) {
             throw std::system_error(std::error_code(errno, std::system_category()), "inotify_rm_watch() error");
         } else {
-            coutstr({IApprise::kLogPrefix, "Watch[", std::to_string(it->first), "] removed."});
+            this->coutstr({IApprise::kLogPrefix, "Watch[", std::to_string(it->first), "] removed."});
         }
 
     }
@@ -119,7 +92,7 @@ void IApprise::addWatch(const std::string& filePath) {
 
     // Deeper than max watch depth so ignore.
 
-    if ((this->maxWatchDepth != -1) && (std::count(filePath.begin(), filePath.end(), '/') > this->maxWatchDepth)) {
+    if ((this->watchDepth != -1) && (std::count(filePath.begin(), filePath.end(), '/') > this->watchDepth)) {
         return;
     }
 
@@ -134,7 +107,7 @@ void IApprise::addWatch(const std::string& filePath) {
     this->watchMap.insert({watch, filePath});
     this->revWatchMap.insert({filePath, watch});
 
-    coutstr({IApprise::kLogPrefix, "Directory add [", filePath, "] watch = [", std::to_string(this->revWatchMap[filePath]), "]"});
+    this->coutstr({IApprise::kLogPrefix, "Directory add [", filePath, "] watch = [", std::to_string(this->revWatchMap[filePath]), "]"});
 
 }
 
@@ -167,7 +140,7 @@ void IApprise::removeWatch(const std::string& filePath) {
         watch = this->revWatchMap[filePath];
         if (watch) {
 
-            coutstr({IApprise::kLogPrefix, "Directory remove [", filePath, "] watch = [", std::to_string(watch), "]"});
+            this->coutstr({IApprise::kLogPrefix, "Directory remove [", filePath, "] watch = [", std::to_string(watch), "]"});
 
             this->watchMap.erase(watch);
             this->revWatchMap.erase(filePath);
@@ -177,7 +150,7 @@ void IApprise::removeWatch(const std::string& filePath) {
             }
 
         } else {
-            cerrstr({IApprise::kLogPrefix, "Directory remove failed [", filePath, "]"});
+            this->cerrstr({IApprise::kLogPrefix, "Directory remove failed [", filePath, "]"});
         }
 
 
@@ -191,9 +164,9 @@ void IApprise::removeWatch(const std::string& filePath) {
     }
 
     // No more watches (main watch folder removed) so closedown
-    
+
     if (this->watchMap.size() == 0) {
-        coutstr({IApprise::kLogPrefix, "*** Watch Folder Deleted so terminating watch loop. ***"});
+        this->coutstr({IApprise::kLogPrefix, "*** Watch Folder Deleted so terminating watch loop. ***"});
         this->stop();
     }
 
@@ -219,19 +192,29 @@ void IApprise::sendEvent(IAppriseEventId id, const std::string& fileName) {
 // IApprise object constructor. 
 //
 
-IApprise::IApprise(const std::string& watchFolder, int maxWatchDepth, std::shared_ptr<IAppriseOptions> options) : watchFolder{watchFolder}, maxWatchDepth{maxWatchDepth}, options{options}
+IApprise::IApprise(const std::string& watchFolder, int watchDepth, std::shared_ptr<IAppriseOptions> options) : watchFolder{watchFolder}, watchDepth{watchDepth}
 {
 
     // ASSERT if passed parameters invalid
 
     assert(watchFolder.length() != 0); // Length == 0
-    assert(maxWatchDepth >= -1); // < -1
+    assert(watchDepth >= -1); // < -1
 
-    // No IApprise option passed in so setup default. THIS NEEDS TO BE SETUP FIRST FOR COUTSTR/CERRSTR.
+    // If options passed then setup trace functions
 
-    if (this->options == nullptr) {
-        this->options.reset(new IAppriseOptions{nullptr, nullptr});
+    if (options) {
+        if (options->displayInotifyEvent) {
+            this->displayInotifyEvent = options->displayInotifyEvent;
+        }
+        if (options->coutstr) {
+            this->coutstr = options->coutstr;
+        }
+        if (options->cerrstr) {
+            this->cerrstr = options->cerrstr;
+        }
     }
+
+    // Set inotify event mask
 
     this->inotifyWatchMask = IApprise::kInofityEvents;
 
@@ -241,15 +224,23 @@ IApprise::IApprise(const std::string& watchFolder, int maxWatchDepth, std::share
         (this->watchFolder).push_back('/');
     }
 
-    coutstr({IApprise::kLogPrefix, "Watch folder [", this->watchFolder, "]"});
-    coutstr({IApprise::kLogPrefix, "Watch Depth [", std::to_string(maxWatchDepth), "]"});
+    this->coutstr({IApprise::kLogPrefix, "Watch folder [", this->watchFolder, "]"});
+    this->coutstr({IApprise::kLogPrefix, "Watch Depth [", std::to_string(watchDepth), "]"});
 
     // Save away max watch depth and modify with watch folder depth value if not all (-1).
 
-    this->maxWatchDepth = maxWatchDepth;
-    if (maxWatchDepth != -1) {
-        this->maxWatchDepth += std::count(watchFolder.begin(), watchFolder.end(), '/');
+    this->watchDepth = watchDepth;
+    if (watchDepth != -1) {
+        this->watchDepth += std::count(watchFolder.begin(), watchFolder.end(), '/');
     }
+
+    // Allocate inotify read buffer
+
+    this->inotifyBuffer.reset(new u_int8_t [IApprise::kInotifyEventBuffLen]);
+
+    // Create watch table
+
+    this->initWatchTable();
 
     // Watcher up and running
 
@@ -263,7 +254,7 @@ IApprise::IApprise(const std::string& watchFolder, int maxWatchDepth, std::share
 
 IApprise::~IApprise() {
 
-    coutstr({IApprise::kLogPrefix, "DESTRUCTOR CALLED."});
+    this->coutstr({IApprise::kLogPrefix, "DESTRUCTOR CALLED."});
 
 }
 
@@ -282,8 +273,8 @@ bool IApprise::stillWatching(void) {
 //
 
 std::exception_ptr IApprise::getThrownException(void) {
-    
-    return (this->thrownException); 
+
+    return (this->thrownException);
 
 }
 
@@ -319,7 +310,7 @@ void IApprise::getEvent(IAppriseEvent& evt) {
 
 void IApprise::stop(void) {
 
-    coutstr({IApprise::kLogPrefix, "Stop IApprise thread."});
+    this->coutstr({IApprise::kLogPrefix, "Stop IApprise thread."});
 
     std::unique_lock<std::mutex> locker(this->queuedEventsMutex);
 
@@ -337,13 +328,11 @@ void IApprise::stop(void) {
 
 void IApprise::watch(void) {
 
-    std::uint8_t buffer[IApprise::kInotifyEventBuffLen];
+    std::uint8_t *buffer = this->inotifyBuffer.get();
 
-    coutstr({IApprise::kLogPrefix, "IApprise watch loop started"});
+    this->coutstr({IApprise::kLogPrefix, "IApprise watch loop started"});
 
     try {
-
-        this->initWatchTable();
 
         while (this->bDoWork.load()) {
 
@@ -357,9 +346,7 @@ void IApprise::watch(void) {
 
                 struct inotify_event *event = (struct inotify_event *) &buffer[ currentPos ];
 
-                if ((this->options)->displayInotifyEvent) {
-                    (this->options)->displayInotifyEvent(event);
-                }
+                this->displayInotifyEvent(event);
 
                 switch (event->mask) {
 
@@ -405,11 +392,12 @@ void IApprise::watch(void) {
                 currentPos += IApprise::kInotifyEventSize + event->len;
 
             }
+
         }
 
-    //
-    // Generate event for any exceptions and also store to be passed up the chain
-        
+        //
+        // Generate event for any exceptions and also store to be passed up the chain
+
     } catch (std::system_error &e) {
         this->sendEvent(Event_error, IApprise::kLogPrefix + "Caught a runtime_error exception: [" + e.what() + "]");
         this->thrownException = std::current_exception();
@@ -424,6 +412,6 @@ void IApprise::watch(void) {
         this->stop();
     }
 
-    coutstr({IApprise::kLogPrefix, "IApprise watch loop stopped."});
+    this->coutstr({IApprise::kLogPrefix, "IApprise watch loop stopped."});
 
 }
