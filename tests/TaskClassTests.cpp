@@ -362,19 +362,9 @@ TEST_F(TaskClassTests, TaskClassNoWatchFolder) {
 
     // Create task object
     
-    FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
+    //FPE_Task task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
 
-    // Create task object thread and start to watch
-
-    std::unique_ptr<std::thread> taskThread;
-
-    taskThread.reset(new std::thread(&FPE_Task::monitor, &task));
-
-    // Thread should die after killCount files created
-
-    taskThread->join();
-
-    EXPECT_THROW(this->generateException(task.getThrownException()), std::system_error);
+    EXPECT_THROW(FPE_Task task(this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions), std::system_error);
 
 }
 
