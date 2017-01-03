@@ -84,7 +84,7 @@ static void cerrstr(const ActFnData *funcData, const std::vector<std::string>& e
 // Fork and execute Shell command
 //
 
-static int forkCommand(char *argv[]) {
+static int forkCommand(char *const argv[]) {
 
     pid_t pid; // Process id
     int status; // wait status
@@ -122,6 +122,7 @@ static int forkCommand(char *argv[]) {
 
 //
 // Run shell command. Split command into argv components before passing onto exec.
+// All heap memory cleaned up when function returns due to unique_pointers.
 //
 
 static int runShellCommand(const std::string& shellCommand) {
@@ -136,7 +137,7 @@ static int runShellCommand(const std::string& shellCommand) {
     // Take a 'C' string copy
 
      shellCommand.copy(commandStr.get(), shellCommand.length());
-     commandStr.get()[shellCommand.length()] = 0;
+     commandStr.get()[shellCommand.length()] = 0; // null terminate
 
     // Loop through command splitting into substrings for argv
 

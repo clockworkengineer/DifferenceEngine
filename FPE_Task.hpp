@@ -81,8 +81,6 @@ private:
     FPE_Task(const FPE_Task && orig )= delete;   
     
     // PRIVATE MEMBER FUNCTIONS
-
-    std::string prefix(void);                       // Logging output prefix 
     
     // PRIVATE VARIABLES
     
@@ -96,6 +94,8 @@ private:
     std::shared_ptr<IAppriseOptions> watcherOptions;// folder watcher options
     std::unique_ptr<std::thread> watcherThread;     // Folder watcher thread
     std::exception_ptr thrownException=nullptr;     // Pointer to any exception thrown
+    
+    std::string prefix;                             // Task trace prefix
     
      // Trace functions default do nothing (Im sure a batter solution exists but fix later).
 

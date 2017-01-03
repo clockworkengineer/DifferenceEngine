@@ -47,16 +47,6 @@
 //
 
 //
-// Prefix string for any task logging.
-//
-
-std::string FPE_Task::prefix(void) {
-
-    return ("[TASK " + this->taskName + "] ");
-
-}
-
-//
 // PUBLIC METHODS
 //
 
@@ -92,9 +82,13 @@ FPE_Task::FPE_Task(const std::string& taskName,
         this->killCount = options->killCount;
     }
 
+    // Task prefix
+    
+    this->prefix = "[TASK " + this->taskName + "] ";
+    
     // Create IApprise watcher object. Use same cout/cerr functions as Task.
 
-    this->watcherOptions.reset(new IAppriseOptions{nullptr, this->coutstr, this->cerrstr});
+    this->watcherOptions.reset(new IAppriseOptions{0, nullptr, this->coutstr, this->cerrstr});
     this->watcher.reset(new IApprise{watchFolder, watchDepth, watcherOptions});
 
     // Create IApprise object thread and start to watch
@@ -109,7 +103,7 @@ FPE_Task::FPE_Task(const std::string& taskName,
 
 FPE_Task::~FPE_Task() {
 
-    this->coutstr({this->prefix(), "FPE_Task DESTRUCTOR CALLED."});
+    this->coutstr({this->prefix, "FPE_Task DESTRUCTOR CALLED."});
 
 }
 
@@ -129,7 +123,7 @@ std::exception_ptr FPE_Task::getThrownException(void) {
 
 void FPE_Task::stop(void) {
 
-    this->coutstr({this->prefix(), "Stop task."});
+    this->coutstr({this->prefix, "Stop task."});
     this->watcher->stop();
 
 }
@@ -142,7 +136,7 @@ void FPE_Task::monitor(void) {
 
     try {
 
-        this->coutstr({this->prefix(), "FPE_Task monitor started."});
+        this->coutstr({this->prefix, "FPE_Task monitor started."});
 
         // Loop until watcher stopped
 
@@ -157,7 +151,7 @@ void FPE_Task::monitor(void) {
                 this->taskActFcn(evt.message, this->fnData);
 
                 if ((this->killCount != 0) && (--(this->killCount) == 0)) {
-                    this->coutstr({this->prefix(), "FPE_Task kill count reached."});
+                    this->coutstr({this->prefix, "FPE_Task kill count reached."});
                     break;
                 }
 
@@ -188,6 +182,6 @@ void FPE_Task::monitor(void) {
     
     this->watcherThread->join();
 
-    this->coutstr({this->prefix(), "FPE_Task monitor on stopped."});
+    this->coutstr({this->prefix, "FPE_Task monitor on stopped."});
 
 }

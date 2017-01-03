@@ -31,6 +31,8 @@
 #ifndef REDIRECT_HPP
 #define REDIRECT_HPP
 
+// STL definitions
+
 #include <iostream>
 #include <memory>
 #include <fstream>

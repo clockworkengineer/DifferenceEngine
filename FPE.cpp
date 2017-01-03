@@ -70,12 +70,13 @@ namespace pt = boost::posix_time;
 void coutstr(const std::vector<std::string>& outstr) {
 
     static std::mutex mOutput;
-    std::unique_lock<std::mutex> locker(mOutput);
+    std::lock_guard<std::mutex> locker(mOutput);
 
     if (!outstr.empty()) {
 
-        for (auto str : outstr)
+        for (auto str : outstr) {
             std::cout << str;
+        }
 
         std::cout << std::endl;
 
@@ -92,12 +93,13 @@ void coutstr(const std::vector<std::string>& outstr) {
 void cerrstr(const std::vector<std::string>& errstr) {
 
     static std::mutex mError;
-    std::unique_lock<std::mutex> locker(mError);
+    std::lock_guard<std::mutex> locker(mError);
 
     if (!errstr.empty()) {
 
-        for (auto str : errstr)
+        for (auto str : errstr) {
             std::cerr << str;
+        }
 
         std::cerr << std::endl;
 

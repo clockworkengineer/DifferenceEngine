@@ -39,8 +39,8 @@
 
 // inotify events to recieve
 
-const uint32_t IApprise::kInofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM | 
-                                          IN_DELETE_SELF | IN_CLOSE_WRITE | IN_DELETE;
+const uint32_t IApprise::kInofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
+        IN_DELETE_SELF | IN_CLOSE_WRITE | IN_DELETE | IN_MODIFY;
 
 // inotify event structure size
 
@@ -77,6 +77,8 @@ void IApprise::destroyWatchTable(void) {
         throw std::system_error(std::error_code(errno, std::system_category()), "inotify close() error");
     }
 
+    this->inotifyFd = 0;
+    
     this->watchMap.clear();
     this->revWatchMap.clear();
 
@@ -155,12 +157,10 @@ void IApprise::removeWatch(const std::string& filePath) {
 
 
     } catch (std::system_error &e) {
-
-        // Ignote error 22 and carry on. From the documentation on this error the kernel has removed the watch for us.
+        // Ignore error 22 and carry on. From the documentation on this error the kernel has removed the watch for us.
         if (e.code() != std::error_code(EINVAL, std::system_category())) {
             throw; // Throw exception back up the chain.
         }
-
     }
 
     // No more watches (main watch folder removed) so closedown
@@ -203,6 +203,9 @@ IApprise::IApprise(const std::string& watchFolder, int watchDepth, std::shared_p
     // If options passed then setup trace functions
 
     if (options) {
+        if (options->inotifyWatchMask) {
+            this->inotifyWatchMask = options->inotifyWatchMask;
+        }
         if (options->displayInotifyEvent) {
             this->displayInotifyEvent = options->displayInotifyEvent;
         }
@@ -213,10 +216,6 @@ IApprise::IApprise(const std::string& watchFolder, int watchDepth, std::shared_p
             this->cerrstr = options->cerrstr;
         }
     }
-
-    // Set inotify event mask
-
-    this->inotifyWatchMask = IApprise::kInofityEvents;
 
     // Add ending '/' if missing from path
 
@@ -322,47 +321,92 @@ void IApprise::stop(void) {
 }
 
 //
-// Create watch table and loop adding/removing watches for directory structure changes
+// Loop adding/removing watches for directory hierarchy  changes
 // and also generating IApprise events from inotify; until stopped.
 //
 
 void IApprise::watch(void) {
 
     std::uint8_t *buffer = this->inotifyBuffer.get();
+    struct inotify_event *event; 
+    std::string  filePath;
 
     this->coutstr({IApprise::kLogPrefix, "IApprise watch loop started"});
 
     try {
 
+        // Loop until told to stop
+        
         while (this->bDoWork.load()) {
 
             int readLen, currentPos = 0;
 
+            // Read in events
+            
             if ((readLen = read(this->inotifyFd, buffer, IApprise::kInotifyEventBuffLen)) == -1) {
                 throw std::system_error(std::error_code(errno, std::system_category()), "inotify read() error");
             }
 
+            // Loop until all read processed
+            
             while (currentPos < readLen) {
 
-                struct inotify_event *event = (struct inotify_event *) &buffer[ currentPos ];
+                // Point to next event & display if necessary
+                
+                event = (struct inotify_event *) &buffer[ currentPos ];
 
                 this->displayInotifyEvent(event);
 
+                // IGNORE so move onto next event
+                
+                if (event->mask == IN_IGNORED) {
+                    currentPos += IApprise::kInotifyEventSize + event->len;
+                    continue;
+                }
+
+                // Create full filename path
+                
+                filePath = this->watchMap[event->wd] + ((event->len) ? event->name : "");
+   
+                // Process event
+                
                 switch (event->mask) {
 
+                    // Flag file as being created
+                    
+                    case IN_CREATE:
+                    {
+                        this->inProcessOfCreation.insert(filePath);
+                        break;
+                    }
+
+                    // If file not being created send Event_change
+                    
+                    case IN_MODIFY:
+                    {
+                        auto beingCreated = this->inProcessOfCreation.find(filePath);
+                        if (beingCreated == this->inProcessOfCreation.end()) {
+                            this->sendEvent(Event_change, filePath);
+                        }
+                        break;
+                    }
+
+                    // Add watch for new directory and send Event_addir
+                    
                     case (IN_ISDIR | IN_CREATE):
                     case (IN_ISDIR | IN_MOVED_TO):
                     {
-                        std::string filePath{ this->watchMap[event->wd] + std::string(event->name) + "/"};
+                        filePath += "/";
                         this->sendEvent(Event_addir, filePath);
                         this->addWatch(filePath);
                         break;
                     }
 
+                    // Remove watch for removed directory and send Event_unlinkdir
+                    
                     case (IN_ISDIR | IN_MOVED_FROM):
                     case IN_DELETE_SELF:
                     {
-                        std::string filePath{ this->watchMap[event->wd] + std::string((event->len) ? event->name : "")};
                         if (filePath.back() != '/') {
                             filePath.push_back('/');
                         }
@@ -371,16 +415,26 @@ void IApprise::watch(void) {
                         break;
                     }
 
+                    // File deleted send Event_unlink
+                    
                     case IN_DELETE:
                     {
-                        this->sendEvent(Event_unlink, this->watchMap[event->wd] + std::string(event->name));
+                        this->sendEvent(Event_unlink, filePath);
                         break;
                     }
+                    
+                    // File closed/moved. If being created send Event_add otherwise Event_change.
 
-                    case IN_CLOSE_WRITE: // This could signal an end to update too but just signal as an add for now
+                    case IN_CLOSE_WRITE:
                     case IN_MOVED_TO:
                     {
-                        this->sendEvent(Event_add, this->watchMap[event->wd] + std::string(event->name));
+                        auto beingCreated = this->inProcessOfCreation.find(filePath);
+                        if (beingCreated == this->inProcessOfCreation.end()) {
+                            this->sendEvent(Event_change, filePath);
+                        } else {
+                            this->inProcessOfCreation.erase(filePath);
+                            this->sendEvent(Event_add, filePath);
+                        }
                         break;
                     }
 
@@ -388,6 +442,8 @@ void IApprise::watch(void) {
                         break;
 
                 }
+                
+                // Move to next event
 
                 currentPos += IApprise::kInotifyEventSize + event->len;
 
@@ -397,6 +453,7 @@ void IApprise::watch(void) {
 
         //
         // Generate event for any exceptions and also store to be passed up the chain
+        //
 
     } catch (std::system_error &e) {
         this->sendEvent(Event_error, IApprise::kLogPrefix + "Caught a runtime_error exception: [" + e.what() + "]");

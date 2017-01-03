@@ -46,10 +46,10 @@ struct ParamArgData {
     bool         bQuiet;             // Quiet mode no tracing output.
     int          killCount;          // Kill Count
     bool         bSingleThread;      // Run task in the main thread
-    std::string  logFileName;        // Log file name (NEED TO IMPLEMENT)
+    std::string  logFileName;        // Log file name
 };
 
-// Handbrake command and default command if --command not specified
+// Handbrake command
 
 const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
 

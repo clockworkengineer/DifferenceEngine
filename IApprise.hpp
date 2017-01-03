@@ -45,6 +45,7 @@
 #include <system_error>
 #include <cassert>
 #include <algorithm>
+#include <set>
 
 // inotify definitions
 
@@ -53,6 +54,7 @@
 // IApprise options structure (optionally pass to IApprise constructor)
 
 struct IAppriseOptions {
+    uint32_t inotifyWatchMask;                                 // inotify watch event mask
     void (*displayInotifyEvent)(struct inotify_event *event);  // Display inotify event to stdout
     void (*coutstr) (const std::vector<std::string>& outstr);  // coutstr output
     void (*cerrstr) (const std::vector<std::string>& errstr);  // cerrstr output
@@ -63,7 +65,7 @@ struct IAppriseOptions {
  enum IAppriseEventId { 
     	Event_none=0,   	// None
     	Event_add,  		// File added to watched folder hierachy
-    	Event_change,   	// File changed (not supported at present)
+    	Event_change,   	// File changed (experimental)
     	Event_unlink,   	// File deleted from watched folder hierachy
     	Event_addir,		// Directory added to watched folder hierachy
     	Event_unlinkdir,	// Directory deleted from watched folder hierachy
@@ -124,7 +126,7 @@ private:
     int watchDepth;                                         // Watch depth -1=all,0=just watch folder,1=next level down etc.
      
     int inotifyFd;                                          // inotify file 
-    uint32_t inotifyWatchMask;                              // inotify watch event mask
+    uint32_t inotifyWatchMask=IApprise::kInofityEvents;     // inotify watch event mask
     std::unique_ptr<std::uint8_t> inotifyBuffer;            // inotify read buffer
     
     std::exception_ptr thrownException=nullptr;             // Pointer to any exception thrown
@@ -137,6 +139,8 @@ private:
     
     std::unordered_map<int32_t, std::string> watchMap;      // Watch table indexed by watch variable
     std::unordered_map<std::string, int32_t> revWatchMap;   // Reverse watch table indexed by path
+    
+    std::set<std::string> inProcessOfCreation;              // Set to hold files being created.
     
     // Trace functions default do nothing (Im sure a batter solution exists but fix later).
 
