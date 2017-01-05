@@ -11,11 +11,11 @@
  * Description: A simple C++ class to enable files/folders to be watched and 
  * events generated. Supported events include the addition/deletion of files and
  * directories and the modification of files with a change event. It is recursive 
- * by default and any directories add/removed from the hierarchy will cause new 
+ * by default and any directories added/removed from the hierarchy will cause new 
  * watches to be added/removed respectively. The current implementation is for 
  * POSIX only or any platform that has inotify or a third party equivalent.
  * 
- * Dependencies: inotify/C11++
+ * Dependencies: C11++, inotify
  *
  * Copyright 2016.
  *

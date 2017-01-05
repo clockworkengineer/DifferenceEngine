@@ -25,11 +25,9 @@
 
 #include "CFileApprise.hpp"
 
-//
 // ================
 // CLASS DEFINITION
 // ================
-//
 
 class CFileTask { 
     
@@ -61,7 +59,7 @@ public:
     // CONSTRUCTOR
     // ===========
 
-    CFileTask(const std::string& taskName,                       // Task name
+    CFileTask(const std::string& taskName,                      // Task name
             const std::string& watchFolder,                     // Watch folder path
             TaskActionFcn taskActFcn,                           // Task action function
             std::shared_ptr<void> fnData,                       // Task file process function data
@@ -109,7 +107,7 @@ private:
     // PRIVATE VARIABLES
     // =================
   
-    // Constructor passed in and intialised
+    // Constructor passed in and intialized
     
     std::string  taskName;                          // Task name
     std::string  watchFolder;                       // Watch Folder

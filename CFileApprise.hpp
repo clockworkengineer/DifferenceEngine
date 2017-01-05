@@ -31,20 +31,14 @@
 #include <set>
 
 //
-// Implementation specific definitions
-//
-// 1) inotify -  is a Linux kernel subsystem that acts to extend filesystems 
-//    to notice changes to the filesystem, and report those changes to 
-//    applications
+// inotify definitions
 //
 
 #include <sys/inotify.h>
 
-//
 // ================
 // CLASS DEFINITION
 // ================
-//
 
 class CFileApprise {
     
@@ -113,7 +107,7 @@ public:
     
     // Queue access
     
-    void getEvent(CFileApprise::Event& message);                  // Get CFileApprise event (waiting if necessary)
+    void getEvent(CFileApprise::Event& message);    // Get CFileApprise event (waiting if necessary)
     
     // Private data accessors
     

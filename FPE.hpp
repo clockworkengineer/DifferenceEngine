@@ -32,9 +32,9 @@
 
 #include "FPE_ActionFuncs.hpp"
 
-// Redirect Class
+// CRedirect Class
 
-#include "Redirect.hpp" 
+#include "CRedirect.hpp" 
 
 // Boost file system and date and time libraries definitions
 

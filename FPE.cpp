@@ -9,16 +9,16 @@
  * Description: This is a generic file processing engine that sets up a
  * watch folder and waits for files/directories to be copied to it. Any 
  * added directories are also watched (this is recursive) but any added files
- * are be processed using one of its built in task action tasks
+ * are be processed using one of its built in task action functions
  * 
  * 1) File copy
- * 2) Video file conversion (using handbrake)
+ * 2) Video file conversion (using Handbrake)
  * 3) Run shell command
  * 
- * All of this can be setup from using parameters  passed to the program from
+ * All of this can be setup by using parameters  passed to the program from
  * command line (FPE --help for a full list).
  * 
- * Dependencies: C11++, classes (CFileTask, Redirect, CIFileApprise), Linux, Boost C++ Libraries.
+ * Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise), Linux, Boost C++ Libraries.
  *
  * Copyright 2016.
  *
@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
 
         // std::cout to logfile if parameter specified.
         
-        Redirect logFile{std::cout};
+        CRedirect logFile{std::cout};
 
         // Process FPE command line arguments.
 
@@ -253,8 +253,8 @@ int main(int argc, char** argv) {
             coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
         }
 
-        // Output to log file ( Redirect(std::cout) is the simplest solution). Once the try is exited
-        // Redirect object will be destroyed and cout restored.
+        // Output to log file ( CRedirect(std::cout) is the simplest solution). Once the try is exited
+        // CRedirect object will be destroyed and cout restored.
 
         if (!argData.logFileName.empty()) {
             coutstr({"*** LOG FILE = ", argData.logFileName, " ***"});
