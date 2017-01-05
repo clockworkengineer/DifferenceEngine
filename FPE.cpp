@@ -1,11 +1,25 @@
 #include "HOST.hpp"
 /*
- * File:   FPE.cpp
- * 
+ * File: FPE.cpp
+ *
  * Author: Robert Tizzard
  *
  * Created on October 24, 2016, 2:34 PM
  *
+ * Description: This is a generic file processing engine that sets up a
+ * watch folder and waits for files/directories to be copied to it. Any 
+ * added directories are also watched (this is recursive) but any added files
+ * are be processed using one of its built in task action tasks
+ * 
+ * 1) File copy
+ * 2) Video file conversion (using handbrake)
+ * 3) Run shell command
+ * 
+ * All of this can be setup from using parameters  passed to the program from
+ * command line (FPE --help for a full list).
+ * 
+ * Dependencies: C11++, classes (FPE_Task, Redirect, CIApprise), Linux, Boost C++ Libraries.
+ * 
  * The MIT License
  *
  * Copyright 2016.
@@ -29,42 +43,19 @@
  * THE SOFTWARE.
  */
 
-// STL definitions
+// =============
+// INCLUDE FILES
+// =============
 
-#include <iostream>
-#include <mutex>
-#include <system_error>
-#include <memory>
-#include <fstream>
+#include "FPE.hpp"
 
-// Task Action functions
-
-#include "FPE_ActionFuncs.hpp"
-
-// Task class
-
-#include "FPE_Task.hpp" 
-
-// Redirect Class
-
-#include "Redirect.hpp" 
-
-// Process command line arguments
-
-#include "FPE_ProcCmdLine.hpp"
-
-// Boost file system and date and time libraries definitions
-
-#include <boost/filesystem.hpp>
-#include <boost/date_time.hpp>
-
-namespace fs = boost::filesystem;
-namespace pt = boost::posix_time;
+// ===============
+// LOCAL FUNCTIONS
+// ===============
 
 //
 // Standard cout for string of vectors. All calls to this function from different
-// threads are guarded by mutex mOutput (this is static just to keep it local to the
-// function).
+// threads are guarded by mutex mOutput (this is static but local to the function).
 //
 
 void coutstr(const std::vector<std::string>& outstr) {
@@ -86,8 +77,7 @@ void coutstr(const std::vector<std::string>& outstr) {
 
 //
 // Standard cerr for string of vectors. All calls to this function from different
-// threads are guarded by mutex mError (this is static just to keep it local to the
-// function).
+// threads are guarded by mutex mError (this is static but local to the function).
 //
 
 void cerrstr(const std::vector<std::string>& errstr) {
@@ -106,6 +96,7 @@ void cerrstr(const std::vector<std::string>& errstr) {
     }
 
 }
+
 //
 // Get string for current date time
 //
@@ -147,7 +138,7 @@ void cerrstrTimeStamped(const std::vector<std::string>& errstr) {
 // Create task and run in thread.
 //
 
-void createTaskAndRun(const std::string& taskName, ParamArgData& argData, TaskActionFcn taskActFcn) {
+void createTaskAndRun(const std::string& taskName, ParamArgData& argData, FPE_Task::TaskActionFcn taskActFcn) {
 
     // ASSERT if strings length 0 , pointer parameters NULL
 
@@ -166,9 +157,9 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, TaskAc
 
     // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
 
-    std::shared_ptr<TaskOptions> options;
+    std::shared_ptr<FPE_Task::TaskOptions> options;
 
-    options.reset(new TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
+    options.reset(new FPE_Task::TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
 
     // Create task object
 
@@ -184,9 +175,7 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, TaskAc
         task.monitor();
     }
 
-    //
     // If an exception occurred rethrow (end of chain)
-    //
 
     if (task.getThrownException()) {
         std::rethrow_exception(task.getThrownException());
@@ -194,9 +183,9 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, TaskAc
 
 }
 
-//
-// === FPE MAIN ENTRY POINT ===
-//
+// ============================
+// ===== MAIN ENTRY POINT =====
+// ============================
 
 int main(int argc, char** argv) {
 
@@ -302,9 +291,9 @@ int main(int argc, char** argv) {
             createTaskAndRun(std::string("Run Command"), argData, runCommand);
         }
 
-        //
-        // Catch any errors
-        //    
+    //
+    // Catch any errors
+    //    
 
     } catch (const fs::filesystem_error & e) {
         cerrstr({"BOOST file system exception occured: [", e.what(), "]"});

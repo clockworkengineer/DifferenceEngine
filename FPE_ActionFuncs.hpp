@@ -31,16 +31,11 @@
 #ifndef FPE_ACTIONFUNCS_HPP
 #define FPE_ACTIONFUNCS_HPP
 
-// STL definitions
+// C++ STL definitions
 
 #include <string>
 #include <memory>
 #include <vector>
-
-// Task action function
-
-typedef bool (*TaskActionFcn)(const std::string& filenamePath,  
-                              const std::shared_ptr<void>fnData);
 
 // Action function data
 

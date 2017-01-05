@@ -29,26 +29,29 @@
  * THE SOFTWARE.
  */
 
-// STL definitions
-
-#include <system_error>
-#include <cassert>
-
-// Task Action functions
-
-#include "FPE_ActionFuncs.hpp"
-
-// Task class
+//
+// =================
+// CLASS DEFINITIONS
+// =================
+//
 
 #include "FPE_Task.hpp"
 
-//
-// PRIVATE METHODS
-//
+// ====================
+// CLASS IMPLEMENTATION
+// ====================
 
-//
+// ===========================
+// PRIVATE TYPES AND CONSTANTS
+// ===========================
+
+// ===============
+// PRIVATE METHODS
+// ===============
+
+// ==============
 // PUBLIC METHODS
-//
+// ==============
 
 //
 // Task object constructor. 

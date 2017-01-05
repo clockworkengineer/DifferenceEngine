@@ -1,5 +1,5 @@
 /*
- * File:   FPE_ProcCmdLine.hpp
+ * File:   FPE.hpp
  * 
  * Author: Robert Tizzard
  *
@@ -28,36 +28,40 @@
  * THE SOFTWARE.
  */
 
-#ifndef FPE_PROCCMDLINE_HPP
-#define FPE_PROCCMDLINE_HPP
+#ifndef FPE_HPP
+#define FPE_HPP
 
 // C++ STL definitions
 
-#include <string>
+#include <iostream>
+#include <mutex>
+#include <system_error>
+#include <memory>
+#include <fstream>
 
-// Command line parameter data
+// Task Action functions
 
-struct ParamArgData {
-    std::string  watchFolder;        // Watch Folder
-    std::string  destinationFolder;  // Destination Folder for copies.
-    std::string  commandToRun;       // Command to run
-    bool         bFileCopy;          // Task file copy
-    bool         bVideoConversion;   // Task video conversion
-    bool         bRunCommand;        // Task perform command
-    int          maxWatchDepth;      // Watch depth -1=all,0=just watch folder,1=next level down etc.
-    bool         bDeleteSource;      // Delete source file
-    std::string  extension;          // Override destination file extension
-    bool         bQuiet;             // Quiet mode no tracing output.
-    int          killCount;          // Kill Count
-    bool         bSingleThread;      // Run task in the main thread
-    std::string  logFileName;        // Log file name
-};
+#include "FPE_ActionFuncs.hpp"
 
-// Handbrake command
+// Task class
 
-const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
+#include "FPE_Task.hpp" 
 
-void procCmdLine (int argc, char** argv, ParamArgData& argData);
+// Redirect Class
 
-#endif /* FPE_PROCCMDLINE_HPP */
+#include "Redirect.hpp" 
+
+// Process command line arguments
+
+#include "FPE_ProcCmdLine.hpp"
+
+// Boost file system and date and time libraries definitions
+
+#include <boost/filesystem.hpp>
+#include <boost/date_time.hpp>
+
+namespace fs = boost::filesystem;
+namespace pt = boost::posix_time;
+
+#endif /* FPE_HPP */
 

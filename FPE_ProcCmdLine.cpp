@@ -5,6 +5,8 @@
  * Author: Robert Tizzard
  *
  * Created on October 24, 2016, 2:34 PM
+ * 
+ * Description: Parse command line parameters and fill in structure ParamArgData.
  *
  * The MIT License
  *
@@ -29,6 +31,10 @@
  * THE SOFTWARE.
  */
 
+// =============
+// INCLUDE FILES
+// =============
+
 // STL definitions
 
 #include <iostream>
@@ -37,7 +43,7 @@
 
 #include "FPE_ProcCmdLine.hpp"
 
-// BOOST program options processing
+// Boost program options processing
 
 #include "boost/program_options.hpp" 
 
@@ -48,6 +54,10 @@ namespace po = boost::program_options;
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
+
+// ================
+// PUBLIC FUNCTIONS
+// ================
 
 //
 // Read in and process command line arguments using boost. Note this is the only 

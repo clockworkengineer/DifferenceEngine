@@ -1,10 +1,18 @@
 #include "HOST.hpp"
 /*
  * File:   FPE_ActionFuncs.cpp
- * 
- * Author: Robert Tizzard
  *
+ * Author: Robert Tizzard
+ * 
  * Created on October 24, 2016, 2:34 PM
+ * 
+ * Description: The task action functions used by the FPE and their support functions.
+ * 
+ * Currently three actions are provided.
+ *
+ * 1) File copy
+ * 2) Video file conversion (using handbrake)
+ * 3) Run shell command
  *
  * The MIT License
  *
@@ -29,7 +37,11 @@
  * THE SOFTWARE.
  */
 
-// STL definitions
+// =============
+// INCLUDE FILES
+// =============
+
+// C++ STL definitions
 
 #include <system_error>
 
@@ -51,6 +63,10 @@
 #include <boost/format.hpp>
 
 namespace fs = boost::filesystem;
+
+// ===============
+// LOCAL FUNCTIONS
+// ===============
 
 //
 // stdout trace output.
@@ -92,7 +108,7 @@ static int forkCommand(char *const argv[]) {
 
     if ((pid = fork()) < 0) { /* fork a child process           */
         
-        throw std::system_error(std::error_code(errno, std::system_category()), "RROR: forking child process failed:");
+        throw std::system_error(std::error_code(errno, std::system_category()), "ERROR: forking child process failed:");
  
     } else if (pid == 0) { /* for the child process: */
 
@@ -165,6 +181,10 @@ static int runShellCommand(const std::string& shellCommand) {
     return (exitStatus);
 
 }
+
+// ================
+// PUBLIC FUNCTIONS
+// ================
 
 //
 // Run a specified command on the file (%1% source, %2% destination)
