@@ -5,8 +5,8 @@
 This is a C++/Linux variant of the JavaScript/Node file processing engine. In its current form it has support for 3 tasks 
 
 1. The copying of files from a watched folder to a specified destination (keeping any source directory structure intact).
-1. The conversion of any video files copied to the watch folder to .mp4 (which can now be changed by use of the --extension option) format using HandbrakeCLI and its normal preset. 
-1. The running of a shell script command on each file added to the watch folder.
+2. The conversion of any video files copied to the watch folder to .mp4 (which can now be changed by use of the --extension option) format using HandbrakeCLI and its normal preset. 
+3. The running of a shell script command on each file added to the watch folder.
 
 It is run from the command line and typing FPE --help gives a list of its options
 
@@ -27,18 +27,18 @@ It is run from the command line and typing FPE --help gives a list of its option
       -k [ --killcount ] arg   	Files to process before closedown
 
  
-- ***watch*** Folder to watch for files created or moved into.
-- ***destination*** Destination folder for any processed source files.
-- ***maxdepth*** The maximum depth is how far down  the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc).
-- ***copy*** Copy file task.
-- ***video*** Video file conversion task.
-- ***command*** Run command task (With this option it takes any file passed through and runs the specified shell script command substituting %1% in the command for the source file and %2% for any destination file).
-- ***extension*** Override the extension on the destination file ( only works with *video* at present).
-- ***delete*** Delete any source file after successful processing.
-- ***quiet*** Run in quiet mode i.e. trace output only comes from the main program and not the task class ( thus significantly reducing the amount).
-- ***log*** Send output to a log file.
-- ***single*** Run task in main thread instead of creating a separate one.
-- ***killcount*** Process N files before stopping task.
+- **watch:** Folder to watch for files created or moved into.
+- **destination:** Destination folder for any processed source files.
+- **maxdepth:** The maximum depth is how far down  the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc).
+- **copy:** Copy file task.
+- **video:** Video file conversion task.
+- **command:** Run command task (With this option it takes any file passed through and runs the specified shell script command substituting %1% in the command for the source file and %2% for any destination file).
+- **extension:** Override the extension on the destination file ( only works with *video* at present).
+- **delete:** Delete any source file after successful processing.
+- **quiet:** Run in quiet mode i.e. trace output only comes from the main program and not the task class ( thus significantly reducing the amount).
+- **log:** Send output to a log file.
+- **single:** Run task in main thread instead of creating a separate one.
+- **killcount:** Process N files before stopping task.
 
 **Note I tend to use the term folder/directory interchangeably coming from a mixed development environment.**
 
@@ -54,12 +54,12 @@ So that as much of the engine as possible is portable across platforms any funct
 
 The core for the file processing engine is provided by the CFileTask class whose constructor takes five arguments, 
 
-- ***taskName*** The task name (std::string).
-- ***watchFolder*** The folder to be watched (std::string).
-- ***taskActFcn*** A pointer to a task action function that is called for each file that is copied/moved into the watch folder hierarchy.
-- ***fnData*** A pointer to data that may be needed by the action function.
-- ***watchDepth*** An integer specifying the watch depth (-1=all,0=just watch folder,1=next level down etc.)
-- ***options***(optional) This structure passes in values used in any low level functionality (ie. killCount) and can be implementation specific such as providing a trace routine for low level inotify events or  pointers to the generic coutsr/coutstr trace functions.
+- **taskName:** The task name (std::string).
+- **watchFolder:** The folder to be watched (std::string).
+- **taskActFcn:** A pointer to a task action function that is called for each file that is copied/moved into the watch folder hierarchy.
+- **fnData:** A pointer to data that may be needed by the action function.
+- **watchDepth:** An integer specifying the watch depth (-1=all,0=just watch folder,1=next level down etc.)
+- **options:**(optional) This structure passes in values used in any low level functionality (ie. killCount) and can be implementation specific such as providing a trace routine for low level inotify events or  pointers to the generic coutsr/coutstr trace functions.
 
 The engine comes with three built in variants of the task action function, a file copy, file handbrake encoder and a run shell script (any new function should adhere to these functions template). To start watching/processing files call this classes monitor function; the code within FPE.cpp creates a separate thread for this but it can be run in the main programs thread by just calling task.monitor() without any thread creation wrappper code (--single  option).
 
@@ -69,15 +69,15 @@ It should be noted that a basic shutdown protocol is provided to close down any 
 
 The task options structure parameter also has two other members which are pointers to functions that handle all cout/cerr output from the class. These take as a parameter a vector of strings to output and if the option parameter is omitted or the pointers are nullptr then no output occurs. The FPE provides these two functions in the form of coutstr/coutstr which are passed in if --quiet is not specified nullptrs otherwise. All output is modeled this way was it enables the two functions in the FPE to use a mutex to control access to the output streams which are not thread safe and also to provide a --quiet mode and when it is implemented a output to log file option.
 
-#[ CFileApprise Class](https://github.com/clockworkengineer/difference_engine/blob/master/CFileApprise.cpp) #
+# [CFileApprise Class](https://github.com/clockworkengineer/difference_engine/blob/master/CFileApprise.cpp) #
 
 This is class was created to be a standalone class / abstraction of the inotify file event handling code that used to be contained in CFileTask. 
 
 Its constructor has 3 parameters:
 
-- ***watchFolder*** Folder to watch for files created or moved into.
-- ***watchDepth***  The watch depth is how far down the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc).
-- ***options***(optional) This structure passes in values used in any low level functionality and can be implementation specific such as providing a trace routine for low level inotify events or  pointers to the generic coutsr/coutstr trace functions.
+- **watchFolder:** Folder to watch for files created or moved into.
+- **watchDepth:**  The watch depth is how far down the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc).
+- **options:**(optional) This structure passes in values used in any low level functionality and can be implementation specific such as providing a trace routine for low level inotify events or  pointers to the generic coutsr/coutstr trace functions.
 
 Once the object is created then its core method CFileApprise::watch() is run on a separate thread that is used to generate events from actions on files using inotify. While this is happening the main application loops  waiting on events returned by method CFileApprise::getEvent().
 
@@ -96,7 +96,7 @@ The current supported event types being
 and they are contained within a structure of form
 
     struct Event {
-    	EventId id;		// Event id
+    	EventId id;				// Event id
     	std::string message;   	// Event file name / error message string
     };
     
@@ -105,7 +105,7 @@ Notes:
 - Events *addir*/unlinkdir will result in new watch folders being added/removed from the internal watch table maps (depending on the value of watchDepth).
 - The change event is currently unsupported and not required by CFileTask but is penciled in to be added in future.
 
-# [Redirect Class](https://github.com/clockworkengineer/difference_engine/blob/master/Redirect.cpp) #
+# [Redirect Class](https://github.com/clockworkengineer/difference_engine/blob/master/CRedirect.cpp) #
 
 This is a small self contained utility class designed for FPE logging output. Its prime functionality is to provide a wrapper for pretty generic code that saves away an output streams read buffer, creates a file stream and redirects the output stream to it. The code to restore the original output streams is called from the objects destructor thus providing convenient for restoring the original stream. Its primary use within the FPE is to redirect std::cout to a log file.
 
