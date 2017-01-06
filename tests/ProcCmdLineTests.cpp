@@ -5,32 +5,23 @@
  * Author: Robert Tizzard
  *
  * Created on October 24, 2016, 2:34 PM
- *
- * The MIT License
+ * 
+ * Description: Google unit tests for FPE command line processing.
  *
  * Copyright 2016.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
  */
 
+// =============
+// INCLUDE FILES
+// =============
+
+// Google test definitions
 
 #include "gtest/gtest.h"
+
+// Command line processing definition
+
 #include "FPE_ProcCmdLine.hpp"
 
 // Use if tracing wanted to test/create new tests
@@ -38,24 +29,25 @@
 void coutstr(const std::vector<std::string>& outstr);
 void cerrstr(const std::vector<std::string>& errstr);
 
-//
-// ProcCmdLineTests fixtures and constants
-//
+// =======================
+// UNIT TEST FIXTURE CLASS
+// =======================
 
 class ProcCmdLineTests : public ::testing::Test {
     
 protected:
 
+    // Empty constructor
+    
     ProcCmdLineTests() {
-
     }
 
+    // Empty destructor
+    
     virtual ~ProcCmdLineTests() {
-
     }
 
     virtual void SetUp() {
-
     }
 
     virtual void TearDown() {
@@ -67,6 +59,10 @@ protected:
 
 };
 
+// ===============
+// FIXTURE METHODS
+// ===============
+
 //
 // Count length of argv to pass to procCmdLine.
 //
@@ -76,6 +72,10 @@ int ProcCmdLineTests::argvLen (char *argv[]) {
     while(argv[++argc] != NULL);
     return(argc);
 }
+
+// ==================================
+// COMMAND LINE PROCESSING UNIT TESTS
+// ==================================
 
 //
 // Process command line with no options
@@ -452,6 +452,10 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
 
     
 }
+
+// =====================
+// RUN GOOGLE UNIT TESTS
+// =====================
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

@@ -5,31 +5,22 @@
  * Author: Robert Tizzard
  *
  * Created on October 24, 2016, 2:34 PM
- *
- * The MIT License
+ * 
+ * Description: Google unit tests for FPE*  task action functions.
  *
  * Copyright 2016.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
  */
 
+// =============
+// INCLUDE FILES
+// =============
+
+// Google test definitions
+
 #include "gtest/gtest.h"
+
+// Task Action function and process command line definitions
 
 #include "FPE_ActionFuncs.hpp"
 #include "FPE_ProcCmdLine.hpp"
@@ -40,33 +31,38 @@
 
 namespace fs = boost::filesystem;
 
-// Use if tracing wanted to test/create new tests
+// Used from FPE.cpp if tracing wanted to test/create new tests
 
 void coutstr(const std::vector<std::string>& outstr);
 void cerrstr(const std::vector<std::string>& errstr);
 
-
-//
-// ActionFuncsTests fixtures and constants
-//
+// =======================
+// UNIT TEST FIXTURE CLASS
+// =======================
 
 class ActionFuncsTests : public ::testing::Test {
+    
 protected:
 
+     // Empty constructor
+    
     ActionFuncsTests() {
-
-        // Create function data (wrap in void shared pointer for passing to task).
-        
-        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, "", nullptr, nullptr});
-        this->funcData = static_cast<ActFnData *> (this->fnData.get());
-
     }
 
+    // Empty destructor
+    
     virtual ~ActionFuncsTests() {
     }
 
+    // Keep initialization and cleanup code to SetUp() and TearDown() methods
+    
     virtual void SetUp() {
-
+        
+       // Create function data (wrap in void shared pointer for passing to task).
+        
+        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, "", nullptr, nullptr});
+        this->funcData = static_cast<ActFnData *> (this->fnData.get());
+        
         // Create watch folder.
 
         if (!fs::exists( ActionFuncsTests::kWatchFolder)) {
@@ -78,6 +74,7 @@ protected:
         if (!fs::exists( ActionFuncsTests::kDestinationFolder)) {
             fs::create_directory( ActionFuncsTests::kDestinationFolder);
         }
+   
 
     }
 
@@ -127,11 +124,19 @@ protected:
 
 };
 
+// =================
+// FIXTURE CONSTANTS
+// =================
+
 const std::string ActionFuncsTests:: kWatchFolder("/tmp/watch/");
 const std::string ActionFuncsTests:: kDestinationFolder("/tmp/destination/");
 
 const std::string ActionFuncsTests::kParamAssertion1("Assertion*"); // NEED TO MODIFY FOR SPECIFIC ASSERTS
 const std::string ActionFuncsTests::kParamAssertion2("Assertion*");
+
+// ===============
+// FIXTURE METHODS
+// ===============
 
 //
 // Create a file for test purposes.
@@ -145,11 +150,9 @@ void ActionFuncsTests::createFile(std::string fileName) {
 
 }
 
-//
 // ====================
 // TASK COPY FILE TESTS
 // ====================
-//
 
 //
 // Function data null pointer Assert.
@@ -266,11 +269,9 @@ TEST_F(ActionFuncsTests, TaskCopyFileDestinationExistsDeleteSource) {
 
 }
 
-//
 // ======================
 // TASK RUN COMMAND TESTS
 // ======================
-//
 
 //
 // Function data null pointer Assert
@@ -410,11 +411,9 @@ TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommandSourceExistsTryToDelete) {
 
 }
 
-//
 // ====================
 // TASK HANDBRAKE TESTS
 // ====================
-//
 
 //
 // Function data null pointer ASSERT
@@ -477,9 +476,9 @@ TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFileDeleteSource) {
 
 }
 
-//
-// RUN GOOGLE TEST
-//
+// =====================
+// RUN GOOGLE UNIT TESTS
+// =====================
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

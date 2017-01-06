@@ -101,7 +101,7 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
             
             if (vm.count("help")) {
                 std::cout << "File Processing Engine Application" << std::endl << desc << std::endl;
-                exit(0);
+                exit(EXIT_SUCCESS);
             }
 
             // Copy watched files.
@@ -162,7 +162,7 @@ void procCmdLine (int argc, char** argv, ParamArgData &argData) {
         } catch (po::error& e) {
             std::cerr << "FPE Error: " << e.what() << std::endl << std::endl;
             std::cerr << desc << std::endl;
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     
 }

@@ -28,6 +28,8 @@
 // INCLUDE FILES
 // =============
 
+// File Processing Engine Definitions
+
 #include "FPE.hpp"
 
 // ===============
@@ -278,14 +280,17 @@ int main(int argc, char** argv) {
 
     } catch (const fs::filesystem_error & e) {
         cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
+        exit(EXIT_FAILURE);
     } catch (const std::system_error &e) {
         cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
+        exit(EXIT_FAILURE);
     } catch (const std::exception & e) {
         cerrstr({"Standard exception occured: [", e.what(), "]"});
+        exit(EXIT_FAILURE);
     }
 
     coutstr({"FPE Exiting."});
 
-    exit(0);
+    exit(EXIT_SUCCESS);
 
 } 

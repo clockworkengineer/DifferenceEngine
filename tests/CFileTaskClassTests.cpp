@@ -5,36 +5,27 @@
  * Author: Robert Tizzard
  *
  * Created on October 24, 2016, 2:34 PM
- *
- * The MIT License
+ * 
+ * Description: Google unit tests for class CFileTask.
  *
  * Copyright 2016.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
  */
+
+// =============
+// INCLUDE FILES
+// =============
+
+// Google test definitions
 
 #include "gtest/gtest.h"
 
-#include <stdexcept>
-#include <chrono>
+// C++ STL definitions
 
-#include "FPE_ActionFuncs.hpp"
+#include <stdexcept>
+
+// CFileTask class definitions
+
 #include "CFileTask.hpp" 
 
 // Boost file system and format libraries definitions
@@ -44,10 +35,14 @@
 
 namespace fs = boost::filesystem;
 
-// Use if tracing wanted to test/create new tests
+// Use from FPE.cpp  if tracing wanted to test/create new tests
 
 void coutstr(const std::vector<std::string>& outstr);
 void cerrstr(const std::vector<std::string>& errstr);
+
+// =======================
+// UNIT TEST FIXTURE CLASS
+// =======================
 
 // Test Action function data
 
@@ -55,14 +50,23 @@ struct TestActFnData {
     int fnCalledCount; // How many times action function called
 };
 
-//
-// CFileTaskTests fixtures and constants
-//
 
 class CFileTaskTests : public ::testing::Test {
 protected:
+    
+    // Empty constructor
 
     CFileTaskTests() {
+    }
+
+    // Empty destructor
+    
+    virtual ~CFileTaskTests() {
+    }
+    
+    // Keep initialization and cleanup code to SetUp() and TearDown() methods
+
+    virtual void SetUp() {
 
         // Create function data (wrap in void shared pointer for passing to task).
 
@@ -70,13 +74,6 @@ protected:
         funcData = static_cast<TestActFnData *> (fnData.get());
 
         this->taskOptions.reset(new CFileTask::TaskOptions{0, nullptr, nullptr});
-
-    }
-
-    virtual ~CFileTaskTests() {
-    }
-
-    virtual void SetUp() {
 
         // Create watch folder.
 
@@ -108,18 +105,18 @@ protected:
 
     }
 
-    void createFile(std::string fileName); // Create a test file.
-    void createFiles(int fileCount); // Create fileCount files and check action function call count
+    void createFile(std::string fileName);           // Create a test file.
+    void createFiles(int fileCount);                 // Create fileCount files and check action function call count
     void generateException(std::exception_ptr e);
 
-    std::shared_ptr<void> fnData; // Action function data shared pointer wrapper
-    TestActFnData *funcData; // Action function data 
+    std::shared_ptr<void> fnData;   // Action function data shared pointer wrapper
+    TestActFnData *funcData;        // Action function data 
 
-    std::string filePath = ""; // Test file path
-    std::string fileName = ""; // Test file name
-    int watchDepth = -1; // Folder Watch depth
-    std::string taskName = ""; // Task Name
-    std::string watchFolder = ""; // Watch Folder
+    std::string filePath = "";      // Test file path
+    std::string fileName = "";      // Test file name
+    int watchDepth = -1;            // Folder Watch depth
+    std::string taskName = "";      // Task Name
+    std::string watchFolder = "";   // Watch Folder
 
     CFileTask::TaskActionFcn taskActFcn; // Task Action Function Data
     std::shared_ptr<CFileTask::TaskOptions> taskOptions; // Task options
@@ -135,6 +132,10 @@ protected:
 
 };
 
+// =================
+// FIXTURE CONSTANTS
+// =================
+
 const std::string CFileTaskTests::kWatchFolder("/tmp/watch/");
 const std::string CFileTaskTests::kDestinationFolder("/tmp/destination/");
 
@@ -143,6 +144,10 @@ const std::string CFileTaskTests::kParamAssertion2("Assertion*");
 const std::string CFileTaskTests::kParamAssertion3("Assertion*");
 const std::string CFileTaskTests::kParamAssertion4("Assertion*");
 const std::string CFileTaskTests::kParamAssertion5("Assertion*");
+
+// ===============
+// FIXTURE METHODS
+// ===============
 
 //
 // Create a file for test purposes.
@@ -168,7 +173,7 @@ void CFileTaskTests::createFiles(int fileCount) {
 
     // Simple test action function that just increases call count
 
-    this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
+    this->taskActFcn = [] ( const std::string &filenamePath, const std::shared_ptr<void> fnData) -> bool {
         TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
         funcData->fnCalledCount++;
         return true;
@@ -187,10 +192,7 @@ void CFileTaskTests::createFiles(int fileCount) {
     std::unique_ptr<std::thread> taskThread;
 
     taskThread.reset(new std::thread(&CFileTask::monitor, &task));
-    
- //   std::chrono::seconds dura( 5);
- //   std::this_thread::sleep_for( dura );
-  
+     
     this->filePath = CFileTaskTests::kWatchFolder;
 
     for (auto cnt01 = 0; cnt01 < fileCount; cnt01++) {
@@ -222,6 +224,10 @@ void CFileTaskTests::generateException(std::exception_ptr e) {
     }
     
 }
+
+// =====================
+// TASK CLASS UNIT TESTS
+// =====================
 
 //
 // Task Name lengh == 0 ASSERT
@@ -359,14 +365,12 @@ TEST_F(CFileTaskTests, CFileTaskNoWatchFolder) {
 
     // Simple test action function that does nothing
 
-    this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
+    this->taskActFcn = [] (const std::string& filenamePath, const std::shared_ptr<void> fnData) -> bool {
         TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
         return true;
     };
 
     // Create task object
-    
-    //CFileTask task{this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions};
 
     EXPECT_THROW(CFileTask task(this->taskName, this->watchFolder, this->taskActFcn, this->fnData, this->watchDepth, this->taskOptions), std::system_error);
 
@@ -385,7 +389,7 @@ TEST_F(CFileTaskTests, CFileTaskTaskActionFunctionException) {
 
     // Simple test action function that just throws an exception
 
-    this->taskActFcn = [] (auto filenamePathStr, auto fnData) -> bool {
+    this->taskActFcn = [] (const std::string& filenamePath, const std::shared_ptr<void> fnData) -> bool {
         TestActFnData *funcData = static_cast<TestActFnData *> (fnData.get());
         throw std::logic_error("Just an example.");
         return true;
@@ -421,10 +425,9 @@ TEST_F(CFileTaskTests, CFileTaskTaskActionFunctionException) {
 
 }
 
-//
-//
-// RUN GOOGLE TEST
-//
+// =====================
+// RUN GOOGLE UNIT TESTS
+// =====================
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
