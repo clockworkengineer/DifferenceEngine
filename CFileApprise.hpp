@@ -16,8 +16,6 @@
 // C++ STL definitions
 //
 
-#include <iostream>
-#include <cstdlib>
 #include <unordered_map>
 #include <thread>
 #include <queue>
@@ -28,6 +26,12 @@
 #include <cassert>
 #include <algorithm>
 #include <set>
+
+//
+// CLogger trace output
+//
+
+#include "CLogger.hpp"
 
 //
 // inotify definitions
@@ -54,9 +58,9 @@ public:
     struct Options {
         uint32_t inotifyWatchMask;                                // inotify watch event mask
         void (*displayInotifyEvent)(struct inotify_event *event); // Display inotify event to stdout
-        void (*coutstr) (const std::vector<std::string>& outstr); // coutstr output
-        void (*cerrstr) (const std::vector<std::string>& errstr); // cerrstr output
-    };
+        CLogger::LogStringsFn coutstr;                              // coutstr output
+        CLogger::LogStringsFn cerrstr;                              // cerrstr output
+     };
     
     //
     // CFileApprise Event ids
@@ -180,11 +184,9 @@ private:
 
     void (*displayInotifyEvent)(struct inotify_event *event) = [] (struct inotify_event *event) {
     };
-    void (*coutstr) (const std::vector<std::string>& outstr) = [] (const std::vector<std::string>& outstr) {
-    };
-    void (*cerrstr) (const std::vector<std::string>& errstr) = [] (const std::vector<std::string>& errstr) {
-    };
-
+    
+    CLogger::LogStringsFn coutstr = CLogger::noOp;
+    CLogger::LogStringsFn cerrstr = CLogger::noOp; 
 
 };
 #endif /* IAPPRISE_HPP */

@@ -209,7 +209,7 @@ CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::
         if (options->cerrstr) {
             this->cerrstr = options->cerrstr;
         }
-    }
+    } 
 
     // Add ending '/' if missing from path
 

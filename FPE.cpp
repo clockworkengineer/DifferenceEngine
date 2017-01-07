@@ -37,87 +37,6 @@
 // ===============
 
 //
-// Standard cout for string of vectors. All calls to this function from different
-// threads are guarded by mutex mOutput (this is static but local to the function).
-//
-
-void coutstr(const std::vector<std::string>& outstr) {
-
-    static std::mutex mOutput;
-    std::lock_guard<std::mutex> locker(mOutput);
-
-    if (!outstr.empty()) {
-
-        for (auto str : outstr) {
-            std::cout << str;
-        }
-
-        std::cout << std::endl;
-
-    }
-
-}
-
-//
-// Standard cerr for string of vectors. All calls to this function from different
-// threads are guarded by mutex mError (this is static but local to the function).
-//
-
-void cerrstr(const std::vector<std::string>& errstr) {
-
-    static std::mutex mError;
-    std::lock_guard<std::mutex> locker(mError);
-
-    if (!errstr.empty()) {
-
-        for (auto str : errstr) {
-            std::cerr << str;
-        }
-
-        std::cerr << std::endl;
-
-    }
-
-}
-
-//
-// Get string for current date time
-//
-
-const std::string currentDateAndTime() {
-
-    return(pt::to_simple_string(pt::second_clock::local_time()));
-
-}
-
-//
-// Add timestamp to coutstr output
-//
-
-void coutstrTimeStamped(const std::vector<std::string>& outstr) {
-
-    if (!outstr.empty()) {
-        std::vector<std::string> newstr { "[" + currentDateAndTime() + "]" };
-        newstr.insert(newstr.end(), outstr.begin(), outstr.end() );
-        coutstr(newstr);
-    }
-
-}
-
-//
-// Add timestamp to cerrstr output
-//
-
-void cerrstrTimeStamped(const std::vector<std::string>& errstr) {
-
-    if (!errstr.empty()) {
-        std::vector<std::string> newstr { "[" + currentDateAndTime() + "]" };
-        newstr.insert(newstr.end(), errstr.begin(), errstr.end() );
-        cerrstr(errstr);
-    }
-}
-
-//
 // Create task and run in thread.
 //
 
@@ -132,7 +51,7 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
 
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
         argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-        argData.extension, ((argData.bQuiet) ? nullptr : coutstrTimeStamped), ((argData.bQuiet) ? nullptr : cerrstrTimeStamped)});
+        argData.extension, ((argData.bQuiet) ? nullptr : CLogger::coutstrTimeStamped), ((argData.bQuiet) ? nullptr : CLogger::cerrstrTimeStamped)});
 
     // Use function data to access set coutstr/cerrstr
 
@@ -186,11 +105,11 @@ int main(int argc, char** argv) {
 
         // FPE up and running
 
-        coutstr({"FPE Running..."});
+        CLogger::coutstr({"FPE Running..."});
 
         // Display BOOST version
 
-        coutstr({"Using Boost ",
+        CLogger::coutstr({"Using Boost ",
             std::to_string(BOOST_VERSION / 100000), ".", // major version
             std::to_string(BOOST_VERSION / 100 % 1000), ".", // minor version
             std::to_string(BOOST_VERSION % 100)}); // patch level
@@ -198,70 +117,70 @@ int main(int argc, char** argv) {
         // Create watch folder for task.
 
         if (!fs::exists(argData.watchFolder)) {
-            coutstr({"Watch folder [", argData.watchFolder, "] DOES NOT EXIST."});
+            CLogger::coutstr({"Watch folder [", argData.watchFolder, "] DOES NOT EXIST."});
             if (fs::create_directory(argData.watchFolder)) {
-                coutstr({"Creating watch folder [", argData.watchFolder, "]"});
+                CLogger::coutstr({"Creating watch folder [", argData.watchFolder, "]"});
             }
         }
 
         // Create destination folder for task
 
         if (!fs::exists(argData.destinationFolder)) {
-            coutstr({"Destination folder ", argData.destinationFolder, " does not exist."});
+            CLogger::coutstr({"Destination folder ", argData.destinationFolder, " does not exist."});
             if (fs::create_directory(argData.destinationFolder)) {
-                coutstr({"Creating destination folder ", argData.destinationFolder});
+                CLogger::coutstr({"Creating destination folder ", argData.destinationFolder});
             }
         }
 
         // Signal file copy task
 
         if (argData.bFileCopy) {
-            coutstr({"*** FILE COPY TASK ***"});
+            CLogger::coutstr({"*** FILE COPY TASK ***"});
         }
 
         // Signal video conversion task
 
         if (argData.bVideoConversion) {
-            coutstr({"*** VIDEO CONVERSION TASK ***"});
+            CLogger::coutstr({"*** VIDEO CONVERSION TASK ***"});
         }
 
         // Signal run command task
 
         if (argData.bRunCommand) {
-            coutstr({"*** RUN COMMAND TASK ***"});
+            CLogger::coutstr({"*** RUN COMMAND TASK ***"});
         }
 
         // Signal quiet mode
 
         if (argData.bQuiet) {
-            coutstr({"*** QUIET MODE ***"});
+            CLogger::coutstr({"*** QUIET MODE ***"});
         }
 
         // Signal source will be deleted on success
 
         if (argData.bDeleteSource) {
-            coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
+            CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
         }
 
         // Signal using single thread
 
         if (argData.bSingleThread) {
-            coutstr({"*** SINGLE THREAD ***"});
+            CLogger::coutstr({"*** SINGLE THREAD ***"});
         }
 
         // Signal using killCount
 
         if (argData.killCount) {
-            coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
+            CLogger::coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
         }
 
         // Output to log file ( CRedirect(std::cout) is the simplest solution). Once the try is exited
         // CRedirect object will be destroyed and cout restored.
 
         if (!argData.logFileName.empty()) {
-            coutstr({"*** LOG FILE = ", argData.logFileName, " ***"});
+            CLogger::coutstr({"*** LOG FILE = ", argData.logFileName, " ***"});
             logFile.change(argData.logFileName, std::ios_base::out | std::ios_base::app);
-            coutstr({std::string(100, '=')});
+            CLogger::coutstr({std::string(100, '=')});
         }
 
         // Create task object
@@ -279,17 +198,17 @@ int main(int argc, char** argv) {
     //    
 
     } catch (const fs::filesystem_error & e) {
-        cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
+        CLogger::cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
         exit(EXIT_FAILURE);
     } catch (const std::system_error &e) {
-        cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
+        CLogger::cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
         exit(EXIT_FAILURE);
     } catch (const std::exception & e) {
-        cerrstr({"Standard exception occured: [", e.what(), "]"});
+        CLogger::cerrstr({"Standard exception occured: [", e.what(), "]"});
         exit(EXIT_FAILURE);
     }
 
-    coutstr({"FPE Exiting."});
+    CLogger::coutstr({"FPE Exiting."});
 
     exit(EXIT_SUCCESS);
 

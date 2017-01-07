@@ -14,11 +14,11 @@
 
 // C++ STL definitions
 
-#include <iostream>
-#include <mutex>
+//#include <iostream>
+//#include <mutex>
 #include <system_error>
 #include <memory>
-#include <fstream>
+//#include <fstream>
 
 // Task class
 
@@ -36,13 +36,15 @@
 
 #include "CRedirect.hpp" 
 
-// Boost file system and date and time libraries definitions
+// CLogger Class
+
+#include "CLogger.hpp"
+
+// Boost file system, date and time libraries definitions
 
 #include <boost/filesystem.hpp>
-#include <boost/date_time.hpp>
 
 namespace fs = boost::filesystem;
-namespace pt = boost::posix_time;
 
 #endif /* FPE_HPP */
 

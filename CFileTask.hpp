@@ -20,6 +20,12 @@
 #include <cassert>
 
 //
+// CLogger trace output
+//
+
+#include "CLogger.hpp"
+
+//
 // CFileApprise file event watcher
 //
 
@@ -41,18 +47,17 @@ public:
     // Task action function
     //
     
-    typedef bool (*TaskActionFcn)(const std::string& filenamePath,
-            const std::shared_ptr<void>fnData);
-
+    typedef std::function<bool (const std::string&, const std::shared_ptr<void>)> TaskActionFcn;
+ 
     //
     // Task options structure (optionally pass to CFileTask constructor)
     // Note:After killCount files processed stop task (0 = disabled)
     //
     
     struct TaskOptions {
-        int killCount;                                            // file kill count
-        void (*coutstr) (const std::vector<std::string>& outstr); // coutstr output
-        void (*cerrstr) (const std::vector<std::string>& errstr); // cerrstr output
+        int killCount;                // file kill count
+        CLogger::LogStringsFn coutstr;  // coutstr output
+        CLogger::LogStringsFn cerrstr;  // cerrstr output
     };
     
     // ===========
@@ -129,11 +134,9 @@ private:
 
     std::string prefix; // Task trace prefix
 
-    void (*coutstr) (const std::vector<std::string>& outstr) = [] (const std::vector<std::string>& outstr) {
-    };
-    void (*cerrstr) (const std::vector<std::string>& errstr) = [] (const std::vector<std::string>& errstr) {
-    }; 
-
+    CLogger::LogStringsFn coutstr  = CLogger::noOp;
+    CLogger::LogStringsFn cerrstr = CLogger::noOp; 
+ 
 };
 #endif /* FPETASK_HPP */
 
