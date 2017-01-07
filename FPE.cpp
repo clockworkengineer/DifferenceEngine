@@ -18,7 +18,7 @@
  * All of this can be setup by using parameters  passed to the program from
  * command line (FPE --help for a full list).
  * 
- * Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise), Linux, Boost C++ Libraries.
+ * Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise, CLogger), Linux, Boost C++ Libraries.
  *
  * Copyright 2016.
  *

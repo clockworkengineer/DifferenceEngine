@@ -14,11 +14,8 @@
 
 // C++ STL definitions
 
-//#include <iostream>
-//#include <mutex>
 #include <system_error>
 #include <memory>
-//#include <fstream>
 
 // Task class
 

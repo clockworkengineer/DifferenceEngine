@@ -5,6 +5,11 @@
  * 
  * Created on January 6, 2017, 6:37 PM
  * 
+ * Class: CLogger
+ * 
+ * Description: Class to perform trace output. All functions are designed to
+ * be thread safe are guarded buy a single mutex.
+ * 
  * Copyright 2016.
  * 
  */
@@ -28,6 +33,8 @@ namespace pt = boost::posix_time;
 // ===========================
 // PRIVATE TYPES AND CONSTANTS
 // ===========================
+
+// Trace output no operation
 
 CLogger::LogStringsFn CLogger::noOp  = [] (const std::vector<std::string>& outstr) { };
 

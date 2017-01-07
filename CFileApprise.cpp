@@ -15,7 +15,7 @@
  * watches to be added/removed respectively. The current implementation is for 
  * POSIX only or any platform that has inotify or a third party equivalent.
  * 
- * Dependencies: C11++, inotify
+ * Dependencies: C11++, Classes (CLogger), inotify
  *
  * Copyright 2016.
  *
