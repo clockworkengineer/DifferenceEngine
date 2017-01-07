@@ -7,8 +7,9 @@
  * 
  * Class: CLogger
  * 
- * Description: Class to perform trace output. All functions are designed to
- * be thread safe are guarded buy a single mutex.
+ * Description: Class to perform trace output. All methods are designed to
+ * perform output in a thread safe manor and each is guarded buy a single 
+ * mutex.
  * 
  * Copyright 2016.
  * 

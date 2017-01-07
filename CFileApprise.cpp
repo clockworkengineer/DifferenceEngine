@@ -57,6 +57,53 @@ const std::string CFileApprise::kLogPrefix = "[CFileApprise] ";
 // ===============
 
 //
+// Display Inotify event using coutstr
+//
+
+void CFileApprise::displayInotifyEvent(struct inotify_event *event) {
+    
+#ifdef DISPLAY_INOTIFY_EVENTS
+    
+    std::vector<std::string> outstr;
+
+    outstr.push_back("    wd = " + std::to_string(event->wd) + ";");
+
+    if (event->cookie > 0) {
+        outstr.push_back("cookie = " + std::to_string(event->wd) + ";");
+    }
+
+    std::string mask("mask = ");
+
+    if (event->mask & IN_ACCESS) mask += ("IN_ACCESS ");
+    if (event->mask & IN_ATTRIB) mask += ("IN_ATTRIB ");
+    if (event->mask & IN_CLOSE_NOWRITE) mask += ("IN_CLOSE_NOWRITE ");
+    if (event->mask & IN_CLOSE_WRITE) mask += ("IN_CLOSE_WRITE ");
+    if (event->mask & IN_CREATE) mask += ("IN_CREATE ");
+    if (event->mask & IN_DELETE) mask += ("IN_DELETE ");
+    if (event->mask & IN_DELETE_SELF) mask += ("IN_DELETE_SELF ");
+    if (event->mask & IN_IGNORED) mask += ("IN_IGNORED ");
+    if (event->mask & IN_ISDIR) mask += ("IN_ISDIR ");
+    if (event->mask & IN_MODIFY) mask += ("IN_MODIFY ");
+    if (event->mask & IN_MOVE_SELF) mask += ("IN_MOVE_SELF ");
+    if (event->mask & IN_MOVED_FROM) mask += ("IN_MOVED_FROM ");
+    if (event->mask & IN_MOVED_TO) mask += ("IN_MOVED_TO ");
+    if (event->mask & IN_OPEN) mask += ("IN_OPEN ");
+    if (event->mask & IN_Q_OVERFLOW) mask += ("IN_Q_OVERFLOW ");
+    if (event->mask & IN_UNMOUNT) mask += ("IN_UNMOUNT ");
+
+    outstr.push_back(mask);
+
+    if (event->len > 0) {
+        outstr.push_back("\n        name = " + std::string(event->name));
+    }
+
+    coutstr(outstr);
+    
+#endif // DISPLAY_INOTIFY_EVENTS
+    
+}
+
+//
 // Clean up inotify.
 //
 
@@ -200,9 +247,9 @@ CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::
         if (options->inotifyWatchMask) {
             this->inotifyWatchMask = options->inotifyWatchMask;
         }
-        if (options->displayInotifyEvent) {
-            this->displayInotifyEvent = options->displayInotifyEvent;
-        }
+ //       if (options->displayInotifyEvent) {
+            this->bDisplayInotifyEvent = options->bDisplayInotifyEvent;
+ //       }
         if (options->coutstr) {
             this->coutstr = options->coutstr;
         }
@@ -349,8 +396,12 @@ void CFileApprise::watch(void) {
                 event = (struct inotify_event *) &buffer[ currentPos ];
                 currentPos += CFileApprise::kInotifyEventSize + event->len;
 
-                this->displayInotifyEvent(event);
-
+                // Display inotify event
+                
+                if (this->bDisplayInotifyEvent) {
+                    this->displayInotifyEvent(event);
+                }
+                
                 // IGNORE so move onto next event
                 
                 if (event->mask == IN_IGNORED) {

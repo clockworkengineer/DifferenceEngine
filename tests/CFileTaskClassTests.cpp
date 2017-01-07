@@ -35,11 +35,6 @@
 
 namespace fs = boost::filesystem;
 
-// Use from FPE.cpp  if tracing wanted to test/create new tests
-
-void coutstr(const std::vector<std::string>& outstr);
-void cerrstr(const std::vector<std::string>& errstr);
-
 // =======================
 // UNIT TEST FIXTURE CLASS
 // =======================

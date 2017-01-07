@@ -86,7 +86,7 @@ The current supported event types being
     enum EventId { 
     	Event_none=0,   	// None
     	Event_add,  		// File added to watched folder hierachy
-    	Event_change,   	// File changed (not supported at present)
+    	Event_change,   	// File changed
     	Event_unlink,   	// File deleted from watched folder hierachy
     	Event_addir,		// Directory added to watched folder hierachy
     	Event_unlinkdir,	// Directory deleted from watched folder hierachy
@@ -128,7 +128,8 @@ This executes a simple shell script command (--command) for each file name passe
 # To Do #
 
 1. Add more task options such a using curl.
-3. Look into using std::async instead of raw threads with task class.
+2. Look into using std::async instead of raw threads with task class.
+3. Methods to add remove single watch points.
 
 
 

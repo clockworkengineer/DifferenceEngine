@@ -57,9 +57,9 @@ public:
 
     struct Options {
         uint32_t inotifyWatchMask;                                // inotify watch event mask
-        void (*displayInotifyEvent)(struct inotify_event *event); // Display inotify event to stdout
-        CLogger::LogStringsFn coutstr;                              // coutstr output
-        CLogger::LogStringsFn cerrstr;                              // cerrstr output
+        bool bDisplayInotifyEvent;                                // ==true then display inotify event to coutstr
+        CLogger::LogStringsFn coutstr;                            // coutstr output
+        CLogger::LogStringsFn cerrstr;                            // cerrstr output
      };
     
     //
@@ -144,6 +144,8 @@ private:
     // PRIVATE MEMBER FUNCTIONS
     // ========================
 
+    void displayInotifyEvent(struct inotify_event *event);
+    
     void addWatch(const std::string& filePath);     // Add path to be watched
     void removeWatch(const std::string& filePath);  // Remove path being watched
     void initWatchTable(void);                      // Initialise table for watched folders
@@ -168,7 +170,8 @@ private:
     std::unordered_map<int32_t, std::string> watchMap;          // Watch table indexed by watch variable
     std::unordered_map<std::string, int32_t> revWatchMap;       // Reverse watch table indexed by path
     std::set<std::string> inProcessOfCreation;                  // Set to hold files being created.
-    
+    bool bDisplayInotifyEvent=false;                            // // ==true then display inotify event to coutstr
+       
     // Publicly accessed via accessors
     
     std::exception_ptr thrownException = nullptr;   // Pointer to any exception thrown
@@ -182,8 +185,7 @@ private:
 
     // Trace functions default do nothing (Im sure a batter solution exists but fix later).
 
-    void (*displayInotifyEvent)(struct inotify_event *event) = [] (struct inotify_event *event) {
-    };
+ 
     
     CLogger::LogStringsFn coutstr = CLogger::noOp;
     CLogger::LogStringsFn cerrstr = CLogger::noOp; 

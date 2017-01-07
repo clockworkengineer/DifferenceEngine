@@ -78,7 +78,7 @@ CFileTask::CFileTask(const std::string& taskName,
     
     // Create CFileApprise watcher object. Use same cout/cerr functions as Task.
 
-    this->watcherOptions.reset(new CFileApprise::Options {0, nullptr, this->coutstr, this->cerrstr});
+    this->watcherOptions.reset(new CFileApprise::Options {0, false, this->coutstr, this->cerrstr});
     this->watcher.reset(new CFileApprise{watchFolder, watchDepth, watcherOptions});
 
     // Create CFileApprise object thread and start to watch

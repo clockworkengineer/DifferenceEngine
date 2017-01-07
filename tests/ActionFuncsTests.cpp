@@ -20,6 +20,10 @@
 
 #include "gtest/gtest.h"
 
+// CLogger class definitions
+
+#include "CLogger.hpp"
+
 // Task Action function and process command line definitions
 
 #include "FPE_ActionFuncs.hpp"
@@ -33,8 +37,8 @@ namespace fs = boost::filesystem;
 
 // Used from FPE.cpp if tracing wanted to test/create new tests
 
-void coutstr(const std::vector<std::string>& outstr);
-void cerrstr(const std::vector<std::string>& errstr);
+//void coutstr(const std::vector<std::string>& outstr);
+//void cerrstr(const std::vector<std::string>& errstr);
 
 // =======================
 // UNIT TEST FIXTURE CLASS
@@ -60,7 +64,7 @@ protected:
         
        // Create function data (wrap in void shared pointer for passing to task).
         
-        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, "", nullptr, nullptr});
+        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, "", CLogger::noOp, CLogger::noOp});
         this->funcData = static_cast<ActFnData *> (this->fnData.get());
         
         // Create watch folder.

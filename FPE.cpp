@@ -18,7 +18,8 @@
  * All of this can be setup by using parameters  passed to the program from
  * command line (FPE --help for a full list).
  * 
- * Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise, CLogger), Linux, Boost C++ Libraries.
+ * Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise, CLogger), 
+ *               Linux, Boost C++ Libraries.
  *
  * Copyright 2016.
  *
@@ -51,7 +52,8 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
 
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
         argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-        argData.extension, ((argData.bQuiet) ? nullptr : CLogger::coutstrTimeStamped), ((argData.bQuiet) ? nullptr : CLogger::cerrstrTimeStamped)});
+        argData.extension, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstrTimeStamped), 
+       ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstrTimeStamped)});
 
     // Use function data to access set coutstr/cerrstr
 
