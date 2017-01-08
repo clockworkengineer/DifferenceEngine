@@ -43,12 +43,11 @@ public:
     // DESTRUCTOR
     // ==========
 
-
     ~CRedirect();
 
-    // =======================
-    // PUBLIC MEMBER FUNCTIONS
-    // =======================
+    // ==============
+    // PUBLIC METHODS
+    // ==============
 
     void change(std::string outfileName, std::ios_base::openmode mode = std::ios_base::out);
     void restore(void);
@@ -67,9 +66,9 @@ private:
     CRedirect(const CRedirect & orig) = delete;
     CRedirect(const CRedirect && orig) = delete;
 
-    // ========================
-    // PRIVATE MEMBER FUNCTIONS
-    // ========================
+    // ===============
+    // PRIVATE METHODS
+    // ===============
 
     // =================
     // PRIVATE VARIABLES

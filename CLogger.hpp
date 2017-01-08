@@ -48,9 +48,9 @@ public:
    
     virtual ~CLogger();
     
-    // =======================
-    // PUBLIC MEMBER FUNCTIONS
-    // =======================
+    // ==============
+    // PUBLIC METHODS
+    // ==============
 
     static void coutstr(const std::vector<std::string>& outstr);
     static void cerrstr(const std::vector<std::string>& errstr);
@@ -70,13 +70,12 @@ public:
     
 private:
     
-    // ========================
-    // PRIVATE MEMBER FUNCTIONS
-    // ========================
+    // ===============
+    // PRIVATE METHODS
+    // ===============
 
     static const std::string currentDateAndTime(void);
  
 };
-
 #endif /* CLOGGER_HPP */
 

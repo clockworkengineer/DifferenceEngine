@@ -5,18 +5,20 @@
  * Author: Robert Tizzard
  * 
  * Created on October 24, 2016, 2:33 PM
- * 
- * Class: CFileTask
- * 
- * Description: This class uses the CFileApprise class to generate file add events
- * on a watch folder and to process each file added with a task action function 
- * provided as a parameter in its constructor.
- * 
- * Dependencies: C11++, Classes (CFileApprise, CLogger).
  *
  * Copyright 2016.
  *
  */
+
+//
+// Class: CFileTask
+// 
+// Description: This class uses the CFileApprise class to generate file add events
+// on a watch folder and to process each file added with a task action function 
+// provided as a parameter in its constructor.
+// 
+// Dependencies: C11++, Classes (CFileApprise, CLogger).
+//
 
 // =================
 // CLASS DEFINITIONS

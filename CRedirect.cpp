@@ -5,18 +5,19 @@
  *
  * Created on October 24, 2016, 2:34 PM
  * 
- * Class: CRedirect
- * 
- * Description: This is a small self contained utility class designed 
- * for logging output to a file. Its prime functionality is to provide 
- * a wrapper for pretty generic code that saves away an output streams 
- * read buffer, creates a file stream and redirects the output stream to it. 
- * The code to restore the original output streams is called from the objects 
- * destructor thus providing convenient for restoring the original stream. 
- *
  * Copyright 2016.
  *
  */
+
+// Class: CRedirect
+// 
+// Description: This is a small self contained utility class designed 
+// for logging output to a file. Its prime functionality is to provide 
+// a wrapper for pretty generic code that saves away an output streams 
+// read buffer, creates a file stream and redirects the output stream to it. 
+// The code to restore the original output streams is called from the objects 
+// destructor thus providing convenient for restoring the original stream. 
+//
 
 // =================
 // CLASS DEFINITIONS

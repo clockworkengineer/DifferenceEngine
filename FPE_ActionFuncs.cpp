@@ -5,20 +5,24 @@
  * Author: Robert Tizzard
  * 
  * Created on October 24, 2016, 2:34 PM
- * 
- * Description: The task action functions used by the FPE and their support functions.
- * 
- * Currently three actions are provided.
- *
- * 1) File copy
- * 2) Video file conversion (using handbrake)
- * 3) Run shell command
- * 
- * Dependencies: C11++, classes (CFileTask, CLogger), Linux, Boost C++ Libraries.
  *
  * Copyright 2016.
  *
  */
+
+//
+// Module: Task Action Functions 
+//
+// Description: The task action functions used by the FPE and their support functions.
+// 
+// Currently three actions are provided.
+//
+// 1) File copy
+// 2) Video file conversion (using handbrake)
+// 3) Run shell command
+// 
+// Dependencies: C11++, classes (CFileTask, CLogger), Linux, Boost C++ Libraries.
+//
 
 // =============
 // INCLUDE FILES

@@ -6,25 +6,29 @@
  *
  * Created on October 24, 2016, 2:34 PM
  *
- * Description: This is a generic file processing engine that sets up a
- * watch folder and waits for files/directories to be copied to it. Any 
- * added directories are also watched (this is recursive) but any added files
- * are be processed using one of its built in task action functions
- * 
- * 1) File copy
- * 2) Video file conversion (using Handbrake)
- * 3) Run shell command
- * 
- * All of this can be setup by using parameters  passed to the program from
- * command line (FPE --help for a full list).
- * 
- * Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise, CLogger), 
- *               Linux, Boost C++ Libraries.
- *
  * Copyright 2016.
  *
  */
 
+//
+// Program: File Processing Engine
+//
+// Description: This is a generic file processing engine that sets up a
+// watch folder and waits for files/directories to be copied to it. Any 
+// added directories are also watched (this is recursive) but any added files
+// are be processed using one of its built in task action functions
+// 
+// 1) File copy
+// 2) Video file conversion (using Handbrake)
+// 3) Run shell command
+// 
+// All of this can be setup by using parameters  passed to the program from
+// command line (FPE --help for a full list).
+// 
+// Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise, CLogger), 
+//               Linux, Boost C++ Libraries.
+//
+ 
 // =============
 // INCLUDE FILES
 // =============

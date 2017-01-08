@@ -6,13 +6,17 @@
  *
  * Created on October 24, 2016, 2:34 PM
  * 
- * Description: Parse command line parameters and fill in structure ParamArgData.
- * 
- * Dependencies: C11++, Boost C++ Libraries.
- *
  * Copyright 2016.
- *
+ * 
  */
+
+//
+// Module: Command Line Parameter Proess
+//
+// Description: Parse command line parameters and fill in structure ParamArgData.
+// 
+// Dependencies: C11++, Boost C++ Libraries.
+//
 
 // =============
 // INCLUDE FILES

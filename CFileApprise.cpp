@@ -5,21 +5,23 @@
  * Author: Robert Tizzard
  * 
  * Created on October 24, 2016, 2:33 PM
- * 
- * Class: CFileApprise
- * 
- * Description: A simple C++ class to enable files/folders to be watched and 
- * events generated. Supported events include the addition/deletion of files and
- * directories and the modification of files with a change event. It is recursive 
- * by default and any directories added/removed from the hierarchy will cause new 
- * watches to be added/removed respectively. The current implementation is for 
- * POSIX only or any platform that has inotify or a third party equivalent.
- * 
- * Dependencies: C11++, Classes (CLogger), inotify
  *
  * Copyright 2016.
  *
  */
+
+//
+// Class: CFileApprise
+// 
+// Description: A simple C++ class to enable files/folders to be watched and 
+// events generated. Supported events include the addition/deletion of files and
+// directories and the modification of files with a change event. It is recursive 
+// by default and any directories added/removed from the hierarchy will cause new 
+// watches to be added/removed respectively. The current implementation is for 
+// POSIX only or any platform that has inotify or a third party equivalent.
+//
+// Dependencies: C11++, Classes (CLogger), inotify
+//
 
 // =================
 // CLASS DEFINITIONS
@@ -233,8 +235,7 @@ void CFileApprise::sendEvent(CFileApprise::EventId id, const std::string& fileNa
 // CFileApprise object constructor. 
 //
 
-CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::shared_ptr<CFileApprise::Options> options) : watchFolder{watchFolder}, watchDepth{watchDepth}
-{
+CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::shared_ptr<CFileApprise::Options> options) : watchFolder{watchFolder}, watchDepth{watchDepth}{
 
     // ASSERT if passed parameters invalid
 
@@ -244,12 +245,10 @@ CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::
     // If options passed then setup trace functions and event mask
 
     if (options) {
+        this->bDisplayInotifyEvent = options->bDisplayInotifyEvent;
         if (options->inotifyWatchMask) {
             this->inotifyWatchMask = options->inotifyWatchMask;
         }
- //       if (options->displayInotifyEvent) {
-            this->bDisplayInotifyEvent = options->bDisplayInotifyEvent;
- //       }
         if (options->coutstr) {
             this->coutstr = options->coutstr;
         }

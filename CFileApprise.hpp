@@ -56,20 +56,20 @@ public:
     //
 
     struct Options {
-        uint32_t inotifyWatchMask;                                // inotify watch event mask
-        bool bDisplayInotifyEvent;                                // ==true then display inotify event to coutstr
-        CLogger::LogStringsFn coutstr;                            // coutstr output
-        CLogger::LogStringsFn cerrstr;                            // cerrstr output
+        uint32_t inotifyWatchMask;        // inotify watch event mask
+        bool bDisplayInotifyEvent;        // ==true then display inotify event to coutstr
+        CLogger::LogStringsFn coutstr;    // coutstr output
+        CLogger::LogStringsFn cerrstr;    // cerrstr output
      };
     
     //
-    // CFileApprise Event ids
+    // CFileApprise event identifiers
     //
 
     enum EventId {
         Event_none = 0,     // None
         Event_add,          // File added to watched folder hierarchy
-        Event_change,       // File changed (experimental)
+        Event_change,       // File changed
         Event_unlink,       // File deleted from watched folder hierarchy
         Event_addir,        // Directory added to watched folder hierarchy
         Event_unlinkdir,    // Directory deleted from watched folder hierarchy
@@ -77,7 +77,7 @@ public:
     };
 
     //
-    // CFileApprise Event structure
+    // CFileApprise event structure
     //
     
     struct Event {
@@ -89,9 +89,16 @@ public:
     // CONSTRUCTORS
     // ============
     
-    CFileApprise(const std::string& watchFolder,                        // Watch folder path
-            int watchDepth,                                             // Watch depth -1=all,0=just watch folder,1=next level down etc.
-            std::shared_ptr<CFileApprise::Options> options = nullptr);  // CFileApprise Options (OPTIONAL)
+    //
+    // Main constructor
+    //
+    
+    CFileApprise
+    (
+        const std::string& watchFolder,                            // Watch folder path
+        int watchDepth,                                            // Watch depth -1=all,0=just watch folder,1=next level down etc.
+        std::shared_ptr<CFileApprise::Options> options = nullptr   // CFileApprise Options (OPTIONAL)
+    );
     
     // ==========
     // DESTRUCTOR
@@ -99,26 +106,32 @@ public:
     
     virtual ~CFileApprise();
 
-    // =======================
-    // PUBLIC MEMBER FUNCTIONS
-    // =======================
+    // ==============
+    // PUBLIC METHODS
+    // ==============
 
+    //
     // Control
+    //
     
-    void watch(void);                               // Watch folder(s) for file events to convert for CFileApprise.
-    void stop(void);                                // Stop watch loop/thread
+    void watch(void);    // Watch folder(s) for file events to convert for CFileApprise.
+    void stop(void);     // Stop watch loop/thread
     
+    //
     // Queue access
+    //
     
     void getEvent(CFileApprise::Event& message);    // Get CFileApprise event (waiting if necessary)
     
+    //
     // Private data accessors
+    //
     
     bool stillWatching(void);                       // Is watcher loop till active ?.
     std::exception_ptr getThrownException(void);    // Get any exception thrown by watcher to pass down chain
     
     // ================
-    // PUBLIC VARIABLES (Are the Devil. Use accessor functions).
+    // PUBLIC VARIABLES
     // ================
     
 private:
@@ -126,8 +139,17 @@ private:
     // ===========================
     // PRIVATE TYPES AND CONSTANTS
     // ===========================
+    
+    //
+    // Logging prefix
+    //
 
     static const std::string kLogPrefix;        // Logging output prefix 
+
+    //
+    // inotify
+    //
+    
     static const uint32_t kInofityEvents;       // inotify events to monitor
     static const uint32_t kInotifyEventSize;    // inotify read event size
     static const uint32_t kInotifyEventBuffLen; // inotify read buffer length
@@ -140,29 +162,48 @@ private:
     CFileApprise(const CFileApprise & orig) = delete;
     CFileApprise(const CFileApprise && orig) = delete;
  
-    // ========================
-    // PRIVATE MEMBER FUNCTIONS
-    // ========================
+    // ===============
+    // PRIVATE METHODS
+    // ===============
 
+    //
+    // Display inotify
+    //
+    
     void displayInotifyEvent(struct inotify_event *event);
+    
+    //
+    // Watch processing
+    //
     
     void addWatch(const std::string& filePath);     // Add path to be watched
     void removeWatch(const std::string& filePath);  // Remove path being watched
     void initWatchTable(void);                      // Initialise table for watched folders
     void destroyWatchTable(void);                   // Tare down watch table
 
-    void sendEvent(CFileApprise::EventId id, const std::string& message); // Queue CFileApprise event
+    //
+    // Queue CFileApprise event
+    //
+    
+    void sendEvent(
+        CFileApprise::EventId id,   // Event id
+        const std::string& message  // Filename/message
+    ); 
 
     // =================
     // PRIVATE VARIABLES
     // =================
     
+    //
     // Constructor passed in and intialised
+    //
     
     std::string watchFolder;    // Watch Folder
     int watchDepth;             // Watch depth -1=all,0=just watch folder,1=next level down etc.
 
+    //
     // Inotify
+    //
     
     int inotifyFd;                                              // file descriptor for read
     uint32_t inotifyWatchMask = CFileApprise::kInofityEvents;   // watch event mask
@@ -170,22 +211,24 @@ private:
     std::unordered_map<int32_t, std::string> watchMap;          // Watch table indexed by watch variable
     std::unordered_map<std::string, int32_t> revWatchMap;       // Reverse watch table indexed by path
     std::set<std::string> inProcessOfCreation;                  // Set to hold files being created.
-    bool bDisplayInotifyEvent=false;                            // // ==true then display inotify event to coutstr
-       
+    bool bDisplayInotifyEvent=false;                            // ==true then display inotify event to coutstr
+ 
+    //
     // Publicly accessed via accessors
+    //
     
     std::exception_ptr thrownException = nullptr;   // Pointer to any exception thrown
     std::atomic<bool> bDoWork;                      // doWork=true (run watcher loop) false=(stop watcher loop)
 
+    //
     // Event queue
+    //
     
     std::condition_variable queuedEventsWaiting;    // Queued events conditional
     std::mutex queuedEventsMutex;                   // Queued events mutex
     std::queue <CFileApprise::Event> queuedEvents;  // Queue of CFileApprise events
 
-    // Trace functions default do nothing (Im sure a batter solution exists but fix later).
-
- 
+    // Trace functions default do nothing.
     
     CLogger::LogStringsFn coutstr = CLogger::noOp;
     CLogger::LogStringsFn cerrstr = CLogger::noOp; 
