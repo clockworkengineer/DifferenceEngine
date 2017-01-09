@@ -75,8 +75,8 @@ private:
     // =================
 
     std::unique_ptr<std::ofstream> fileStream = nullptr;
-    std::ostream *outStream;
-    std::streambuf *outBuffer;
+    std::ostream *outStream = nullptr;
+    std::streambuf *outBuffer = nullptr;
 
 };
 #endif /* REDIRECT_HPP */

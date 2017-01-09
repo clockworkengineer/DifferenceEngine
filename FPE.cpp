@@ -52,12 +52,16 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
     assert(taskName.length() != 0);
     assert(taskActFcn != nullptr);
 
+    // Date and Time stamp output
+    
+    CLogger::setDateTimeStamped(true);
+        
     // Create function data (wrap in void shared pointer for passing to task).
 
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
         argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-        argData.extension, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstrTimeStamped), 
-       ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstrTimeStamped)});
+        argData.extension, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
+       ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)});
 
     // Use function data to access set coutstr/cerrstr
 
@@ -81,6 +85,7 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
         taskThread->join();
     } else {
         task.monitor();
+    
     }
 
     // If an exception occurred rethrow (end of chain)
@@ -214,7 +219,7 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    CLogger::coutstr({"FPE Exiting."});
+   CLogger::coutstr({"FPE Exiting."});
 
     exit(EXIT_SUCCESS);
 

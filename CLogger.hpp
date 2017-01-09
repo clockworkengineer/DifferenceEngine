@@ -16,9 +16,9 @@
 // C++ STL definitions
 //
 
-#include <vector>
 #include <functional>
 #include <mutex>
+#include <initializer_list>
 
 // ================
 // CLASS DEFINITION
@@ -32,9 +32,9 @@ public:
     // PUBLIC TYPES AND CONSTANTS
     // ==========================
 
-    typedef  std::function<void (const std::vector<std::string>& )> LogStringsFn;
+    typedef  std::function<void (const std::initializer_list<std::string>& )> LogStringsFn;
     
-    static LogStringsFn noOp;
+    static const LogStringsFn noOp;
     
     // ============
     // CONSTRUCTORS
@@ -52,11 +52,11 @@ public:
     // PUBLIC METHODS
     // ==============
 
-    static void coutstr(const std::vector<std::string>& outstr);
-    static void cerrstr(const std::vector<std::string>& errstr);
-    static void coutstrTimeStamped(const std::vector<std::string>& outstr);
-    static void cerrstrTimeStamped(const std::vector<std::string>& errstr);
- 
+    static void coutstr(const std::initializer_list<std::string>& outstr);
+    static void cerrstr(const std::initializer_list<std::string>& errstr);
+    
+    static void setDateTimeStamped(const bool bDateTimeStamped );
+     
     // ===========================
     // PRIVATE TYPES AND CONSTANTS
     // ===========================
@@ -75,6 +75,13 @@ private:
     // ===============
 
     static const std::string currentDateAndTime(void);
+    
+    // =================
+    // PRIVATE VARIABLES
+    // =================
+
+    static std::mutex mOutput;
+    static bool bDateTimeStamped;
  
 };
 #endif /* CLOGGER_HPP */

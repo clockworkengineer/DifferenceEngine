@@ -37,9 +37,21 @@ namespace pt = boost::posix_time;
 // PRIVATE TYPES AND CONSTANTS
 // ===========================
 
+// ==========================
+// PUBLIC TYPES AND CONSTANTS
+// ==========================
+
 // Trace output no operation
 
-CLogger::LogStringsFn CLogger::noOp  = [] (const std::vector<std::string>& outstr) { };
+const CLogger::LogStringsFn CLogger::noOp = [] (const std::initializer_list<std::string>& outstr) { };
+
+// ========================
+// PRIVATE STATIC VARIABLES
+// ========================
+
+std::mutex CLogger::mOutput;                // Mutex to control access to cout/cerr
+bool CLogger::bDateTimeStamped = false;     // ==true then output timetamped
+
 
 // ===============
 // PRIVATE METHODS
@@ -49,11 +61,12 @@ CLogger::LogStringsFn CLogger::noOp  = [] (const std::vector<std::string>& outst
 // Get string for current date time
 //
 
-const std::string  CLogger::currentDateAndTime(void) {
+const std::string CLogger::currentDateAndTime(void) {
 
-    return(pt::to_simple_string(pt::second_clock::local_time()));
+    return (pt::to_simple_string(pt::second_clock::local_time()));
 
 }
+
 
 // ==============
 // PUBLIC METHODS
@@ -75,72 +88,51 @@ CLogger::~CLogger() {
 }
 
 //
-// Standard cout for string of vectors. All calls to this function from different
-// threads are guarded by mutex mOutput (this is static but local to the function).
+// Set whether log output is to have a date and time stamp.
 //
 
-void CLogger::coutstr(const std::vector<std::string>& outstr) {
+void CLogger::setDateTimeStamped(const bool bDateTimeStamped) {
+    CLogger::bDateTimeStamped = bDateTimeStamped;
+}
+ 
+//
+// Standard cout for intialiser list of strings. All calls to this function from different
+// threads are guarded by mutex CLogger::mOutput.
+//
 
-    static std::mutex mOutput;
-    std::lock_guard<std::mutex> locker(mOutput);
+void CLogger::coutstr(const std::initializer_list<std::string>& outstr) {
 
-    if (!outstr.empty()) {
+    std::lock_guard<std::mutex> locker(CLogger::mOutput);
 
+    if (outstr.size() > 0) {
+        if (CLogger::bDateTimeStamped) {
+            std::cout << ("[" + currentDateAndTime() + "]");
+        }
         for (auto str : outstr) {
             std::cout << str;
         }
-
         std::cout << std::endl;
-
     }
 
 }
 
 //
-// Standard cerr for string of vectors. All calls to this function from different
-// threads are guarded by mutex mError (this is static but local to the function).
+// Standard cerr for intialiser list of strings. All calls to this function from different
+// threads are guarded by mutex CLogger::mOutput.
 //
 
-void  CLogger::cerrstr(const std::vector<std::string>& errstr) {
+void CLogger::cerrstr(const std::initializer_list<std::string>& errstr) {
 
-    static std::mutex mError;
-    std::lock_guard<std::mutex> locker(mError);
+    std::lock_guard<std::mutex> locker(CLogger::mOutput);
 
-    if (!errstr.empty()) {
-
+    if (errstr.size() > 0) {
+        if (CLogger::bDateTimeStamped) {
+            std::cout << ("[" + currentDateAndTime() + "]");
+        }
         for (auto str : errstr) {
             std::cerr << str;
         }
-
         std::cerr << std::endl;
-
     }
 
-}
-
-//
-// Add timestamp to coutstr output
-//
-
-void  CLogger::coutstrTimeStamped(const std::vector<std::string>& outstr) {
-
-    if (!outstr.empty()) {
-        std::vector<std::string> newstr { "[" + currentDateAndTime() + "]" };
-        newstr.insert(newstr.end(), outstr.begin(), outstr.end() );
-        coutstr(newstr);
-    }
-
-}
-
-//
-// Add timestamp to cerrstr output
-//
-
-void  CLogger::cerrstrTimeStamped(const std::vector<std::string>& errstr) {
-
-    if (!errstr.empty()) {
-        std::vector<std::string> newstr { "[" + currentDateAndTime() + "]" };
-        newstr.insert(newstr.end(), errstr.begin(), errstr.end() );
-        cerrstr(errstr);
-    }
 }

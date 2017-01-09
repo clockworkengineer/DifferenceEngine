@@ -54,6 +54,14 @@ const uint32_t CFileApprise::kInotifyEventBuffLen = (1024 * (CFileApprise::kInot
 
 const std::string CFileApprise::kLogPrefix = "[CFileApprise] ";
 
+// ==========================
+// PUBLIC TYPES AND CONSTANTS
+// ==========================
+
+// ========================
+// PRIVATE STATIC VARIABLES
+// ========================
+
 // ===============
 // PRIVATE METHODS
 // ===============
@@ -467,11 +475,18 @@ void CFileApprise::watch(void) {
                         this->sendEvent(CFileApprise::Event_unlink, filePath);
                         break;
                     }
+
+                    // File moved into directory send Event_add.
                     
-                    // File closed/moved. If being created send Event_add otherwise Event_change.
+                    case IN_MOVED_TO:
+                    {
+                        this->sendEvent(CFileApprise::Event_add, filePath);
+                        break;
+                    }
+                        
+                    // File closed. If being created send Event_add otherwise Event_change.
 
                     case IN_CLOSE_WRITE:
-                    case IN_MOVED_TO:
                     {
                         auto beingCreated = this->inProcessOfCreation.find(filePath);
                         if (beingCreated == this->inProcessOfCreation.end()) {
