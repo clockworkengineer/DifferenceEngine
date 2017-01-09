@@ -39,8 +39,8 @@
 
 // inotify events to recieve
 
-const uint32_t CFileApprise::kInofityEvents =  IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
-                                               IN_DELETE_SELF | IN_CLOSE_WRITE | IN_DELETE | IN_MODIFY;
+const uint32_t CFileApprise::kInofityEvents = IN_ISDIR | IN_CREATE | IN_MOVED_TO | IN_MOVED_FROM |
+        IN_DELETE_SELF | IN_CLOSE_WRITE | IN_DELETE | IN_MODIFY;
 
 // inotify event structure size
 
@@ -71,55 +71,54 @@ const std::string CFileApprise::kLogPrefix = "[CFileApprise] ";
 //
 
 void CFileApprise::displayInotifyEvent(struct inotify_event *event) {
-    
-#ifdef DISPLAY_INOTIFY_EVENTS
-    
-    std::vector<std::string> outstr;
 
-    outstr.push_back("    wd = " + std::to_string(event->wd) + ";");
+#ifdef DISPLAY_INOTIFY_EVENTS
+
+    std::string outstr{("    wd = " + std::to_string(event->wd) + ";")};
 
     if (event->cookie > 0) {
-        outstr.push_back("cookie = " + std::to_string(event->wd) + ";");
+        outstr += ("cookie = " + std::to_string(event->wd) + ";");
     }
 
-    std::string mask("mask = ");
+    outstr += ("mask = ");
 
-    if (event->mask & IN_ACCESS) mask += ("IN_ACCESS ");
-    if (event->mask & IN_ATTRIB) mask += ("IN_ATTRIB ");
-    if (event->mask & IN_CLOSE_NOWRITE) mask += ("IN_CLOSE_NOWRITE ");
-    if (event->mask & IN_CLOSE_WRITE) mask += ("IN_CLOSE_WRITE ");
-    if (event->mask & IN_CREATE) mask += ("IN_CREATE ");
-    if (event->mask & IN_DELETE) mask += ("IN_DELETE ");
-    if (event->mask & IN_DELETE_SELF) mask += ("IN_DELETE_SELF ");
-    if (event->mask & IN_IGNORED) mask += ("IN_IGNORED ");
-    if (event->mask & IN_ISDIR) mask += ("IN_ISDIR ");
-    if (event->mask & IN_MODIFY) mask += ("IN_MODIFY ");
-    if (event->mask & IN_MOVE_SELF) mask += ("IN_MOVE_SELF ");
-    if (event->mask & IN_MOVED_FROM) mask += ("IN_MOVED_FROM ");
-    if (event->mask & IN_MOVED_TO) mask += ("IN_MOVED_TO ");
-    if (event->mask & IN_OPEN) mask += ("IN_OPEN ");
-    if (event->mask & IN_Q_OVERFLOW) mask += ("IN_Q_OVERFLOW ");
-    if (event->mask & IN_UNMOUNT) mask += ("IN_UNMOUNT ");
-
-    outstr.push_back(mask);
+    if (event->mask & IN_ACCESS) outstr += ("IN_ACCESS ");
+    if (event->mask & IN_ATTRIB) outstr += ("IN_ATTRIB ");
+    if (event->mask & IN_CLOSE_NOWRITE) outstr += ("IN_CLOSE_NOWRITE ");
+    if (event->mask & IN_CLOSE_WRITE) outstr += ("IN_CLOSE_WRITE ");
+    if (event->mask & IN_CREATE) outstr += ("IN_CREATE ");
+    if (event->mask & IN_DELETE) outstr += ("IN_DELETE ");
+    if (event->mask & IN_DELETE_SELF) outstr += ("IN_DELETE_SELF ");
+    if (event->mask & IN_IGNORED) outstr += ("IN_IGNORED ");
+    if (event->mask & IN_ISDIR) outstr += ("IN_ISDIR ");
+    if (event->mask & IN_MODIFY) outstr += ("IN_MODIFY ");
+    if (event->mask & IN_MOVE_SELF) outstr += ("IN_MOVE_SELF ");
+    if (event->mask & IN_MOVED_FROM) outstr += ("IN_MOVED_FROM ");
+    if (event->mask & IN_MOVED_TO) outstr += ("IN_MOVED_TO ");
+    if (event->mask & IN_OPEN) outstr += ("IN_OPEN ");
+    if (event->mask & IN_Q_OVERFLOW) outstr += ("IN_Q_OVERFLOW ");
+    if (event->mask & IN_UNMOUNT) outstr += ("IN_UNMOUNT ");
 
     if (event->len > 0) {
-        outstr.push_back("\n        name = " + std::string(event->name));
+        outstr += ("\n        name = " + std::string(event->name));
     }
 
-    coutstr(outstr);
-    
+    this->coutstr({outstr});
+
 #endif // DISPLAY_INOTIFY_EVENTS
-    
+
 }
 
 //
-// Clean up inotify.
+// Clean up inotify. Not closing the inotify file descriptor cleans up all
+// used resources including watch descriptors but removing them all before
+// hand will cause any pending read for events to return and the watcher loop
+// to stop.
 //
 
 void CFileApprise::destroyWatchTable(void) {
 
-     for (auto it = this->watchMap.begin(); it != this->watchMap.end(); ++it) {
+    for (auto it = this->watchMap.begin(); it != this->watchMap.end(); ++it) {
 
         if (inotify_rm_watch(this->inotifyFd, it->first) == -1) {
             throw std::system_error(std::error_code(errno, std::system_category()), "inotify_rm_watch() error");
@@ -132,7 +131,7 @@ void CFileApprise::destroyWatchTable(void) {
     if (close(this->inotifyFd) == -1) {
         throw std::system_error(std::error_code(errno, std::system_category()), "inotify close() error");
     }
-    
+
 }
 
 //
@@ -243,7 +242,8 @@ void CFileApprise::sendEvent(CFileApprise::EventId id, const std::string& fileNa
 // CFileApprise object constructor. 
 //
 
-CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::shared_ptr<CFileApprise::Options> options) : watchFolder{watchFolder}, watchDepth{watchDepth}{
+CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::shared_ptr<CFileApprise::Options> options) : watchFolder{watchFolder}, watchDepth{watchDepth}
+{
 
     // ASSERT if passed parameters invalid
 
@@ -263,7 +263,7 @@ CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::
         if (options->cerrstr) {
             this->cerrstr = options->cerrstr;
         }
-    } 
+    }
 
     // Add ending '/' if missing from path
 
@@ -329,7 +329,7 @@ std::exception_ptr CFileApprise::getThrownException(void) {
 // Get next CFileApprise event in queue.
 //
 
-void CFileApprise::getEvent( CFileApprise::Event& evt) {
+void CFileApprise::getEvent(CFileApprise::Event& evt) {
 
     std::unique_lock<std::mutex> locker(this->queuedEventsMutex);
 
@@ -375,56 +375,56 @@ void CFileApprise::stop(void) {
 void CFileApprise::watch(void) {
 
     std::uint8_t *buffer = this->inotifyBuffer.get();
-    struct inotify_event *event; 
-    std::string  filePath;
+    struct inotify_event *event;
+    std::string filePath;
 
     this->coutstr({CFileApprise::kLogPrefix, "CFileApprise watch loop started"});
 
     try {
 
         // Loop until told to stop
-        
+
         while (this->bDoWork.load()) {
 
             int readLen, currentPos = 0;
 
             // Read in events
-            
+
             if ((readLen = read(this->inotifyFd, buffer, CFileApprise::kInotifyEventBuffLen)) == -1) {
                 throw std::system_error(std::error_code(errno, std::system_category()), "inotify read() error");
             }
 
             // Loop until all read processed
-            
+
             while (currentPos < readLen) {
 
                 // Point to next event & display if necessary
-                
+
                 event = (struct inotify_event *) &buffer[ currentPos ];
                 currentPos += CFileApprise::kInotifyEventSize + event->len;
 
                 // Display inotify event
-                
+
                 if (this->bDisplayInotifyEvent) {
                     this->displayInotifyEvent(event);
                 }
-                
+
                 // IGNORE so move onto next event
-                
+
                 if (event->mask == IN_IGNORED) {
                     continue;
                 }
 
                 // Create full filename path
-                
+
                 filePath = this->watchMap[event->wd] + ((event->len) ? event->name : "");
-   
+
                 // Process event
-                
+
                 switch (event->mask) {
 
                     // Flag file as being created
-                    
+
                     case IN_CREATE:
                     {
                         this->inProcessOfCreation.insert(filePath);
@@ -432,7 +432,7 @@ void CFileApprise::watch(void) {
                     }
 
                     // If file not being created send Event_change
-                    
+
                     case IN_MODIFY:
                     {
                         auto beingCreated = this->inProcessOfCreation.find(filePath);
@@ -443,7 +443,7 @@ void CFileApprise::watch(void) {
                     }
 
                     // Add watch for new directory and send Event_addir
-                    
+
                     case (IN_ISDIR | IN_CREATE):
                     case (IN_ISDIR | IN_MOVED_TO):
                     {
@@ -455,36 +455,46 @@ void CFileApprise::watch(void) {
                         break;
                     }
 
-                    // Remove watch for removed directory and send Event_unlinkdir
+                    // Directory deleted send Event_unlinkdir
                     
+                    case (IN_ISDIR | IN_DELETE):
+                    {
+                        if (filePath.back() != '/') {
+                            filePath.push_back('/');
+                        }
+                        this->sendEvent(CFileApprise::Event_unlinkdir, filePath);
+                        break;
+                    }
+                    
+                    // Remove watch for deleted/moved directory
+
                     case (IN_ISDIR | IN_MOVED_FROM):
                     case IN_DELETE_SELF:
                     {
                         if (filePath.back() != '/') {
                             filePath.push_back('/');
                         }
-                        this->sendEvent(CFileApprise::Event_unlinkdir, filePath);
                         this->removeWatch(filePath);
                         break;
                     }
 
-                    // File deleted send Event_unlink
-                    
+                        // File deleted send Event_unlink
+
                     case IN_DELETE:
                     {
                         this->sendEvent(CFileApprise::Event_unlink, filePath);
                         break;
                     }
 
-                    // File moved into directory send Event_add.
-                    
+                        // File moved into directory send Event_add.
+
                     case IN_MOVED_TO:
                     {
                         this->sendEvent(CFileApprise::Event_add, filePath);
                         break;
                     }
-                        
-                    // File closed. If being created send Event_add otherwise Event_change.
+
+                        // File closed. If being created send Event_add otherwise Event_change.
 
                     case IN_CLOSE_WRITE:
                     {
@@ -507,14 +517,14 @@ void CFileApprise::watch(void) {
 
         }
 
-    //
-    // Generate event for any exceptions and also store to be passed up the chain
-    //
+        //
+        // Generate event for any exceptions and also store to be passed up the chain
+        //
 
     } catch (std::system_error &e) {
         this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "Caught a runtime_error exception: [" + e.what() + "]");
         this->thrownException = std::current_exception();
-        
+
     } catch (std::exception &e) {
         this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "General exception occured: [" + e.what() + "]");
         this->thrownException = std::current_exception();

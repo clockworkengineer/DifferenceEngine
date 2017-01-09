@@ -67,7 +67,6 @@ const std::string CLogger::currentDateAndTime(void) {
 
 }
 
-
 // ==============
 // PUBLIC METHODS
 // ==============
