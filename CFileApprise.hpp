@@ -100,6 +100,16 @@ public:
         std::shared_ptr<CFileApprise::Options> options = nullptr   // CFileApprise Options (OPTIONAL)
     );
     
+    //
+    // Need to add/remove watches manually
+    //
+    
+    CFileApprise
+    (
+         std::shared_ptr<CFileApprise::Options> options = nullptr   // CFileApprise Options (OPTIONAL)
+    );
+  
+    
     // ==========
     // DESTRUCTOR
     // ==========
@@ -122,6 +132,13 @@ public:
     //
     
     void getEvent(CFileApprise::Event& message);    // Get CFileApprise event (waiting if necessary)
+    
+    //
+    // Watch handling
+    //
+    
+    void addWatchFile(const std::string& filePath);     // Add path to be watched
+    void removeWatchFile(const std::string& filePath);  // Remove path being watched
     
     //
     // Private data accessors
@@ -228,7 +245,7 @@ private:
     std::mutex queuedEventsMutex;                   // Queued events mutex
     std::queue <CFileApprise::Event> queuedEvents;  // Queue of CFileApprise events
 
-    // Trace functions default do nothing.
+    // Trace functions default (do nothing).
     
     CLogger::LogStringsFn coutstr = CLogger::noOp;
     CLogger::LogStringsFn cerrstr = CLogger::noOp; 

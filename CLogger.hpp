@@ -19,6 +19,7 @@
 #include <functional>
 #include <mutex>
 #include <initializer_list>
+#include <sstream>
 
 // ================
 // CLASS DEFINITION
@@ -56,6 +57,8 @@ public:
     static void cerrstr(const std::initializer_list<std::string>& errstr);
     
     static void setDateTimeStamped(const bool bDateTimeStamped );
+    
+    template <typename T> static  std::string toString ( T value );
      
     // ===========================
     // PRIVATE TYPES AND CONSTANTS
@@ -75,7 +78,7 @@ private:
     // ===============
 
     static const std::string currentDateAndTime(void);
-    
+        
     // =================
     // PRIVATE VARIABLES
     // =================
@@ -84,5 +87,17 @@ private:
     static bool bDateTimeStamped;
  
 };
+
+//
+// Convert value to string for output
+//
+
+template <typename T>
+std::string CLogger::toString(T value) {
+    std::ostringstream ss;
+    ss << value;
+    return ss.str();
+}
+
 #endif /* CLOGGER_HPP */
 

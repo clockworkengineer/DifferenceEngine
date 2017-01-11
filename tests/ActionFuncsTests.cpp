@@ -1,4 +1,4 @@
-#include "HOST.hpp"
+#include "HOST.hpp" 
 /*
  * File:   ActionFuncsTests.cpp
  * 
@@ -34,11 +34,6 @@
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
-
-// Used from FPE.cpp if tracing wanted to test/create new tests
-
-//void coutstr(const std::vector<std::string>& outstr);
-//void cerrstr(const std::vector<std::string>& errstr);
 
 // =======================
 // UNIT TEST FIXTURE CLASS

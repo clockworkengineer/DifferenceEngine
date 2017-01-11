@@ -62,6 +62,10 @@ const std::string CFileApprise::kLogPrefix = "[CFileApprise] ";
 // PRIVATE STATIC VARIABLES
 // ========================
 
+// =======================
+// PUBLIC STATIC VARIABLES
+// =======================
+
 // ===============
 // PRIVATE METHODS
 // ===============
@@ -135,35 +139,6 @@ void CFileApprise::destroyWatchTable(void) {
 }
 
 //
-// Add watch for newly added directory
-//
-
-void CFileApprise::addWatch(const std::string& filePath) {
-
-    int watch;
-
-    // Deeper than max watch depth so ignore.
-
-    if ((this->watchDepth != -1) && (std::count(filePath.begin(), filePath.end(), '/') > this->watchDepth)) {
-        return;
-    }
-
-    // Add watch to inotify 
-
-    if ((watch = inotify_add_watch(this->inotifyFd, filePath.c_str(), this->inotifyWatchMask)) == -1) {
-        throw std::system_error(std::error_code(errno, std::system_category()), "inotify_add_watch() error");
-    }
-
-    // Add watch to map and reverse map
-
-    this->watchMap.insert({watch, filePath});
-    this->revWatchMap.insert({filePath, watch});
-
-    this->coutstr({CFileApprise::kLogPrefix, "Directory add [", filePath, "] watch = [", std::to_string(this->revWatchMap[filePath]), "]"});
-
-}
-
-//
 // Initialize inotify and add watch for watchFolder.
 //
 
@@ -175,34 +150,81 @@ void CFileApprise::initWatchTable(void) {
         throw std::system_error(std::error_code(errno, std::system_category()), "inotify_init() error");
     }
 
-    this->addWatch(this->watchFolder);
+    // Add non empty watch folder
+
+    if (!this->watchFolder.empty()) {
+        this->addWatch(this->watchFolder);
+    }
 
 }
 
 //
-//  Remove watch for deleted or moved directory
+// Add watch for file/directory
+//
+
+void CFileApprise::addWatch(const std::string& filePath) {
+
+    std::string fileName{filePath};
+    int watch;
+ 
+    // Remove path trailing '/'
+    
+    if (fileName.back() == '/') {
+        fileName.pop_back();
+    }
+
+    // Deeper than max watch depth so ignore.
+
+    if ((this->watchDepth != -1) && (std::count(fileName.begin(), fileName.end(), '/') > this->watchDepth)) {
+        return;
+    }
+
+    // Add watch to inotify 
+
+    if ((watch = inotify_add_watch(this->inotifyFd, fileName.c_str(), this->inotifyWatchMask)) == -1) {
+        throw std::system_error(std::error_code(errno, std::system_category()), "inotify_add_watch() error");
+    }
+
+    // Add watch to map and reverse map
+
+    this->watchMap.insert({watch, fileName});
+    this->revWatchMap.insert({fileName, watch});
+
+    this->coutstr({CFileApprise::kLogPrefix, "Watch added [", fileName, "] watch = [", std::to_string(this->revWatchMap[fileName]), "]"});
+
+}
+
+//
+//  Remove watch for file/directory
 //
 
 void CFileApprise::removeWatch(const std::string& filePath) {
 
     try {
 
-        int32_t watch;
+        std::string fileName{filePath};
+        int32_t     watch;
 
-        watch = this->revWatchMap[filePath];
+        // Remove path trailing '/'
+        
+        if (fileName.back() == '/') {
+            fileName.pop_back();
+        }
+
+        watch = this->revWatchMap[fileName];
         if (watch) {
 
-            this->coutstr({CFileApprise::kLogPrefix, "Directory remove [", filePath, "] watch = [", std::to_string(watch), "]"});
+            this->coutstr({CFileApprise::kLogPrefix, "Watch removed [", fileName, "] watch = [", std::to_string(watch), "]"});
 
             this->watchMap.erase(watch);
-            this->revWatchMap.erase(filePath);
+            this->revWatchMap.erase(fileName);
 
             if (inotify_rm_watch(this->inotifyFd, watch) == -1) {
                 throw std::system_error(std::error_code(errno, std::system_category()), "inotify_rm_watch() error");
             }
 
         } else {
-            this->cerrstr({CFileApprise::kLogPrefix, "Directory remove failed [", filePath, "]"});
+            this->cerrstr({CFileApprise::kLogPrefix, "Watch remove failed [", fileName, "]"});
         }
 
 
@@ -213,10 +235,10 @@ void CFileApprise::removeWatch(const std::string& filePath) {
         }
     }
 
-    // No more watches (main watch folder removed) so closedown
+    // No more watches so closedown
 
     if (this->watchMap.size() == 0) {
-        this->coutstr({CFileApprise::kLogPrefix, "*** Watch Folder Deleted so terminating watch loop. ***"});
+        this->coutstr({CFileApprise::kLogPrefix, "*** Last watch deleted so terminating watch loop. ***"});
         this->stop();
     }
 
@@ -239,7 +261,7 @@ void CFileApprise::sendEvent(CFileApprise::EventId id, const std::string& fileNa
 // ==============
 
 //
-// CFileApprise object constructor. 
+// Main CFileApprise object constructor. 
 //
 
 CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::shared_ptr<CFileApprise::Options> options) : watchFolder{watchFolder}, watchDepth{watchDepth}
@@ -265,10 +287,10 @@ CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::
         }
     }
 
-    // Add ending '/' if missing from path
+    // Remove path trailing '/'
 
-    if ((this->watchFolder).back() != '/') {
-        (this->watchFolder).push_back('/');
+    if ((this->watchFolder).back() == '/') {
+        (this->watchFolder).pop_back();
     }
 
     this->coutstr({CFileApprise::kLogPrefix, "Watch folder [", this->watchFolder, "]"});
@@ -279,6 +301,42 @@ CFileApprise::CFileApprise(const std::string& watchFolder, int watchDepth, std::
     this->watchDepth = watchDepth;
     if (watchDepth != -1) {
         this->watchDepth += std::count(watchFolder.begin(), watchFolder.end(), '/');
+    }
+
+    // Allocate inotify read buffer
+
+    this->inotifyBuffer.reset(new u_int8_t [CFileApprise::kInotifyEventBuffLen]);
+
+    // Create watch table
+
+    this->initWatchTable();
+
+    // Watcher up and running
+
+    this->bDoWork = true;
+
+}
+
+//
+// CFileApprise object constructor (watches need to be added/removed). 
+//
+
+CFileApprise::CFileApprise(std::shared_ptr<CFileApprise::Options> options) {
+
+
+    // If options passed then setup trace functions and event mask
+
+    if (options) {
+        this->bDisplayInotifyEvent = options->bDisplayInotifyEvent;
+        if (options->inotifyWatchMask) {
+            this->inotifyWatchMask = options->inotifyWatchMask;
+        }
+        if (options->coutstr) {
+            this->coutstr = options->coutstr;
+        }
+        if (options->cerrstr) {
+            this->cerrstr = options->cerrstr;
+        }
     }
 
     // Allocate inotify read buffer
@@ -322,6 +380,42 @@ bool CFileApprise::stillWatching(void) {
 std::exception_ptr CFileApprise::getThrownException(void) {
 
     return (this->thrownException);
+
+}
+
+//
+// Add watch (file or directory)
+//
+
+void CFileApprise::addWatchFile(const std::string& filePath) {
+
+    try {
+
+        this->addWatch(filePath);
+
+    } catch (std::system_error &e) {
+        CLogger::cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
+    } catch (std::exception & e) {
+        CLogger::cerrstr({"Standard exception occured: [", e.what(), "]"});
+    }
+
+}
+
+//
+// Remove watch
+//
+
+void CFileApprise::removeWatchFile(const std::string& filePath) {
+
+    try {
+
+        this->removeWatch(filePath);
+
+    } catch (std::system_error &e) {
+        CLogger::cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
+    } catch (std::exception & e) {
+        CLogger::cerrstr({"Standard exception occured: [", e.what(), "]"});
+    }
 
 }
 
@@ -378,7 +472,8 @@ void CFileApprise::watch(void) {
     struct inotify_event *event;
     std::string filePath;
 
-    this->coutstr({CFileApprise::kLogPrefix, "CFileApprise watch loop started"});
+    this->coutstr({CFileApprise::kLogPrefix, "CFileApprise watch loop started on thread [",
+        CLogger::toString(std::this_thread::get_id()), "]"});
 
     try {
 
@@ -415,9 +510,13 @@ void CFileApprise::watch(void) {
                     continue;
                 }
 
-                // Create full filename path
+                // Create full file name path
 
-                filePath = this->watchMap[event->wd] + ((event->len) ? event->name : "");
+                filePath = this->watchMap[event->wd];
+
+                if (event->len > 0) {
+                    filePath += ("/" + std::string(event->name));
+                }
 
                 // Process event
 
@@ -447,38 +546,29 @@ void CFileApprise::watch(void) {
                     case (IN_ISDIR | IN_CREATE):
                     case (IN_ISDIR | IN_MOVED_TO):
                     {
-                        if (filePath.back() != '/') {
-                            filePath.push_back('/');
-                        }
                         this->sendEvent(CFileApprise::Event_addir, filePath);
                         this->addWatch(filePath);
                         break;
                     }
 
                     // Directory deleted send Event_unlinkdir
-                    
+
                     case (IN_ISDIR | IN_DELETE):
                     {
-                        if (filePath.back() != '/') {
-                            filePath.push_back('/');
-                        }
                         this->sendEvent(CFileApprise::Event_unlinkdir, filePath);
                         break;
                     }
-                    
+
                     // Remove watch for deleted/moved directory
 
                     case (IN_ISDIR | IN_MOVED_FROM):
                     case IN_DELETE_SELF:
                     {
-                        if (filePath.back() != '/') {
-                            filePath.push_back('/');
-                        }
                         this->removeWatch(filePath);
                         break;
                     }
 
-                        // File deleted send Event_unlink
+                    // File deleted send Event_unlink
 
                     case IN_DELETE:
                     {
@@ -486,7 +576,7 @@ void CFileApprise::watch(void) {
                         break;
                     }
 
-                        // File moved into directory send Event_add.
+                    // File moved into directory send Event_add.
 
                     case IN_MOVED_TO:
                     {
@@ -494,7 +584,7 @@ void CFileApprise::watch(void) {
                         break;
                     }
 
-                        // File closed. If being created send Event_add otherwise Event_change.
+                    // File closed. If being created send Event_add otherwise Event_change.
 
                     case IN_CLOSE_WRITE:
                     {
@@ -517,9 +607,9 @@ void CFileApprise::watch(void) {
 
         }
 
-        //
-        // Generate event for any exceptions and also store to be passed up the chain
-        //
+    //
+    // Generate event for any exceptions and also store to be passed up the chain
+    //
 
     } catch (std::system_error &e) {
         this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "Caught a runtime_error exception: [" + e.what() + "]");
