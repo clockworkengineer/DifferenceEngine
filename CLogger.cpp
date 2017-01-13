@@ -52,6 +52,9 @@ const CLogger::LogStringsFn CLogger::noOp = [] (const std::initializer_list<std:
 std::mutex CLogger::mOutput;                // Mutex to control access to cout/cerr
 bool CLogger::bDateTimeStamped = false;     // ==true then output timetamped
 
+// =======================
+// PUBLIC STATIC VARIABLES
+// =======================
 
 // ===============
 // PRIVATE METHODS

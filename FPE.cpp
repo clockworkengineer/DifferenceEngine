@@ -219,7 +219,7 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-   CLogger::coutstr({"FPE Exiting."});
+    CLogger::coutstr({"FPE Exiting."});
 
     exit(EXIT_SUCCESS);
 

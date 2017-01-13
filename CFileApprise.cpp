@@ -185,12 +185,11 @@ void CFileApprise::addWatch(const std::string& filePath) {
         throw std::system_error(std::error_code(errno, std::system_category()), "inotify_add_watch() error");
     }
 
-    // Add watch to map and reverse map
+    // Add watch to map
 
     this->watchMap.insert({watch, fileName});
-    this->revWatchMap.insert({fileName, watch});
 
-    this->coutstr({CFileApprise::kLogPrefix, "Watch added [", fileName, "] watch = [", std::to_string(this->revWatchMap[fileName]), "]"});
+    this->coutstr({CFileApprise::kLogPrefix, "Watch added [", fileName, "] watch = [", std::to_string(watch), "]"});
 
 }
 
@@ -211,20 +210,27 @@ void CFileApprise::removeWatch(const std::string& filePath) {
             fileName.pop_back();
         }
 
-        watch = this->revWatchMap[fileName];
+        // Find Watch value
+        
+        for (auto watchMapEntry : this->watchMap) {
+            if (watchMapEntry.second.compare(filePath) == 0) {
+                watch = watchMapEntry.first;
+                break;
+            }
+        }
+        
         if (watch) {
 
             this->coutstr({CFileApprise::kLogPrefix, "Watch removed [", fileName, "] watch = [", std::to_string(watch), "]"});
 
             this->watchMap.erase(watch);
-            this->revWatchMap.erase(fileName);
 
             if (inotify_rm_watch(this->inotifyFd, watch) == -1) {
                 throw std::system_error(std::error_code(errno, std::system_category()), "inotify_rm_watch() error");
             }
 
         } else {
-            this->cerrstr({CFileApprise::kLogPrefix, "Watch remove failed [", fileName, "]"});
+            this->cerrstr({CFileApprise::kLogPrefix, "Watch not found in local map. Remove failed [", fileName, "]"});
         }
 
 

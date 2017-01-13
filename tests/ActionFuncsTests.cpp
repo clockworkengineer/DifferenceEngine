@@ -20,10 +20,6 @@
 
 #include "gtest/gtest.h"
 
-// CLogger class definitions
-
-#include "CLogger.hpp"
-
 // Task Action function and process command line definitions
 
 #include "FPE_ActionFuncs.hpp"

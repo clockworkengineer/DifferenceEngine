@@ -226,7 +226,6 @@ private:
     uint32_t inotifyWatchMask = CFileApprise::kInofityEvents;   // watch event mask
     std::unique_ptr<std::uint8_t> inotifyBuffer;                // read buffer
     std::unordered_map<int32_t, std::string> watchMap;          // Watch table indexed by watch variable
-    std::unordered_map<std::string, int32_t> revWatchMap;       // Reverse watch table indexed by path
     std::set<std::string> inProcessOfCreation;                  // Set to hold files being created.
     bool bDisplayInotifyEvent=false;                            // ==true then display inotify event to coutstr
  
