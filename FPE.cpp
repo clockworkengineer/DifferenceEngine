@@ -133,6 +133,8 @@ int main(int argc, char** argv) {
                 CLogger::coutstr({"Creating watch folder [", argData.watchFolder, "]"});
             }
         }
+            
+        CLogger::coutstr({"*** WATCH FOLDER = [",argData.watchFolder , "] ***"});
 
         // Create destination folder for task
 
@@ -142,7 +144,15 @@ int main(int argc, char** argv) {
                 CLogger::coutstr({"Creating destination folder ", argData.destinationFolder});
             }
         }
+        
+        CLogger::coutstr({"*** DESTINATION FOLDER = [",argData.destinationFolder , "] ***"});
 
+        // Signal config file used
+        
+        if (!argData.configFileName.empty()) {
+            CLogger::coutstr({"*** CONFIG FILE = [", argData.configFileName, "] ***"});
+        }
+          
         // Signal file copy task
 
         if (argData.bFileCopy) {
@@ -189,7 +199,7 @@ int main(int argc, char** argv) {
         // CRedirect object will be destroyed and cout restored.
 
         if (!argData.logFileName.empty()) {
-            CLogger::coutstr({"*** LOG FILE = ", argData.logFileName, " ***"});
+            CLogger::coutstr({"*** LOG FILE = [", argData.logFileName, "] ***"});
             logFile.change(argData.logFileName, std::ios_base::out | std::ios_base::app);
             CLogger::coutstr({std::string(100, '=')});
         }

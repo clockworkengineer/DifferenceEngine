@@ -32,6 +32,7 @@ struct ParamArgData {
     int          killCount;          // Kill Count
     bool         bSingleThread;      // Run task in the main thread
     std::string  logFileName;        // Log file name
+    std::string  configFileName;     // Config file name
 };
 
 // Handbrake command
