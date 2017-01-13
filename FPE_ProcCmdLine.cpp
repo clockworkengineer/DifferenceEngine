@@ -50,7 +50,12 @@ namespace fs = boost::filesystem;
 // PUBLIC FUNCTIONS
 // ================
 
+//
+// Add options common to both command line and config file
+//
+
 void addCommonOptions(po::options_description& commonOptions, ParamArgData &argData) {
+    
     commonOptions.add_options()
             ("copy", "Task = File Copy Watcher")
             ("video", "Task = Video Conversion Watcher")
@@ -99,14 +104,14 @@ void procCmdLine(int argc, char** argv, ParamArgData &argData) {
     // Command line (first unique then add those shared with config file
 
     commandLine.add_options()
-            ("help", "Print help messages")
+            ("help", "Display help message")
             ("config", po::value<std::string>(&argData.configFileName), "Configuration file name");
 
     addCommonOptions(commandLine, argData);
 
     // Config file options
 
-    po::options_description configFile("Configration File Options");
+    po::options_description configFile("Configuration File Options");
 
     addCommonOptions(configFile, argData);
 
@@ -116,7 +121,7 @@ void procCmdLine(int argc, char** argv, ParamArgData &argData) {
 
         int taskCount = 0;
 
-        // Process arguments
+        // Process command line arguments
 
         po::store(po::parse_command_line(argc, argv, commandLine), vm);
 

@@ -138,3 +138,14 @@ void CLogger::cerrstr(const std::initializer_list<std::string>& errstr) {
     }
 
 }
+
+//
+// Thread id as Hex
+//
+
+template <>
+std::string CLogger::toString( std::thread::id value) {
+    std::ostringstream ss;
+    ss << "0x" << std::hex << value;
+    return ss.str();
+}

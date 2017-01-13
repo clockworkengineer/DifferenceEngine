@@ -20,6 +20,7 @@
 #include <mutex>
 #include <initializer_list>
 #include <sstream>
+#include <thread>
 
 // ================
 // CLASS DEFINITION
