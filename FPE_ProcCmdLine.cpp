@@ -11,7 +11,7 @@
  */
 
 //
-// Module: Command Line Parameter Proess
+// Module: Command Line Parameter Processing
 //
 // Description: Parse command line parameters and fill in structure ParamArgData.
 // 

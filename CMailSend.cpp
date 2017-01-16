@@ -14,7 +14,7 @@
 // 
 // Description: Class that enables an email to be setup and sent
 // to a specified address using the libcurl library. SSL is supported
-// but untested and attached files in either 7bit or base64 encoded
+// (but untested) and attached files in either 7bit or base64 encoded
 // format. Note it is up to the caller to setup any MIME type and encoding
 // correctly for each attachment.
 //
@@ -166,8 +166,12 @@ void CMailSend::encodeAttachment(CMailSend::emailAttachment& attachment) {
 
         std::ifstream attachmentFile(attachment.fileName);
 
+        // As sending text file via email strip any host specific end of line and replace with <cr><lf>
+        
         while (std::getline(attachmentFile, line)) {
-            attachment.encodedContents.push_back(line);
+            if (line.back()=='\n') line.pop_back();
+            if (line.back()=='\r') line.pop_back();
+            attachment.encodedContents.push_back(line + kEOL);
         }
 
     // Base64
@@ -276,9 +280,6 @@ void CMailSend::buildMailPayload(void) {
 
     this->uploadContext.mailPayload.push_back("");
 
-    for (auto str : this->uploadContext.mailPayload) {
-        std::cout << str;
-    }
 
 }
 
