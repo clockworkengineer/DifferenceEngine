@@ -128,7 +128,7 @@ private:
     
     static const std::string kMimeBoundary;         // Text string used for MIME boundary
     
-    static const int kBase64EncodeBufferSize=54;    // Optimium encode buffer size (since encoded max 76 bytes)
+    static const int kBase64EncodeBufferSize=54;    // Optimum encode buffer size (since encoded max 76 bytes)
   
     static const std::string kEOL;                  // End of line
     

@@ -395,16 +395,8 @@ std::exception_ptr CFileApprise::getThrownException(void) {
 
 void CFileApprise::addWatchFile(const std::string& filePath) {
 
-    try {
-
-        this->addWatch(filePath);
-
-    } catch (std::system_error &e) {
-        CLogger::cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
-    } catch (std::exception & e) {
-        CLogger::cerrstr({"Standard exception occured: [", e.what(), "]"});
-    }
-
+    this->addWatch(filePath);
+       
 }
 
 //
@@ -413,15 +405,7 @@ void CFileApprise::addWatchFile(const std::string& filePath) {
 
 void CFileApprise::removeWatchFile(const std::string& filePath) {
 
-    try {
-
-        this->removeWatch(filePath);
-
-    } catch (std::system_error &e) {
-        CLogger::cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
-    } catch (std::exception & e) {
-        CLogger::cerrstr({"Standard exception occured: [", e.what(), "]"});
-    }
+    this->removeWatch(filePath);
 
 }
 
@@ -620,7 +604,6 @@ void CFileApprise::watch(void) {
     } catch (std::system_error &e) {
         this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "Caught a runtime_error exception: [" + e.what() + "]");
         this->thrownException = std::current_exception();
-
     } catch (std::exception &e) {
         this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "General exception occured: [" + e.what() + "]");
         this->thrownException = std::current_exception();
