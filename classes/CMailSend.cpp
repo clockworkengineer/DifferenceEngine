@@ -26,7 +26,6 @@
 // =================
 
 #include "CMailSend.hpp"
-#include <iostream>
 
 // ====================
 // CLASS IMPLEMENTATION
@@ -450,10 +449,12 @@ void CMailSend::postMail(void) {
         /* Check for errors */
 
         if (this->res != CURLE_OK) {
-            std::string errMsg=curl_easy_strerror(res);
+            std::string errMsg;
             if (std::strlen(errMsgBuffer)!=0) {
                 errMsg = errMsgBuffer;
-            } 
+            } else {
+                errMsg=curl_easy_strerror(res);
+            }
             throw std::runtime_error(std::string("curl_easy_perform() failed: ")+errMsg);
         } 
 
