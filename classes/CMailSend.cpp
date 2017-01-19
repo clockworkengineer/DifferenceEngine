@@ -18,7 +18,7 @@
 // format. Note it is up to the caller to setup any MIME type and encoding
 // correctly for each attachment.
 //
-// Dependencies: C11++, libcurl, Boost C++ date and time library.
+// Dependencies: C11++, libcurl.
 //
 
 // =================
@@ -26,6 +26,7 @@
 // =================
 
 #include "CMailSend.hpp"
+#include <iostream>
 
 // ====================
 // CLASS IMPLEMENTATION
@@ -36,7 +37,7 @@
 // ===========================
 
 
-// MIME multipart text boundary string 
+// MIME multi-part text boundary string 
 
 const std::string CMailSend::kMimeBoundary("xxxxCMailSendBoundaryText");
 
@@ -57,6 +58,10 @@ const std::string CMailSend::kEncodingBase64("base64");
 // PRIVATE STATIC VARIABLES
 // ========================
 
+// File extension to MIME type
+
+std::unordered_map<std::string, std::string> CMailSend::extToMimeType;
+
 // =======================
 // PUBLIC STATIC VARIABLES
 // =======================
@@ -66,24 +71,44 @@ const std::string CMailSend::kEncodingBase64("base64");
 // ===============
 
 //
-// Get string for current date time. This is th only boost dependency so try
-// to find a more portble alternative.
+// Build extension to MIME mapping table from /etc/mimes.types.
+// This is Linux dependent but use until a better solution found.
+//
+
+void CMailSend::loadMIMETypes (void) {
+    
+    std::ifstream mimeFile("/etc/mime.types");
+    std::string   extension, mimeType, line;
+
+    while (std::getline(mimeFile, line)) {
+        if (line[0] != '#') {
+            std::istringstream iss(line);
+            iss >> mimeType;
+            while (iss.good()) {
+                iss >> extension;
+                if (!extension.empty()) {
+                    CMailSend::extToMimeType.insert({extension, mimeType});
+                }
+            }
+        }
+    }
+      
+}
+
+//
+// Get string for current date time.
 //
 
 const std::string CMailSend::currentDateAndTime(void) {
+    
+   time_t rawtime;
+   struct tm *info;
+   char buffer[80];
 
-    static lt::time_zone_ptr const utc_time_zone(new lt::posix_time_zone("GMT"));
-
-    lt::local_time_facet* facet = new lt::local_time_facet("%a, %d %b %Y %H:%M:%S %q");
-    pt::ptime posixTime = pt::second_clock::universal_time();
-    lt::local_date_time now(posixTime, utc_time_zone);
-
-    std::ostringstream dateTimeStream;
-    dateTimeStream.imbue(std::locale(dateTimeStream.getloc(), facet));
-    dateTimeStream << now;
-
-    return (dateTimeStream.str());
-
+   time( &rawtime );
+   info = localtime( &rawtime );
+   strftime(buffer,80,"%a, %d %b %Y %H:%M:%S %z", info);
+   return(std::string(buffer));
 
 }
 
@@ -98,7 +123,7 @@ size_t CMailSend::payloadSource(void *ptr, size_t size, size_t nmemb, void *user
     if ((size == 0) || (nmemb == 0) || ((size * nmemb) < 1)) {
         return 0;
     }
-            
+    
     return uploadContext->mailPayload[uploadContext->linesRead++].copy(static_cast<char *> (ptr), size*nmemb, 0);
     
 }
@@ -182,7 +207,7 @@ void CMailSend::encodeAttachment(CMailSend::emailAttachment& attachment) {
         std::unique_ptr<std::uint8_t> buffer(new uint8_t [CMailSend::kBase64EncodeBufferSize]);
 
         ifs.seekg(0, std::ios::beg);
-        while (!ifs.eof()) {
+        while (ifs.good()) {
             ifs.read((char *)buffer.get(), CMailSend::kBase64EncodeBufferSize);
             this->encodeToBase64(buffer.get(), ifs.gcount(), line);
             attachment.encodedContents.push_back(line + kEOL);
@@ -279,7 +304,7 @@ void CMailSend::buildMailPayload(void) {
     // End of message
 
     this->uploadContext.mailPayload.push_back("");
-
+    
 
 }
 
@@ -350,15 +375,26 @@ void CMailSend::setMailSubject(const std::string & mailSubject) {
 //
 
 void CMailSend::setMailMessage(const std::vector<std::string>& mailMessage) {
-
     this->mailMessage = mailMessage;
 }
 
 //
-// Add file attachment
+// Add file attachment. Try to find MIME mapping for file extension from internal table 
+// but if not found then use passed in value as a fallback.
 // 
 
 void CMailSend::addFileAttachment(std::string fileName, std::string contentTypes, std::string contentTransferEncoding) {
+
+    std::string baseFileName = basename(fileName.c_str());
+    std::size_t fullStop = baseFileName.find_last_of('.');
+    
+    if (fullStop != std::string::npos) {
+        baseFileName = baseFileName.substr(fullStop+1);
+        auto foundMapping= CMailSend::extToMimeType.find(baseFileName);
+        if (foundMapping != CMailSend::extToMimeType.end()) {
+            contentTypes = foundMapping->second;
+        }
+    }
 
     this->attachedFiles.push_back({fileName, contentTypes, contentTransferEncoding});
 
@@ -368,16 +404,10 @@ void CMailSend::addFileAttachment(std::string fileName, std::string contentTypes
 // Post email
 //
 
-void CMailSend::deferredMail(void) {
-    this->bDeferredMail = true;
-}
+void CMailSend::postMail(void) {
 
-//
-// Post email
-//
-
-int CMailSend::postMail(void) {
-
+    char errMsgBuffer[CURL_ERROR_SIZE];
+    
     this->uploadContext.linesRead = 0;
 
     this->curl = curl_easy_init();
@@ -390,6 +420,8 @@ int CMailSend::postMail(void) {
 
         curl_easy_setopt(this->curl, CURLOPT_USE_SSL, (long) CURLUSESSL_ALL);
 
+        curl_easy_setopt(this->curl, CURLOPT_ERRORBUFFER, errMsgBuffer);
+        
         if (!this->mailCABundle.empty()) {
             curl_easy_setopt(this->curl, CURLOPT_CAINFO, this->mailCABundle.c_str());
         }
@@ -411,14 +443,19 @@ int CMailSend::postMail(void) {
         curl_easy_setopt(this->curl, CURLOPT_UPLOAD, 1L);
 
         curl_easy_setopt(this->curl, CURLOPT_VERBOSE, 0L);
-
+        
+        errMsgBuffer[0] = 0;
         this->res = curl_easy_perform(this->curl);
 
         /* Check for errors */
 
         if (this->res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
+            std::string errMsg=curl_easy_strerror(res);
+            if (std::strlen(errMsgBuffer)!=0) {
+                errMsg = errMsgBuffer;
+            } 
+            throw std::runtime_error(std::string("curl_easy_perform() failed: ")+errMsg);
+        } 
 
         /* Free the list of this->recipients */
 
@@ -429,8 +466,6 @@ int CMailSend::postMail(void) {
         curl_easy_cleanup(curl);
 
     }
-
-    return (int) this->res;
 
 }
 
@@ -449,8 +484,27 @@ CMailSend::CMailSend() {
 
 CMailSend::~CMailSend() {
 
-    if (this->bDeferredMail) {
-        this->postMail();
-    }
+}
+
+//
+// CMailSend init
+//
+
+void CMailSend::init(void) {
+    
+    curl_global_init(CURL_GLOBAL_ALL);
+    
+    loadMIMETypes();
+        
+}
+
+//
+// CMailSend closedown
+//
+
+void CMailSend::closedown(void) {
+    
+    curl_global_cleanup();
 
 }
+

@@ -21,12 +21,13 @@
 // 1) File copy
 // 2) Video file conversion (using Handbrake)
 // 3) Run shell command
+// 4) Email file as a attachment
 // 
 // All of this can be setup by using parameters  passed to the program from
 // command line (FPE --help for a full list).
 // 
-// Dependencies: C11++, classes (CFileTask, CRedirect, CIFileApprise, CLogger), 
-//               Linux, Boost C++ Libraries.
+// Dependencies: C11++, Classes (CFileTask, CRedirect, CIFileApprise, 
+//               CLogger, CMailSend), Linux, Boost C++ Libraries.
 //
  
 // =============
@@ -40,6 +41,17 @@
 // ===============
 // LOCAL FUNCTIONS
 // ===============
+
+//
+// Exit with error message/status
+//
+
+void exitWithError(std::string errmsg) {
+
+    CLogger::cerrstr({errmsg});
+    exit(EXIT_FAILURE);
+
+}
 
 //
 // Create task and run in thread.
@@ -60,7 +72,8 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
 
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
         argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-        argData.extension, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
+        argData.extension, argData.userName, argData.userPassword, argData.serverURL,
+        argData.emailRecipient, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
        ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)});
 
     // Use function data to access set coutstr/cerrstr
@@ -102,16 +115,21 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
 
 int main(int argc, char** argv) {
 
+    ParamArgData argData;
+    CMailSend mail;
+    
     try {
-
+        
+        // Initialise CMailSend internals
+        
+        CMailSend::init();
+        
         // std::cout to logfile if parameter specified.
         
         CRedirect logFile{std::cout};
 
         // Process FPE command line arguments.
-
-        ParamArgData argData;
-
+     
         procCmdLine(argc, argv, argData);
 
         // FPE up and running
@@ -125,6 +143,12 @@ int main(int argc, char** argv) {
             std::to_string(BOOST_VERSION / 100 % 1000), ".", // minor version
             std::to_string(BOOST_VERSION % 100)}); // patch level
 
+        // Email does not require a destination folder
+            
+        if (argData.bEmailFile) {
+            argData.destinationFolder = "";
+        }
+            
         // Create watch folder for task.
 
         if (!fs::exists(argData.watchFolder)) {
@@ -138,21 +162,31 @@ int main(int argc, char** argv) {
 
         // Create destination folder for task
 
-        if (!fs::exists(argData.destinationFolder)) {
+        if (!argData.destinationFolder.empty() && !fs::exists(argData.destinationFolder)) {
             CLogger::coutstr({"Destination folder ", argData.destinationFolder, " does not exist."});
             if (fs::create_directory(argData.destinationFolder)) {
                 CLogger::coutstr({"Creating destination folder ", argData.destinationFolder});
             }
         }
-        
-        CLogger::coutstr({"*** DESTINATION FOLDER = [",argData.destinationFolder , "] ***"});
 
+        // Run does not require a destination
+        
+        if (!argData.destinationFolder.empty()) {
+            CLogger::coutstr({"*** DESTINATION FOLDER = [", argData.destinationFolder, "] ***"});
+        }
+        
         // Signal config file used
         
         if (!argData.configFileName.empty()) {
             CLogger::coutstr({"*** CONFIG FILE = [", argData.configFileName, "] ***"});
         }
-          
+    
+        // Signal email file task
+
+        if (argData.bEmailFile) {
+            CLogger::coutstr({"*** EMAIL FILE TASK ***"});
+        }
+
         // Signal file copy task
 
         if (argData.bFileCopy) {
@@ -210,6 +244,8 @@ int main(int argc, char** argv) {
             createTaskAndRun(std::string("File Copy"), argData, copyFile);
         } else if (argData.bVideoConversion) {
             createTaskAndRun(std::string("Video Conversion"), argData, handBrake);
+        } else if (argData.bEmailFile) {
+            createTaskAndRun(std::string("Email Attachment"), argData, emailFile);
         } else {
             createTaskAndRun(std::string("Run Command"), argData, runCommand);
         }
@@ -219,18 +255,19 @@ int main(int argc, char** argv) {
     //    
 
     } catch (const fs::filesystem_error & e) {
-        CLogger::cerrstr({"BOOST file system exception occured: [", e.what(), "]"});
-        exit(EXIT_FAILURE);
+        exitWithError(std::string("BOOST file system exception occured: [")+e.what()+"]");
     } catch (const std::system_error &e) {
-        CLogger::cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
-        exit(EXIT_FAILURE);
+        exitWithError(std::string("Caught a system_error exception: [")+e.what()+"]");
     } catch (const std::exception & e) {
-        CLogger::cerrstr({"Standard exception occured: [", e.what(), "]"});
-        exit(EXIT_FAILURE);
+        exitWithError(std::string("Standard exception occured: [")+e.what()+"]");
     }
 
     CLogger::coutstr({"FPE Exiting."});
 
+    // Closedown mail
+    
+    CMailSend::closedown();
+ 
     exit(EXIT_SUCCESS);
 
 } 

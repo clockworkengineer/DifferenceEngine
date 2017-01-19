@@ -37,6 +37,10 @@
 
 #include "CLogger.hpp"
 
+// CMailSend Class
+
+#include "CMailSend.hpp"
+
 // Boost file system, date and time libraries definitions
 
 #include <boost/filesystem.hpp>

@@ -32,6 +32,10 @@ struct ActFnData {
     std::string  commandToRun;       // Command to run
     bool         bDeleteSource;      // Delete source file
     std::string  extension;          // Override extension for destination file
+    std::string  userName;           // Email account user name
+    std::string  userPassword;       // Email account user name password
+    std::string  serverURL;          // Email SMTP server URL
+    std::string  emailRecipient;     // Email recipient
     CLogger::LogStringsFn coutstr;   // coutstr output
     CLogger::LogStringsFn cerrstr;   // cerrstr output
 };
@@ -46,6 +50,7 @@ struct ActFnData {
 bool handBrake(const std::string& filenamePath, const std::shared_ptr<void> fnData);
 bool copyFile(const std::string& filenamePath,  const std::shared_ptr<void> fnData);
 bool runCommand(const std::string& filenamePath,  const std::shared_ptr<void> fnData);
+bool emailFile(const std::string& filenamePath,  const std::shared_ptr<void> fnData);
 
 #endif /* FPE_ACTIONFUNCS_HPP */
 

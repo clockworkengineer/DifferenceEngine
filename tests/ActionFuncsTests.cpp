@@ -55,7 +55,9 @@ protected:
         
        // Create function data (wrap in void shared pointer for passing to task).
         
-        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, "", CLogger::noOp, CLogger::noOp});
+        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, 
+                                         "", "", "", "", "", CLogger::noOp, CLogger::noOp});
+                                         
         this->funcData = static_cast<ActFnData *> (this->fnData.get());
         
         // Create watch folder.

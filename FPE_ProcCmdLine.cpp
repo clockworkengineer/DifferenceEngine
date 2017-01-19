@@ -57,6 +57,7 @@ namespace fs = boost::filesystem;
 void addCommonOptions(po::options_description& commonOptions, ParamArgData &argData) {
     
     commonOptions.add_options()
+            ("email", "Task = Email File Attachment")
             ("copy", "Task = File Copy Watcher")
             ("video", "Task = Video Conversion Watcher")
             ("command", po::value<std::string>(&argData.commandToRun), "Task = Run Shell Command")
@@ -68,7 +69,11 @@ void addCommonOptions(po::options_description& commonOptions, ParamArgData &argD
             ("delete", "Delete Source File")
             ("log,l", po::value<std::string>(&argData.logFileName), "Log file")
             ("single,s", "Run task in main thread")
-            ("killcount,k", po::value<int>(&argData.killCount), "Files to process before closedown");
+            ("killcount,k", po::value<int>(&argData.killCount), "Files to process before closedown")
+            ("server,s", po::value<std::string>(&argData.serverURL), "SMTP Server URL and port")
+            ("user,u", po::value<std::string>(&argData.userName), "Account username")
+            ("password,p", po::value<std::string>(&argData.userPassword), "User password")
+            ("recipient,r", po::value<std::string>(&argData.emailRecipient), "User password");
 
 
 }
@@ -96,6 +101,11 @@ void procCmdLine(int argc, char** argv, ParamArgData &argData) {
     argData.bSingleThread = false;
     argData.logFileName = "";
     argData.configFileName = "";
+    argData.bEmailFile = false;
+    argData.userName = "";
+    argData.userPassword = "";
+    argData.serverURL = "";
+    argData.emailRecipient = "";
 
     // Define and parse the program options
 
@@ -143,6 +153,13 @@ void procCmdLine(int argc, char** argv, ParamArgData &argData) {
             } else {
                 throw po::error("Specified config file does not exist.");
             }
+        }
+
+        // Email watched files.
+
+        if (vm.count("email")) {
+            argData.bEmailFile = true;
+            taskCount++;
         }
 
         // Copy watched files.

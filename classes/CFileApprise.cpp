@@ -223,7 +223,7 @@ void CFileApprise::removeWatch(const std::string& filePath) {
 
             this->coutstr({CFileApprise::kLogPrefix, "Watch removed [", fileName, "] watch = [", std::to_string(watch), "]"});
 
-            this->watchMap.erase(watch);
+            this->watchMap.erase(watch); 
 
             if (inotify_rm_watch(this->inotifyFd, watch) == -1) {
                 throw std::system_error(std::error_code(errno, std::system_category()), "inotify_rm_watch() error");
@@ -602,7 +602,7 @@ void CFileApprise::watch(void) {
     //
 
     } catch (std::system_error &e) {
-        this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "Caught a runtime_error exception: [" + e.what() + "]");
+        this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "Caught a system_error exception: [" + e.what() + "]");
         this->thrownException = std::current_exception();
     } catch (std::exception &e) {
         this->sendEvent(CFileApprise::Event_error, CFileApprise::kLogPrefix + "General exception occured: [" + e.what() + "]");

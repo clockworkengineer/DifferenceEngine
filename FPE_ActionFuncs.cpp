@@ -40,6 +40,10 @@
 
 #include "CFileTask.hpp" 
 
+//
+
+#include "CMailSend.hpp"
+
 // Process wait definitions
 
 #include <sys/wait.h>
@@ -293,6 +297,52 @@ bool copyFile(const std::string &filenamePath, const std::shared_ptr<void> fnDat
 
     } else {
         funcData->coutstr({"DESTINATION ALREADY EXISTS : ", destinationFile.string()});
+    }
+
+    return (bSuccess);
+
+}
+
+//
+// Email file action function.
+//
+
+bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnData) {
+
+    // ASSERT for any invalid parameters.
+
+    assert(fnData != nullptr);
+    assert(filenamePath.length() != 0);
+
+    ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+    bool bSuccess = false;
+
+    CMailSend mail;
+
+    // Form source file path
+
+    fs::path sourceFile(filenamePath);
+
+    try {
+        
+        mail.setServer(funcData->serverURL);
+        mail.setUserAndPassword(funcData->userName, funcData->userPassword);
+        mail.setFromAddress("<" + funcData->userName + ">");
+        mail.setToAddress("<" + funcData->emailRecipient + ">");
+
+        mail.setMailSubject("FPE Attached File");
+        mail.addFileAttachment(filenamePath, "text/plain", "base64");
+
+        mail.postMail();
+
+        bSuccess = true;
+
+        funcData->coutstr({"Emailing file [", filenamePath, "] ", "To [", funcData->emailRecipient, "]"});
+
+    } catch (const std::runtime_error &e) {
+        funcData->cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
+    } catch (const std::exception & e) {
+        funcData->cerrstr({"Standard exception occured: [", e.what(), "]"});
     }
 
     return (bSuccess);
