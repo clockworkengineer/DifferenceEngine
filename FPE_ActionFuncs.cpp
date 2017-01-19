@@ -36,11 +36,11 @@
 
 #include "FPE_ActionFuncs.hpp"
 
-// Task class
+// CTAsk Class definitions
 
 #include "CFileTask.hpp" 
 
-//
+// CMailSend Class definitions 
 
 #include "CMailSend.hpp"
 

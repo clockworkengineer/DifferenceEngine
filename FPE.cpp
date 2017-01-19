@@ -115,8 +115,7 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
 
 int main(int argc, char** argv) {
 
-    ParamArgData argData;
-    CMailSend mail;
+    ParamArgData argData;   // Command lien arguments  
     
     try {
         
