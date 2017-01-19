@@ -72,8 +72,8 @@ void addCommonOptions(po::options_description& commonOptions, ParamArgData &argD
             ("killcount,k", po::value<int>(&argData.killCount), "Files to process before closedown")
             ("server,s", po::value<std::string>(&argData.serverURL), "SMTP Server URL and port")
             ("user,u", po::value<std::string>(&argData.userName), "Account username")
-            ("password,p", po::value<std::string>(&argData.userPassword), "User password")
-            ("recipient,r", po::value<std::string>(&argData.emailRecipient), "User password");
+            ("password,p", po::value<std::string>(&argData.userPassword), "Account username password")
+            ("recipient,r", po::value<std::string>(&argData.emailRecipient), "Recipients(s) for email with attached file");
 
 
 }

@@ -48,7 +48,12 @@
 
 void exitWithError(std::string errmsg) {
 
+    // Closedown email, display error and exit.
+    
+    CMailSend::closedown();
+    
     CLogger::cerrstr({errmsg});
+
     exit(EXIT_FAILURE);
 
 }
