@@ -12,7 +12,9 @@
 #ifndef FPE_ACTIONFUNCS_HPP
 #define FPE_ACTIONFUNCS_HPP
 
+//
 // C++ STL definitions
+//
 
 #include <string>
 #include <memory>

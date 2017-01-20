@@ -13,7 +13,7 @@
 #define HOST_HPP
 
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
-	/* UNIX-style OS. ------------------------------------------- */
+	/* UNIX type OS */
 #include <unistd.h>
 #if defined(_POSIX_VERSION)
 	/* POSIX compliant */

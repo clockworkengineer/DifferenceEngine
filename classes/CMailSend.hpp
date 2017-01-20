@@ -11,6 +11,7 @@
 
 #ifndef CMAILSEND_HPP
 #define CMAILSEND_HPP
+
 //
 // C++ STL definitions
 //
@@ -83,7 +84,7 @@ public:
     
     void setMailSubject(const std::string& mailSubject);
     void setMailMessage(const std::vector<std::string>& mailMessage);
-    void addFileAttachment(std::string fileName, std::string contentTypes, std::string contentTransferEncoding);
+    void addFileAttachment(const std::string& fileName, const std::string& contentType, const std::string& contentTransferEncoding);
     
     // Send email
    

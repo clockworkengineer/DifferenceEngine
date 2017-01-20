@@ -147,6 +147,7 @@ attach a file and send it to an SMTP server. The class CMailSend in turn uses li
 # To Do #
 
 1. Look into using std::async instead of raw threads with task class.
+2. Use libcurl to create an ftp copy task action function.
 
 
 

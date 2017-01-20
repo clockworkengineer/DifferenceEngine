@@ -15,40 +15,47 @@
 //
 // Description: The task action functions used by the FPE and their support functions.
 // 
-// Currently three actions are provided.
+// Currently four actions are provided.
 //
 // 1) File copy
 // 2) Video file conversion (using handbrake)
-// 3) Run shell command
+// 3) Run shell 
+// 4) Email file as attachment
 // 
-// Dependencies: C11++, classes (CFileTask, CLogger), Linux, Boost C++ Libraries.
+// Dependencies: C11++, classes (CFileTask, CMailSend, CLogger), Linux, Boost C++ Libraries.
 //
 
 // =============
 // INCLUDE FILES
 // =============
 
+//
 // C++ STL definitions
+//
 
 #include <system_error>
 
+//
 // Task Action functions
+//
 
 #include "FPE_ActionFuncs.hpp"
 
-// CTAsk Class definitions
+//
+// Class definitions
+//
 
-#include "CFileTask.hpp" 
-
-// CMailSend Class definitions 
-
+#include "CFileTask.hpp"  
 #include "CMailSend.hpp"
 
+//
 // Process wait definitions
-
+//
 #include <sys/wait.h>
 
+//
 // Boost file system and format libraries definitions
+//
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -331,7 +338,7 @@ bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnDa
         mail.setToAddress("<" + funcData->emailRecipient + ">");
 
         mail.setMailSubject("FPE Attached File");
-        mail.addFileAttachment(filenamePath, "text/plain", "base64");
+        mail.addFileAttachment(filenamePath, "application/unknown", "base64");
 
         mail.postMail();
 

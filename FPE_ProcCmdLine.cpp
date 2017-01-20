@@ -22,7 +22,9 @@
 // INCLUDE FILES
 // =============
 
-// STL definitions
+//
+// C++ STL definitions
+//
 
 #include <iostream>
 
@@ -30,16 +32,12 @@
 
 #include "FPE_ProcCmdLine.hpp"
 
-// Boost program options processing
+// Boost  file system library & program options processing
 
 #include "boost/program_options.hpp" 
-
-namespace po = boost::program_options;
-
-// Boost file system library definitions
-
 #include <boost/filesystem.hpp>
 
+namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
 // ===============
@@ -54,7 +52,7 @@ namespace fs = boost::filesystem;
 // Add options common to both command line and config file
 //
 
-void addCommonOptions(po::options_description& commonOptions, ParamArgData &argData) {
+void addCommonOptions(po::options_description& commonOptions, ParamArgData& argData) {
     
     commonOptions.add_options()
             ("email", "Task = Email File Attachment")
@@ -85,7 +83,7 @@ void addCommonOptions(po::options_description& commonOptions, ParamArgData &argD
 // reading and processing parameters.
 //
 
-void procCmdLine(int argc, char** argv, ParamArgData &argData) {
+void procCmdLine(int argc, char** argv, ParamArgData& argData) {
 
     // Default values
 

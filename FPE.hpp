@@ -12,36 +12,38 @@
 #ifndef FPE_HPP
 #define FPE_HPP
 
+//
 // C++ STL definitions
+//
 
 #include <system_error>
 #include <memory>
 
-// Task class
+//
+// Class defintions
+//
 
 #include "CFileTask.hpp" 
+#include "CRedirect.hpp" 
+#include "CLogger.hpp"
+#include "CMailSend.hpp"
 
+//
 // Process command line arguments
+//
 
 #include "FPE_ProcCmdLine.hpp"
 
+//
 // Task Action functions
+//
 
 #include "FPE_ActionFuncs.hpp"
 
-// CRedirect Class
 
-#include "CRedirect.hpp" 
-
-// CLogger Class
-
-#include "CLogger.hpp"
-
-// CMailSend Class
-
-#include "CMailSend.hpp"
-
-// Boost file system, date and time libraries definitions
+//
+// Boost file system library definitions
+//
 
 #include <boost/filesystem.hpp>
 

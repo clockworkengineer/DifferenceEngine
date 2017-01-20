@@ -12,7 +12,9 @@
 #ifndef FPE_PROCCMDLINE_HPP
 #define FPE_PROCCMDLINE_HPP
 
+//
 // C++ STL definitions
+//
 
 #include <string>
 
@@ -44,6 +46,8 @@ struct ParamArgData {
 // Handbrake command
 
 const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
+
+// Process command line parameters
 
 void procCmdLine (int argc, char** argv, ParamArgData& argData);
 
