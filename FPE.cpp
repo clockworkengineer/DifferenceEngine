@@ -50,7 +50,7 @@ void exitWithError(std::string errmsg) {
 
     // Closedown email, display error and exit.
     
-    CMailSend::closedown();
+    CMailSMTP::closedown();
     
     CLogger::cerrstr({errmsg});
 
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
         
         // Initialise CMailSend internals
         
-        CMailSend::init();
+        CMailSMTP::init();
         
         // std::cout to logfile if parameter specified.
         
@@ -270,7 +270,7 @@ int main(int argc, char** argv) {
 
     // Closedown mail
     
-    CMailSend::closedown();
+    CMailSMTP::closedown();
  
     exit(EXIT_SUCCESS);
 

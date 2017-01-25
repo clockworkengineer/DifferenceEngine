@@ -46,7 +46,7 @@
 //
 
 #include "CFileTask.hpp"  
-#include "CMailSend.hpp"
+#include "CMailSMTP.hpp"
 
 //
 // Process wait definitions
@@ -324,7 +324,7 @@ bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnDa
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
-    CMailSend mail;
+    CMailSMTP mail;
 
     // Form source file path
 

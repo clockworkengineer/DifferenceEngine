@@ -26,7 +26,7 @@
 #include "CFileTask.hpp" 
 #include "CRedirect.hpp" 
 #include "CLogger.hpp"
-#include "CMailSend.hpp"
+#include "CMailSMTP.hpp"
 
 //
 // Process command line arguments

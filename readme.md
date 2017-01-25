@@ -140,8 +140,8 @@ This executes a simple shell script command (--command) for each file name passe
 
 # Email Task Function #
 
-Take the source file name passed in and attach it to an email that is then sent to recipient(s) using a specified server and account. This function utilizes the CMailSend class to create an email,
-attach a file and send it to an SMTP server. The class CMailSend in turn uses libcurl when talking the internet which is written in highly portable 'C' and so available on a multitude of platforms.
+Take the source file name passed in and attach it to an email that is then sent to recipient(s) using a specified server and account. This function utilizes the CMailSMTP class to create an email,
+attach a file and send it to an SMTP server. The class CMailSMTP in turn uses libcurl when talking the internet which is written in highly portable 'C' and so available on a multitude of platforms.
 
 
 # To Do #
