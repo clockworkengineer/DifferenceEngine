@@ -71,7 +71,8 @@ void addCommonOptions(po::options_description& commonOptions, ParamArgData& argD
             ("server,s", po::value<std::string>(&argData.serverURL), "SMTP Server URL and port")
             ("user,u", po::value<std::string>(&argData.userName), "Account username")
             ("password,p", po::value<std::string>(&argData.userPassword), "Account username password")
-            ("recipient,r", po::value<std::string>(&argData.emailRecipient), "Recipients(s) for email with attached file");
+            ("recipient,r", po::value<std::string>(&argData.emailRecipient), "Recipients(s) for email with attached file")
+            ("mailbox,m", po::value<std::string>(&argData.mailBoxName), "IMAP Mailbox name for drop box");
 
 
 }

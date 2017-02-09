@@ -47,6 +47,7 @@
 
 #include "CFileTask.hpp"  
 #include "CMailSMTP.hpp"
+#include "CMailIMAP.hpp"
 
 //
 // Process wait definitions
@@ -324,7 +325,8 @@ bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnDa
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
-    CMailSMTP mail;
+    CMailSMTP smtp;
+    CMailIMAP imap;
 
     // Form source file path
 
@@ -332,22 +334,50 @@ bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnDa
 
     try {
         
-        mail.setServer(funcData->serverURL);
-        mail.setUserAndPassword(funcData->userName, funcData->userPassword);
-        mail.setFromAddress("<" + funcData->userName + ">");
-        mail.setToAddress("<" + funcData->emailRecipient + ">");
+        smtp.setServer(funcData->serverURL);
+        smtp.setUserAndPassword(funcData->userName, funcData->userPassword);
+        smtp.setFromAddress("<" + funcData->userName + ">");
+        smtp.setToAddress("<" + funcData->emailRecipient + ">");
 
-        mail.setMailSubject("FPE Attached File");
-        mail.addFileAttachment(filenamePath, "application/unknown", "base64");
+        smtp.setMailSubject("FPE Attached File");
+        smtp.addFileAttachment(filenamePath, "application/unknown", "base64");
+        
+        if(funcData->serverURL.find(std::string("smtp")) == 0) {
+            
+           smtp.postMail();
+           funcData->coutstr({"Emailing file [", filenamePath, "] ", "to [", funcData->emailRecipient, "]"});
+           bSuccess = true;
+           
+        } else if (funcData->serverURL.find(std::string("imap")) == 0) {
+            
+            std::string mailMessage;
+            std::string commandLine;
 
-        mail.postMail();
+            commandLine = "APPEND " + funcData->mailBoxName + " (\\Seen) {";
+            mailMessage = smtp.getMailMessage();
+            commandLine += std::to_string(mailMessage.length() - 2) + "}" + mailMessage;
 
-        bSuccess = true;
+            imap.setServer(funcData->serverURL);
+            imap.setUserAndPassword(funcData->userName, funcData->userPassword);
+            
+            imap.connect();
 
-        funcData->coutstr({"Emailing file [", filenamePath, "] ", "To [", funcData->emailRecipient, "]"});
+            CMailIMAP::BASERESPONSE commandResponse(imap.sendCommand(commandLine));
+            if (commandResponse->status == CMailIMAP::RespCode::BAD) {
+                funcData->cerrstr({commandResponse->errorMessage});
+            } else {
+                funcData->coutstr({"Added file [", filenamePath, "] ", "to [" + funcData->mailBoxName + "]"});
+                bSuccess = true;
+            }
+            
+            imap.disconnect();
+            
+       }
 
-    } catch (const std::runtime_error &e) {
-        funcData->cerrstr({"Caught a runtime_error exception: [", e.what(), "]"});
+    } catch (const CMailSMTP::Exception &e) {
+        funcData->cerrstr({e.what()});
+    } catch (const CMailIMAP::Exception &e) {
+        funcData->cerrstr({e.what()});
     } catch (const std::exception & e) {
         funcData->cerrstr({"Standard exception occured: [", e.what(), "]"});
     }

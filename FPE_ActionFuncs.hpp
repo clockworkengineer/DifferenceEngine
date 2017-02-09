@@ -38,6 +38,7 @@ struct ActFnData {
     std::string  userPassword;       // Email account user name password
     std::string  serverURL;          // Email SMTP server URL
     std::string  emailRecipient;     // Email recipient
+    std::string  mailBoxName;        // IMAP Mailbox name
     CLogger::LogStringsFn coutstr;   // coutstr output
     CLogger::LogStringsFn cerrstr;   // cerrstr output
 };

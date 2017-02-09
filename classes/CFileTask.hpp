@@ -16,8 +16,8 @@
 // C++ STL definitions
 //
 
-#include <thread>
 #include <cassert>
+#include <thread>
 
 //
 // CLogger trace output, CFileApprise file event watcher
@@ -38,6 +38,17 @@ public:
     // PUBLIC TYPES AND CONSTANTS
     // ==========================
 
+    //
+    // Class exception
+    //
+    
+    struct Exception : public std::runtime_error {
+
+        Exception(std::string const& message)
+        : std::runtime_error("CFileTask Failure: "+ message) { }
+        
+    };
+    
     //
     // Task action function
     //

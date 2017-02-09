@@ -16,7 +16,9 @@
 // a wrapper for pretty generic code that saves away an output streams 
 // read buffer, creates a file stream and redirects the output stream to it. 
 // The code to restore the original output streams is called from the objects 
-// destructor thus providing convenient for restoring the original stream. 
+// destructor thus providing convenient for restoring the original stream.
+//
+// Dependencies: C11++ - Language standard features used. 
 //
 
 // =================
@@ -75,6 +77,22 @@ CRedirect::CRedirect(std::ostream& outStream, std::string outfileName, std::ios_
 }
 
 //
+// Create CRedirect specifying file stream (stdout/stderr), output file and start the redirect
+//
+
+ CRedirect::CRedirect(std::FILE* stdStream,  std::string outfileName, const char* mode) {
+     std::freopen(outfileName.c_str(), mode, stdStream);
+ }
+ 
+//
+// Create CRedirect specifying file stream (stdout/stderr)
+//
+
+ CRedirect::CRedirect(std::FILE* stdStream) {
+     this->stdStream = stdStream;
+ }
+
+//
 // Restore old output stream
 //
 
@@ -93,7 +111,17 @@ void CRedirect::change(std::string outfileName, std::ios_base::openmode mode) {
 }
 
 //
-// Restore old output stream
+// Change output for file stream (stdout/stderr) to file.
+//
+
+void CRedirect::change(std::string outfileName, const char* mode) {
+    std::freopen(outfileName.c_str(), mode, this->stdStream);
+}
+
+//
+// Restore old output stream. Note that this will currently do nothing  for 
+// stdout/stderr (except close) as a dependable way of doing this hasn't 
+// been found yet.
 //
 
 void CRedirect::restore() {
@@ -106,4 +134,7 @@ void CRedirect::restore() {
         this->fileStream->close();
     }
     
+    if (this->stdStream) {
+        fclose(this->stdStream);
+    }
 }

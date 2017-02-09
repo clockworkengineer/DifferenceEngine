@@ -35,11 +35,12 @@ struct ParamArgData {
     bool         bSingleThread;      // Run task in the main thread
     std::string  logFileName;        // Log file name
     std::string  configFileName;     // Config file name
-    bool         bEmailFile;         //
+    bool         bEmailFile;         // Email or save file to Inbox.
     std::string  userName;           // Email account user name
     std::string  userPassword;       // Email account user name password
-    std::string  serverURL;          // Email SMTP server URL
+    std::string  serverURL;          // Email SMTP/IMAP server URL
     std::string  emailRecipient;     // Email recipient
+    std::string  mailBoxName;        // IMAP Mailbox name
 
 };
 

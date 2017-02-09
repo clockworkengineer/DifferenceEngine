@@ -17,7 +17,9 @@
 // on a watch folder and to process each file added with a task action function 
 // provided as a parameter in its constructor.
 // 
-// Dependencies: C11++, Classes (CFileApprise, CLogger).
+// Dependencies: C11++               - Language standard features used.    
+//               Class CLogger       - Logging functionality. 
+//               Class CFileApprise  - File event handling abstraction.
 //
 
 // =================
@@ -156,7 +158,7 @@ void CFileTask::monitor(void) {
             this->watcher->getEvent(evt);
 
             if ((evt.id == CFileApprise::Event_add) && !evt.message.empty()) {
-
+                
                 this->taskActFcn(evt.message, this->fnData);
 
                 if ((this->killCount != 0) && (--(this->killCount) == 0)) {

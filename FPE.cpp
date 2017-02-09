@@ -78,7 +78,7 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
         argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
         argData.extension, argData.userName, argData.userPassword, argData.serverURL,
-        argData.emailRecipient, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
+        argData.emailRecipient, argData.mailBoxName, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
        ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)});
 
     // Use function data to access set coutstr/cerrstr
@@ -124,9 +124,10 @@ int main(int argc, char** argv) {
     
     try {
         
-        // Initialise CMailSend internals
+        // Initialise CMailSMTP/CMailIMAP internals
         
         CMailSMTP::init();
+        CMailIMAP::init();
         
         // std::cout to logfile if parameter specified.
         
@@ -271,6 +272,7 @@ int main(int argc, char** argv) {
     // Closedown mail
     
     CMailSMTP::closedown();
+    CMailIMAP::closedown();
  
     exit(EXIT_SUCCESS);
 

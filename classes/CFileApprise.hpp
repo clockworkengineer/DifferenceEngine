@@ -17,14 +17,9 @@
 //
 
 #include <unordered_map>
-#include <thread>
 #include <queue>
 #include <condition_variable>
-#include <mutex>
 #include <atomic>
-#include <system_error>
-#include <cassert>
-#include <algorithm>
 #include <set>
 
 //
@@ -51,6 +46,17 @@ public:
     // PUBLIC TYPES AND CONSTANTS
     // ==========================
 
+    //
+    // Class exception
+    //
+    
+    struct Exception : public std::runtime_error {
+
+        Exception(std::string const& message)
+        : std::runtime_error("CFileApprise Failure: "+ message) { }
+        
+    };
+    
     //
     // CFileApprise options structure (optionally passed to CFileApprise constructor)
     //
