@@ -27,6 +27,7 @@
 #include "CRedirect.hpp" 
 #include "CLogger.hpp"
 #include "CMailSMTP.hpp"
+#include "CMailIMAP.hpp"
 
 //
 // Process command line arguments
