@@ -20,7 +20,7 @@
 // 1) File copy
 // 2) Video file conversion (using handbrake)
 // 3) Run shell 
-// 4) Email file as attachment
+// 4) Email file as attachment (if the server is IMAP then mail message is appended to a mailbox),
 // 
 // Dependencies: C11++, classes (CFileTask, CMailSend, CLogger), Linux, Boost C++ Libraries.
 //
@@ -48,10 +48,12 @@
 #include "CFileTask.hpp"  
 #include "CMailSMTP.hpp"
 #include "CMailIMAP.hpp"
+#include "CFileMIME.hpp"
 
 //
 // Process wait definitions
 //
+
 #include <sys/wait.h>
 
 //
@@ -340,7 +342,7 @@ bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnDa
         smtp.setToAddress("<" + funcData->emailRecipient + ">");
 
         smtp.setMailSubject("FPE Attached File");
-        smtp.addFileAttachment(filenamePath, "application/unknown", "base64");
+        smtp.addFileAttachment(filenamePath, CFileMIME::getFileMIMEType(filenamePath),  "base64");
         
         if(funcData->serverURL.find(std::string("smtp")) == 0) {
             

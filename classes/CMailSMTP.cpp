@@ -14,15 +14,10 @@
 // 
 // Description: Class that enables an email to be setup and sent
 // to a specified address using the libcurl library. SSL is supported
-// and attached files in either 7bit or base64 encoded format. When
-// adding an attachment it creates its MIME type by first
-// checking an internal table created from /etc/mime.types. If no 
-// mapping is present it uses the passed in value as default.
+// and attached files in either 7bit or base64 encoded format.
 //
 // Dependencies:   C11++     - Language standard features used.
 //                 libcurl   - Used to talk to SMTP server.
-//                 Linux     - /etc/mime.types used to create MIME file 
-//                             extension mapping and function basename().
 //
 
 // =================
@@ -43,9 +38,7 @@
 #include <memory>
 #include <ctime>
 #include <fstream>
-#include <stdexcept>
 #include <sstream>
-#include <array>
 
 // ===========================
 // PRIVATE TYPES AND CONSTANTS
@@ -60,6 +53,10 @@ const std::string CMailSMTP::kMimeBoundary("xxxxCMailSMTPBoundaryText");
 
 const std::string CMailSMTP::kEOL("\r\n");
 
+// Valid characters for base64 encode/decode.
+
+const char CMailSMTP::kCB64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
 // ==========================
 // PUBLIC TYPES AND CONSTANTS
 // ==========================
@@ -73,9 +70,9 @@ const std::string CMailSMTP::kEncodingBase64("base64");
 // PRIVATE STATIC VARIABLES
 // ========================
 
-// File extension to MIME type
+// curl verbosity setting
 
-std::unordered_map<std::string, std::string> CMailSMTP::extToMimeType;
+bool CMailSMTP::bCurlVerbosity=false;
 
 // =======================
 // PUBLIC STATIC VARIABLES
@@ -84,31 +81,6 @@ std::unordered_map<std::string, std::string> CMailSMTP::extToMimeType;
 // ===============
 // PRIVATE METHODS
 // ===============
-
-//
-// Build extension to MIME mapping table from /etc/mimes.types.
-// This is Linux dependent but use until a better solution found.
-//
-
-void CMailSMTP::loadMIMETypes (void) {
-    
-    std::ifstream mimeFile("/etc/mime.types");
-    std::string   extension, mimeType, line;
-
-    while (std::getline(mimeFile, line)) {
-        if (line[0] != '#') {
-            std::istringstream iss(line);
-            iss >> mimeType;
-            while (iss.good()) {
-                iss >> extension;
-                if (!extension.empty()) {
-                    CMailSMTP::extToMimeType.insert({extension, mimeType});
-                }
-            }
-        }
-    }
-      
-}
 
 //
 // Get string for current date time. Note: Resizing buffer effectively removes 
@@ -152,55 +124,6 @@ size_t CMailSMTP::payloadSource(void *ptr, size_t size, size_t nmemb, std::deque
 }
 
 //
-// Encode bytes to base64 string
-//
-
-void CMailSMTP::encodeToBase64(std::string bytesToEncode, uint32_t numberOfBytes, std::string& encodedString) {
-
-    static const char cb64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-    int trailing, byteIndex=0;
-    register uint8_t byte1, byte2, byte3;
-
-    trailing = (numberOfBytes % 3);  // Trailing bytes
-    numberOfBytes /= 3;              // No of 3 byte values to encode
-
-    while (numberOfBytes--) {
-
-        byte1 = bytesToEncode[byteIndex++];
-        byte2 = bytesToEncode[byteIndex++];
-        byte3 = bytesToEncode[byteIndex++];
-
-        encodedString += cb64[(byte1 & 0xfc) >> 2];
-        encodedString += cb64[((byte1 & 0x03) << 4) + ((byte2 & 0xf0) >> 4)];
-        encodedString += cb64[((byte2 & 0x0f) << 2) + ((byte3 & 0xc0) >> 6)];
-        encodedString += cb64[byte3 & 0x3f];
-
-    }
-
-    // One trailing byte
-
-    if (trailing == 1) {
-        byte1 = bytesToEncode[byteIndex++];
-        encodedString += cb64[(byte1 & 0xfc) >> 2];
-        encodedString += cb64[((byte1 & 0x03) << 4)];
-        encodedString += '=';
-        encodedString += '=';
-
-        // Two trailing bytes
-
-    } else if (trailing == 2) {
-        byte1 = bytesToEncode[byteIndex++];
-        byte2 = bytesToEncode[byteIndex++];
-        encodedString += cb64[(byte1 & 0xfc) >> 2];
-        encodedString += cb64[((byte1 & 0x03) << 4) + ((byte2 & 0xf0) >> 4)];
-        encodedString += cb64[((byte2 & 0x0f) << 2)];
-        encodedString += '=';
-    }
-
-}
-
-//
 // Encode a specified file in either 7bit or base64.
 //
 
@@ -232,7 +155,7 @@ void CMailSMTP::encodeAttachment(CMailSMTP::emailAttachment& attachment) {
         ifs.seekg(0, std::ios::beg);
         while (ifs.good()) {
             ifs.read(&buffer[0], CMailSMTP::kBase64EncodeBufferSize);
-            this->encodeToBase64(buffer, ifs.gcount(), line);
+            this->encodeToBase64(buffer, line, ifs.gcount());
             attachment.encodedContents.push_back(line + kEOL);
             line.clear();
         }
@@ -249,7 +172,7 @@ void CMailSMTP::buildAttachments(void) {
 
     for (auto attachment : this->attachedFiles) {
 
-        std::string baseFileName = basename(attachment.fileName.c_str());
+        std::string baseFileName = attachment.fileName.substr(attachment.fileName.find_last_of("/\\") + 1);
 
         this->encodeAttachment(attachment);
 
@@ -326,6 +249,21 @@ void CMailSMTP::buildMailPayload(void) {
 
 }
 
+//
+// Decode character to base64 index.
+//
+
+ inline int CMailSMTP::decodeChar(char ch) {
+
+    int index=0;
+    do {
+        if (ch == CMailSMTP::kCB64[index]) return (index);
+    } while (CMailSMTP::kCB64[index++]);
+
+    return (0);
+
+}
+
 // ==============
 // PUBLIC METHODS
 // ==============
@@ -341,6 +279,17 @@ void CMailSMTP::setServer(const std::string& serverURL) {
 }
 
 //
+// Get STMP server URL
+// 
+
+std::string CMailSMTP::getServer(void) {
+
+    return(this->serverURL);
+    
+}
+
+
+//
 // Set email account details
 //
 
@@ -348,6 +297,16 @@ void CMailSMTP::setUserAndPassword(const std::string& userName, const std::strin
 
     this->userName = userName;
     this->userPassword = userPassword;
+
+}
+
+//
+// Get email account user
+//
+
+std::string CMailSMTP::getUser(void) {
+
+    return(this->userName);
 
 }
 
@@ -361,12 +320,33 @@ void CMailSMTP::setFromAddress(const std::string& addressFrom) {
 }
 
 //
+// Get From address
+//
+
+std::string CMailSMTP::getFromAddress(void) {
+
+    return(this->addressFrom);
+    
+}
+
+//
 // Set To address
 //
 
 void CMailSMTP::setToAddress(const std::string& addressTo) {
 
     this->addressTo = addressTo;
+    
+}
+
+//
+// Get To address
+//
+
+std::string CMailSMTP::getToAddress(void) {
+
+    return(this->addressTo);
+    
 }
 
 //
@@ -378,6 +358,15 @@ void CMailSMTP::setCCAddress(const std::string& addressCC) {
     this->addressCC = addressCC;
 }
 
+//
+// Get CC recipient address
+//
+
+std::string CMailSMTP::getCCAddress(void) {
+
+    return(this->addressCC);
+    
+}
 
 //
 // Set email subject
@@ -390,6 +379,16 @@ void CMailSMTP::setMailSubject(const std::string& mailSubject) {
 }
 
 //
+// Get email subject
+//
+
+std::string CMailSMTP::getMailSubject(void) {
+
+    return(this->mailSubject);
+
+}
+
+//
 // Set body of email message
 //
 
@@ -398,25 +397,28 @@ void CMailSMTP::setMailMessage(const std::vector<std::string>& mailMessage) {
 }
 
 //
-// Add file attachment. Try to find MIME mapping for file extension from internal table 
-// but if not found then use passed in value as a fallback.
+// Get body of email message
+//
+
+std::string CMailSMTP::getMailMessage(void) {
+    
+   std::string mailMessage;
+    
+    for (auto line : this->mailMessage) {
+        mailMessage.append(line);
+    }
+      
+    return(mailMessage);
+    
+}
+
+//
+// Add file attachment.
 // 
 
 void CMailSMTP::addFileAttachment(const std::string& fileName, const std::string& contentType, const std::string& contentTransferEncoding) {
 
-    std::string mimeMapping(contentType);
-    std::string baseFileName = basename(fileName.c_str());
-    std::size_t fullStop = baseFileName.find_last_of('.');
-    
-    if (fullStop != std::string::npos) {
-        baseFileName = baseFileName.substr(fullStop+1);
-        auto foundMapping= CMailSMTP::extToMimeType.find(baseFileName);
-        if (foundMapping != CMailSMTP::extToMimeType.end()) {
-            mimeMapping = foundMapping->second;
-        }
-    }
-
-    this->attachedFiles.push_back({fileName, mimeMapping, contentTransferEncoding});
+    this->attachedFiles.push_back({fileName, contentType, contentTransferEncoding});
 
 }
 
@@ -424,9 +426,7 @@ void CMailSMTP::addFileAttachment(const std::string& fileName, const std::string
 // Post email
 //
 
-void CMailSMTP::postMail(void) {
-
-    char errMsgBuffer[CURL_ERROR_SIZE];
+void CMailSMTP::postMail(void) {  
     
     this->curl = curl_easy_init();
 
@@ -440,7 +440,7 @@ void CMailSMTP::postMail(void) {
 
         curl_easy_setopt(this->curl, CURLOPT_USE_SSL, (long) CURLUSESSL_ALL);
 
-        curl_easy_setopt(this->curl, CURLOPT_ERRORBUFFER, errMsgBuffer);
+        curl_easy_setopt(this->curl, CURLOPT_ERRORBUFFER, this->errMsgBuffer);
         
         if (!this->mailCABundle.empty()) {
             curl_easy_setopt(this->curl, CURLOPT_CAINFO, this->mailCABundle.c_str());
@@ -462,7 +462,7 @@ void CMailSMTP::postMail(void) {
         curl_easy_setopt(this->curl, CURLOPT_READDATA, &this->mailPayload);
         curl_easy_setopt(this->curl, CURLOPT_UPLOAD, 1L);
 
-        curl_easy_setopt(this->curl, CURLOPT_VERBOSE, 0L);
+        curl_easy_setopt(this->curl, CURLOPT_VERBOSE, this->bCurlVerbosity);
         
         errMsgBuffer[0] = 0;
         this->res = curl_easy_perform(this->curl);
@@ -471,8 +471,8 @@ void CMailSMTP::postMail(void) {
 
         if (this->res != CURLE_OK) {
             std::string errMsg;
-            if (std::strlen(errMsgBuffer)!=0) {
-                errMsg = errMsgBuffer;
+            if (std::strlen(this->errMsgBuffer)!=0) {
+                errMsg = this->errMsgBuffer;
             } else {
                 errMsg=curl_easy_strerror(res);
             }
@@ -496,10 +496,108 @@ void CMailSMTP::postMail(void) {
 }
 
 //
-// Get email message body
+// Encode string to base64 string.
 //
 
-std::string CMailSMTP::getMailMessage() {
+void CMailSMTP::encodeToBase64(const std::string& decodedString, std::string& encodedString, uint32_t numberOfBytes) {
+
+    int trailing, byteIndex=0;
+    register uint8_t byte1, byte2, byte3;
+
+    if (numberOfBytes == 0) {
+        return;
+    }
+    
+    encodedString.clear();
+    
+    trailing = (numberOfBytes % 3);  // Trailing bytes
+    numberOfBytes /= 3;              // No of 3 byte values to encode
+
+    while (numberOfBytes--) {
+
+        byte1 = decodedString[byteIndex++];
+        byte2 = decodedString[byteIndex++];
+        byte3 = decodedString[byteIndex++];
+
+        encodedString += CMailSMTP::kCB64[(byte1 & 0xfc) >> 2];
+        encodedString += CMailSMTP::kCB64[((byte1 & 0x03) << 4) + ((byte2 & 0xf0) >> 4)];
+        encodedString += CMailSMTP::kCB64[((byte2 & 0x0f) << 2) + ((byte3 & 0xc0) >> 6)];
+        encodedString += CMailSMTP::kCB64[byte3 & 0x3f];
+
+    }
+
+    // One trailing byte
+
+    if (trailing == 1) {
+        byte1 = decodedString[byteIndex++];
+        encodedString += CMailSMTP::kCB64[(byte1 & 0xfc) >> 2];
+        encodedString += CMailSMTP::kCB64[((byte1 & 0x03) << 4)];
+        encodedString += '=';
+        encodedString += '=';
+
+        // Two trailing bytes
+
+    } else if (trailing == 2) {
+        byte1 = decodedString[byteIndex++];
+        byte2 = decodedString[byteIndex++];
+        encodedString += CMailSMTP::kCB64[(byte1 & 0xfc) >> 2];
+        encodedString += CMailSMTP::kCB64[((byte1 & 0x03) << 4) + ((byte2 & 0xf0) >> 4)];
+        encodedString += CMailSMTP::kCB64[((byte2 & 0x0f) << 2)];
+        encodedString += '=';
+    }
+
+}
+
+//
+// Decode string from base64 encoded string.
+//
+ 
+void CMailSMTP::decodeFromBase64(const std::string& encodedString, std::string& decodedString, uint32_t numberOfBytes) {
+
+    int byteIndex = 0;
+    register uint8_t byte1, byte2, byte3, byte4;
+
+    if ((numberOfBytes == 0) || (numberOfBytes % 4)) {
+        return;
+    }
+
+    decodedString.clear();
+
+    numberOfBytes = (numberOfBytes / 4);
+    while (numberOfBytes--) {
+
+        byte1 = encodedString[byteIndex++];
+        byte2 = encodedString[byteIndex++];
+        byte3 = encodedString[byteIndex++];
+        byte4 = encodedString[byteIndex++];
+
+        byte1 = decodeChar(byte1);
+        byte2 = decodeChar(byte2);
+
+        if (byte3 == '=') {
+            byte3 = 0;
+            byte4 = 0;
+        } else if (byte4 == '=') {
+            byte3 = decodeChar(byte3);
+            byte4 = 0;
+        } else {
+            byte3 = decodeChar(byte3);
+            byte4 = decodeChar(byte4);
+        }
+
+        decodedString += ((byte1 << 2) + ((byte2 & 0x30) >> 4));
+        decodedString += (((byte2 & 0xf) << 4) + ((byte3 & 0x3c) >> 2));
+        decodedString += (((byte3 & 0x3) << 6) + byte4);
+
+    }
+
+}
+
+//
+// Get whole of email message (including headers and encoded attachments).
+//
+
+std::string CMailSMTP::getMailFull(void) {
  
     std::string mailMessage;
     
@@ -532,16 +630,16 @@ CMailSMTP::~CMailSMTP() {
 }
 
 //
-// CMailSend initialisation. Glocally init curl and load MIME types.
+// CMailSend initialization. Globally init curl.
 //
 
-void CMailSMTP::init(void) {
+void CMailSMTP::init(bool bCurlVerbosity) {
 
     if (curl_global_init(CURL_GLOBAL_ALL)) {
         throw CMailSMTP::Exception("curl_global_init() : failure to initialize libcurl.");
     }
     
-    loadMIMETypes();
+    CMailSMTP::bCurlVerbosity = bCurlVerbosity;
         
 }
 

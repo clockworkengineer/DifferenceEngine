@@ -158,7 +158,7 @@ void CFileTask::monitor(void) {
             this->watcher->getEvent(evt);
 
             if ((evt.id == CFileApprise::Event_add) && !evt.message.empty()) {
-                
+
                 this->taskActFcn(evt.message, this->fnData);
 
                 if ((this->killCount != 0) && (--(this->killCount) == 0)) {
