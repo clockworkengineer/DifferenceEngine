@@ -48,6 +48,7 @@
 #include "CFileTask.hpp"  
 #include "CMailSMTP.hpp"
 #include "CMailIMAP.hpp"
+#include "CMailIMAPParse.hpp"
 #include "CFileMIME.hpp"
 
 //
@@ -114,19 +115,19 @@ static int forkCommand(char *const argv[]) {
 // All heap memory cleaned up when function returns due to unique_pointers.
 //
 
-static int runShellCommand(const std::string& shellCommand) {
+static int runShellCommand(const std::string& shellCommandStr) {
 
     int exitStatus = 0;
     int argc = 0;
 
     std::vector<char *> argvs;
     std::unique_ptr<char*> argv;
-    std::unique_ptr<char> commandStr{ new char[shellCommand.length() + 1]};
+    std::unique_ptr<char> commandStr{ new char[shellCommandStr.length() + 1]};
 
     // Take a 'C' string copy
 
-     shellCommand.copy(commandStr.get(), shellCommand.length());
-     commandStr.get()[shellCommand.length()] = 0; // null terminate
+     shellCommandStr.copy(commandStr.get(), shellCommandStr.length());
+     commandStr.get()[shellCommandStr.length()] = 0; // null terminate
 
     // Loop through command splitting into substrings for argv
 
@@ -163,39 +164,39 @@ static int runShellCommand(const std::string& shellCommand) {
 // Run a specified command on the file (%1% source, %2% destination)
 //
 
-bool runCommand(const std::string &filenamePath, const std::shared_ptr<void>fnData) {
+bool runCommand(const std::string &filenamePathStr, const std::shared_ptr<void>fnData) {
 
     // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
-    assert(filenamePath.length() != 0);
+    assert(filenamePathStr.length() != 0);
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
     // Form source and destination file paths
 
-    fs::path sourceFile(filenamePath);
-    fs::path destinationFile(funcData->destinationFolder + sourceFile.filename().string());
+    fs::path sourceFile(filenamePathStr);
+    fs::path destinationFile(funcData->destinationFolderStr + sourceFile.filename().string());
 
     // Create correct command for whether source and destination specified or just source or none
 
-    bool srcFound = (funcData->commandToRun.find("%1%") != std::string::npos);
-    bool dstFound = (funcData->commandToRun.find("%2%") != std::string::npos);
+    bool srcFound = (funcData->commandToRunStr.find("%1%") != std::string::npos);
+    bool dstFound = (funcData->commandToRunStr.find("%2%") != std::string::npos);
 
-    std::string command;
+    std::string commandStr;
     if (srcFound && dstFound) {
-        command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
+        commandStr = (boost::format(funcData->commandToRunStr) % sourceFile.string() % destinationFile.string()).str();
     } else if (srcFound) {
-        command = (boost::format(funcData->commandToRun) % sourceFile.string()).str();
+        commandStr = (boost::format(funcData->commandToRunStr) % sourceFile.string()).str();
     } else {
-        command = funcData->commandToRun;
+        commandStr = funcData->commandToRunStr;
     }
 
-    funcData->coutstr({command});
+    funcData->coutstr({commandStr});
 
     auto result = 0;
-    if ((result = runShellCommand(command)) == 0) {
+    if ((result = runShellCommand(commandStr)) == 0) {
         bSuccess = true;
         funcData->coutstr({"Command success." });
         if (funcData->bDeleteSource) {
@@ -214,37 +215,37 @@ bool runCommand(const std::string &filenamePath, const std::shared_ptr<void>fnDa
 // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
 //
 
-bool handBrake(const std::string& filenamePath, const std::shared_ptr<void> fnData) {
+bool handBrake(const std::string& filenamePathStr, const std::shared_ptr<void> fnData) {
 
     // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
-    assert(filenamePath.length() != 0);
+    assert(filenamePathStr.length() != 0);
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
     // Form source and destination file paths
 
-    fs::path sourceFile(filenamePath);
-    fs::path destinationFile(funcData->destinationFolder);
+    fs::path sourceFile(filenamePathStr);
+    fs::path destinationFile(funcData->destinationFolderStr);
 
     destinationFile /= sourceFile.stem().string();
 
-    if (funcData->extension.length() > 0) {
-        destinationFile.replace_extension(funcData->extension);
+    if (funcData->extensionStr.length() > 0) {
+        destinationFile.replace_extension(funcData->extensionStr);
     } else {
         destinationFile.replace_extension(".mp4");
     }
 
     // Convert file
 
-    std::string command = (boost::format(funcData->commandToRun) % sourceFile.string() % destinationFile.string()).str();
+    std::string commandStr = (boost::format(funcData->commandToRunStr) % sourceFile.string() % destinationFile.string()).str();
 
     funcData->coutstr({"Converting file [", sourceFile.string(), "] To [", destinationFile.string(), "]"});
 
     auto result = 0;
-    if ((result = runShellCommand(command)) == 0) {
+    if ((result = runShellCommand(commandStr)) == 0) {
         bSuccess = true;
         funcData->coutstr({"File conversion success."});
         if (funcData->bDeleteSource) {
@@ -265,24 +266,24 @@ bool handBrake(const std::string& filenamePath, const std::shared_ptr<void> fnDa
 // keeping the sources directory structure.
 //
 
-bool copyFile(const std::string &filenamePath, const std::shared_ptr<void> fnData) {
+bool copyFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData) {
 
     // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
-    assert(filenamePath.length() != 0);
+    assert(filenamePathStr.length() != 0);
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
     // Form source and destination file paths
 
-    fs::path sourceFile(filenamePath);
+    fs::path sourceFile(filenamePathStr);
 
     // Destination file path += ("filename path" - "watch folder path")
 
-    fs::path destinationFile(funcData->destinationFolder +
-            filenamePath.substr((funcData->watchFolder).length()));
+    fs::path destinationFile(funcData->destinationFolderStr +
+            filenamePathStr.substr((funcData->watchFolderStr).length()));
 
     // Construct full destination path if needed
 
@@ -317,12 +318,12 @@ bool copyFile(const std::string &filenamePath, const std::shared_ptr<void> fnDat
 // Email file action function.
 //
 
-bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnData) {
+bool emailFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData) {
 
     // ASSERT for any invalid parameters.
 
     assert(fnData != nullptr);
-    assert(filenamePath.length() != 0);
+    assert(filenamePathStr.length() != 0);
 
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
@@ -332,43 +333,45 @@ bool emailFile(const std::string &filenamePath, const std::shared_ptr<void> fnDa
 
     // Form source file path
 
-    fs::path sourceFile(filenamePath);
+    fs::path sourceFile(filenamePathStr);
 
     try {
         
-        smtp.setServer(funcData->serverURL);
-        smtp.setUserAndPassword(funcData->userName, funcData->userPassword);
-        smtp.setFromAddress("<" + funcData->userName + ">");
-        smtp.setToAddress("<" + funcData->emailRecipient + ">");
+        smtp.setServer(funcData->serverURLStr);
+        smtp.setUserAndPassword(funcData->userNameStr, funcData->userPasswordStr);
+        smtp.setFromAddress("<" + funcData->userNameStr + ">");
+        smtp.setToAddress("<" + funcData->emailRecipientStr + ">");
 
         smtp.setMailSubject("FPE Attached File");
-        smtp.addFileAttachment(filenamePath, CFileMIME::getFileMIMEType(filenamePath),  "base64");
+        smtp.addFileAttachment(filenamePathStr, CFileMIME::getFileMIMEType(filenamePathStr),  "base64");
         
-        if(funcData->serverURL.find(std::string("smtp")) == 0) {
+        if(funcData->serverURLStr.find(std::string("smtp")) == 0) {
             
            smtp.postMail();
-           funcData->coutstr({"Emailing file [", filenamePath, "] ", "to [", funcData->emailRecipient, "]"});
+           funcData->coutstr({"Emailing file [", filenamePathStr, "] ", "to [", funcData->emailRecipientStr, "]"});
            bSuccess = true;
            
-        } else if (funcData->serverURL.find(std::string("imap")) == 0) {
+        } else if (funcData->serverURLStr.find(std::string("imap")) == 0) {
             
-            std::string mailMessage;
-            std::string commandLine;
+            std::string mailMessageStr;
+            std::string commandLineStr;
 
-            commandLine = "APPEND " + funcData->mailBoxName + " (\\Seen) {";
-            mailMessage = smtp.getMailMessage();
-            commandLine += std::to_string(mailMessage.length() - 2) + "}" + mailMessage;
+            commandLineStr = "APPEND " + funcData->mailBoxNameStr + " (\\Seen) {";
+            mailMessageStr = smtp.getMailMessage();
+            commandLineStr += std::to_string(mailMessageStr.length() - 2) + "}" + mailMessageStr;
 
-            imap.setServer(funcData->serverURL);
-            imap.setUserAndPassword(funcData->userName, funcData->userPassword);
+            imap.setServer(funcData->serverURLStr);
+            imap.setUserAndPassword(funcData->userNameStr, funcData->userPasswordStr);
             
             imap.connect();
 
-            CMailIMAP::BASERESPONSE commandResponse(imap.sendCommand(commandLine));
-            if (commandResponse->status == CMailIMAP::RespCode::BAD) {
-                funcData->cerrstr({commandResponse->errorMessage});
+            std::string commandResponseStr(imap.sendCommand(commandLineStr));
+            
+            CMailIMAPParse::COMMANDRESPONSE commandResponse(CMailIMAPParse::parseResponse(commandLineStr));
+            if (commandResponse->status == CMailIMAPParse::RespCode::BAD) {
+                funcData->cerrstr({commandResponse->errorMessageStr});
             } else {
-                funcData->coutstr({"Added file [", filenamePath, "] ", "to [" + funcData->mailBoxName + "]"});
+                funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->mailBoxNameStr + "]"});
                 bSuccess = true;
             }
             

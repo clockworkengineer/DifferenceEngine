@@ -29,18 +29,18 @@
 // Action function data
 
 struct ActFnData {
-    std::string  watchFolder;        // Watch Folder
-    std::string  destinationFolder;  // Destination Folder for copies.
-    std::string  commandToRun;       // Command to run
-    bool         bDeleteSource;      // Delete source file
-    std::string  extension;          // Override extension for destination file
-    std::string  userName;           // Email account user name
-    std::string  userPassword;       // Email account user name password
-    std::string  serverURL;          // Email SMTP server URL
-    std::string  emailRecipient;     // Email recipient
-    std::string  mailBoxName;        // IMAP Mailbox name
-    CLogger::LogStringsFn coutstr;   // coutstr output
-    CLogger::LogStringsFn cerrstr;   // cerrstr output
+    std::string  watchFolderStr;        // Watch Folder
+    std::string  destinationFolderStr;  // Destination Folder for copies.
+    std::string  commandToRunStr;       // Command to run
+    bool         bDeleteSource;         // Delete source file
+    std::string  extensionStr;          // Override extension for destination file
+    std::string  userNameStr;           // Email account user name
+    std::string  userPasswordStr;       // Email account user name password
+    std::string  serverURLStr;          // Email SMTP server URL
+    std::string  emailRecipientStr;     // Email recipient
+    std::string  mailBoxNameStr;        // IMAP Mailbox name
+    CLogger::LogStringsFn coutstr;      // coutstr output
+    CLogger::LogStringsFn cerrstr;      // cerrstr output
 };
 
 //  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto
@@ -50,10 +50,10 @@ struct ActFnData {
 
 // Action function prototypes
 
-bool handBrake(const std::string& filenamePath, const std::shared_ptr<void> fnData);
-bool copyFile(const std::string& filenamePath,  const std::shared_ptr<void> fnData);
-bool runCommand(const std::string& filenamePath,  const std::shared_ptr<void> fnData);
-bool emailFile(const std::string& filenamePath,  const std::shared_ptr<void> fnData);
+bool handBrake(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
+bool copyFile(const std::string& filenamePathStr,  const std::shared_ptr<void> fnData);
+bool runCommand(const std::string& filenamePathStr,  const std::shared_ptr<void> fnData);
+bool emailFile(const std::string& filenamePathStr,  const std::shared_ptr<void> fnData);
 
 #endif /* FPE_ACTIONFUNCS_HPP */
 

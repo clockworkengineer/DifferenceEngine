@@ -111,9 +111,9 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_FALSE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
     
 }
@@ -144,9 +144,9 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_FALSE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
   
 }
@@ -176,9 +176,9 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_TRUE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
 
 
@@ -210,9 +210,9 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_TRUE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
 
     
@@ -244,10 +244,10 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
     EXPECT_TRUE(argData.bRunCommand);
     EXPECT_FALSE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRun.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRunStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
 
 
@@ -280,10 +280,10 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
     EXPECT_TRUE(argData.bRunCommand);
     EXPECT_FALSE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRun.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRunStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
 
 
@@ -316,9 +316,9 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_FALSE(argData.bVideoConversion);
     EXPECT_EQ(3, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
 
 }
@@ -348,9 +348,9 @@ TEST_F(ProcCmdLineTests, NoTaskDefaultCopyDelete) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_FALSE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
 
  
@@ -406,9 +406,9 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_TRUE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ(".mkv", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ(".mkv", argData.extensionStr.c_str());
     EXPECT_FALSE(argData.bQuiet);
 
     
@@ -440,9 +440,9 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_TRUE(argData.bVideoConversion);
     EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolder.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolder.c_str());
-    ASSERT_STREQ("", argData.extension.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
+    ASSERT_STREQ("", argData.extensionStr.c_str());
     EXPECT_TRUE(argData.bQuiet);
 
     

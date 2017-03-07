@@ -6,7 +6,7 @@
  * Created on October 24, 2016, 2:33 PM
  *
  * Copyright 2016.
- 
+ *
  */
 
 #ifndef CMAILSMTP_HPP
@@ -52,8 +52,8 @@ public:
     
     // Supported contents encodings
     
-    static const std::string kEncoding7Bit;
-    static const std::string kEncodingBase64;
+    static const char *kEncoding7BitStr;
+    static const char *kEncodingBase64Str;
  
     // ============
     // CONSTRUCTORS
@@ -80,8 +80,8 @@ public:
     void setServer(const std::string& serverURL);
     void setUserAndPassword(const std::string& userName, const std::string& userPassword);  
     
-    std::string getServer(void);
-    std::string getUser(void);
+    std::string getServer(void) const;
+    std::string getUser(void) const;
  
     // Set/Get email message header details
     
@@ -89,9 +89,9 @@ public:
     void setToAddress(const std::string& addressTo);
     void setCCAddress(const std::string& addressCC);
     
-    std::string  getFromAddress(void);
-    std::string  getToAddress(void);
-    std::string  getCCAddress(void);
+    std::string  getFromAddress(void) const;
+    std::string  getToAddress(void) const;
+    std::string  getCCAddress(void) const;
     
     // Set email content details
     
@@ -99,8 +99,8 @@ public:
     void setMailMessage(const std::vector<std::string>& mailMessage);
     void addFileAttachment(const std::string& fileName, const std::string& contentType, const std::string& contentTransferEncoding);
  
-    std::string getMailSubject(void);
-    std::string getMailMessage(void);
+    std::string getMailSubject(void) const;
+    std::string getMailMessage(void) const;
     
     // Send email
    
@@ -140,18 +140,22 @@ private:
         std::vector<std::string> encodedContents;   // Attached file encoded contents
     };
     
-    static const std::string kMimeBoundary;         // Text string used for MIME boundary
+    static const char *kMimeBoundaryStr;               // Text string used for MIME boundary
     
     static const int kBase64EncodeBufferSize=54;    // Optimum encode buffer size (since encoded max 76 bytes)
   
-    static const std::string kEOL;                  // End of line
+    static const char *kEOLStr;                        // End of line
     
     static const char kCB64[];                      // Valid characters for base64 encode/decode.
     
-    // =====================
-    // DISABLED CONSTRUCTORS
-    // =====================
- 
+    // ===========================================
+    // DISABLED CONSTRUCTORS/DESTRUCTORS/OPERATORS
+    // ===========================================
+    
+    CMailSMTP(const CMailSMTP & orig) = delete;
+    CMailSMTP(const CMailSMTP && orig) = delete;
+    CMailSMTP& operator=(CMailSMTP other) = delete;
+
     // ===============
     // PRIVATE METHODS
     // ===============

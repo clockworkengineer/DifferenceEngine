@@ -58,21 +58,21 @@ void addCommonOptions(po::options_description& commonOptions, ParamArgData& argD
             ("email", "Task = Email File Attachment")
             ("copy", "Task = File Copy Watcher")
             ("video", "Task = Video Conversion Watcher")
-            ("command", po::value<std::string>(&argData.commandToRun), "Task = Run Shell Command")
-            ("watch,w", po::value<std::string>(&argData.watchFolder)->required(), "Watch Folder")
-            ("destination,d", po::value<std::string>(&argData.destinationFolder)->required(), "Destination Folder")
+            ("command", po::value<std::string>(&argData.commandToRunStr), "Task = Run Shell Command")
+            ("watch,w", po::value<std::string>(&argData.watchFolderStr)->required(), "Watch Folder")
+            ("destination,d", po::value<std::string>(&argData.destinationFolderStr)->required(), "Destination Folder")
             ("maxdepth", po::value<int>(&argData.maxWatchDepth), "Maximum Watch Depth")
-            ("extension,e", po::value<std::string>(&argData.extension), "Override destination file extension")
+            ("extension,e", po::value<std::string>(&argData.extensionStr), "Override destination file extension")
             ("quiet,q", "Quiet mode (no trace output)")
             ("delete", "Delete Source File")
-            ("log,l", po::value<std::string>(&argData.logFileName), "Log file")
+            ("log,l", po::value<std::string>(&argData.logFileNameStr), "Log file")
             ("single,s", "Run task in main thread")
             ("killcount,k", po::value<int>(&argData.killCount), "Files to process before closedown")
-            ("server,s", po::value<std::string>(&argData.serverURL), "SMTP Server URL and port")
-            ("user,u", po::value<std::string>(&argData.userName), "Account username")
-            ("password,p", po::value<std::string>(&argData.userPassword), "Account username password")
-            ("recipient,r", po::value<std::string>(&argData.emailRecipient), "Recipients(s) for email with attached file")
-            ("mailbox,m", po::value<std::string>(&argData.mailBoxName), "IMAP Mailbox name for drop box");
+            ("server,s", po::value<std::string>(&argData.serverURLStr), "SMTP Server URL and port")
+            ("user,u", po::value<std::string>(&argData.userNameStr), "Account username")
+            ("password,p", po::value<std::string>(&argData.userPasswordStr), "Account username password")
+            ("recipient,r", po::value<std::string>(&argData.emailRecipientStr), "Recipients(s) for email with attached file")
+            ("mailbox,m", po::value<std::string>(&argData.mailBoxNameStr), "IMAP Mailbox name for drop box");
 
 
 }
@@ -94,17 +94,17 @@ void procCmdLine(int argc, char** argv, ParamArgData& argData) {
     argData.bRunCommand = false;
     argData.maxWatchDepth = -1;
     argData.bDeleteSource = false;
-    argData.extension = "";
+    argData.extensionStr = "";
     argData.bQuiet = false;
     argData.killCount = 0;
     argData.bSingleThread = false;
-    argData.logFileName = "";
-    argData.configFileName = "";
+    argData.logFileNameStr = "";
+    argData.configFileNameStr = "";
     argData.bEmailFile = false;
-    argData.userName = "";
-    argData.userPassword = "";
-    argData.serverURL = "";
-    argData.emailRecipient = "";
+    argData.userNameStr = "";
+    argData.userPasswordStr = "";
+    argData.serverURLStr = "";
+    argData.emailRecipientStr = "";
 
     // Define and parse the program options
 
@@ -114,7 +114,7 @@ void procCmdLine(int argc, char** argv, ParamArgData& argData) {
 
     commandLine.add_options()
             ("help", "Display help message")
-            ("config", po::value<std::string>(&argData.configFileName), "Configuration file name");
+            ("config", po::value<std::string>(&argData.configFileNameStr), "Configuration file name");
 
     addCommonOptions(commandLine, argData);
 
@@ -172,7 +172,7 @@ void procCmdLine(int argc, char** argv, ParamArgData& argData) {
 
         if (vm.count("video")) {
             argData.bVideoConversion = true;
-            argData.commandToRun = kHandbrakeCommand;
+            argData.commandToRunStr = kHandbrakeCommandStr;
             taskCount++;
         }
 
@@ -213,8 +213,8 @@ void procCmdLine(int argc, char** argv, ParamArgData& argData) {
 
         // Make watch/destination paths absolute
 
-        argData.watchFolder = fs::absolute(argData.watchFolder).string();
-        argData.destinationFolder = fs::absolute(argData.destinationFolder).string();
+        argData.watchFolderStr = fs::absolute(argData.watchFolderStr).string();
+        argData.destinationFolderStr = fs::absolute(argData.destinationFolderStr).string();
 
     } catch (po::error& e) {
         std::cerr << "FPE Error: " << e.what() << std::endl << std::endl;

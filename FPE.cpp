@@ -46,13 +46,13 @@
 // Exit with error message/status
 //
 
-void exitWithError(std::string errmsg) {
+void exitWithError(std::string errmsgStr) {
 
     // Closedown email, display error and exit.
     
     CMailSMTP::closedown();
     
-    CLogger::cerrstr({errmsg});
+    CLogger::cerrstr({errmsgStr});
 
     exit(EXIT_FAILURE);
 
@@ -62,11 +62,11 @@ void exitWithError(std::string errmsg) {
 // Create task and run in thread.
 //
 
-void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileTask::TaskActionFcn taskActFcn) {
+void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CFileTask::TaskActionFcn taskActFcn) {
 
     // ASSERT if strings length 0 , pointer parameters NULL
 
-    assert(taskName.length() != 0);
+    assert(taskNameStr.length() != 0);
     assert(taskActFcn != nullptr);
 
     // Date and Time stamp output
@@ -75,10 +75,10 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
         
     // Create function data (wrap in void shared pointer for passing to task).
 
-    std::shared_ptr<void> fnData(new ActFnData{argData.watchFolder,
-        argData.destinationFolder, argData.commandToRun, argData.bDeleteSource,
-        argData.extension, argData.userName, argData.userPassword, argData.serverURL,
-        argData.emailRecipient, argData.mailBoxName, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
+    std::shared_ptr<void> fnData(new ActFnData{argData.watchFolderStr,
+        argData.destinationFolderStr, argData.commandToRunStr, argData.bDeleteSource,
+        argData.extensionStr, argData.userNameStr, argData.userPasswordStr, argData.serverURLStr,
+        argData.emailRecipientStr, argData.mailBoxNameStr, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
        ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)});
 
     // Use function data to access set coutstr/cerrstr
@@ -93,7 +93,7 @@ void createTaskAndRun(const std::string& taskName, ParamArgData& argData, CFileT
 
     // Create task object
 
-    CFileTask task(taskName, argData.watchFolder, taskActFcn, fnData, argData.maxWatchDepth, options);
+    CFileTask task(taskNameStr, argData.watchFolderStr, taskActFcn, fnData, argData.maxWatchDepth, options);
 
     // Create task object thread and start to watch else use FPE thread.
 
@@ -151,39 +151,39 @@ int main(int argc, char** argv) {
         // Email does not require a destination folder
             
         if (argData.bEmailFile) {
-            argData.destinationFolder = "";
+            argData.destinationFolderStr = "";
         }
             
         // Create watch folder for task.
 
-        if (!fs::exists(argData.watchFolder)) {
-            CLogger::coutstr({"Watch folder [", argData.watchFolder, "] DOES NOT EXIST."});
-            if (fs::create_directory(argData.watchFolder)) {
-                CLogger::coutstr({"Creating watch folder [", argData.watchFolder, "]"});
+        if (!fs::exists(argData.watchFolderStr)) {
+            CLogger::coutstr({"Watch folder [", argData.watchFolderStr, "] DOES NOT EXIST."});
+            if (fs::create_directory(argData.watchFolderStr)) {
+                CLogger::coutstr({"Creating watch folder [", argData.watchFolderStr, "]"});
             }
         }
             
-        CLogger::coutstr({"*** WATCH FOLDER = [",argData.watchFolder , "] ***"});
+        CLogger::coutstr({"*** WATCH FOLDER = [",argData.watchFolderStr , "] ***"});
 
         // Create destination folder for task
 
-        if (!argData.destinationFolder.empty() && !fs::exists(argData.destinationFolder)) {
-            CLogger::coutstr({"Destination folder ", argData.destinationFolder, " does not exist."});
-            if (fs::create_directory(argData.destinationFolder)) {
-                CLogger::coutstr({"Creating destination folder ", argData.destinationFolder});
+        if (!argData.destinationFolderStr.empty() && !fs::exists(argData.destinationFolderStr)) {
+            CLogger::coutstr({"Destination folder ", argData.destinationFolderStr, " does not exist."});
+            if (fs::create_directory(argData.destinationFolderStr)) {
+                CLogger::coutstr({"Creating destination folder ", argData.destinationFolderStr});
             }
         }
 
         // Run does not require a destination
         
-        if (!argData.destinationFolder.empty()) {
-            CLogger::coutstr({"*** DESTINATION FOLDER = [", argData.destinationFolder, "] ***"});
+        if (!argData.destinationFolderStr.empty()) {
+            CLogger::coutstr({"*** DESTINATION FOLDER = [", argData.destinationFolderStr, "] ***"});
         }
         
         // Signal config file used
         
-        if (!argData.configFileName.empty()) {
-            CLogger::coutstr({"*** CONFIG FILE = [", argData.configFileName, "] ***"});
+        if (!argData.configFileNameStr.empty()) {
+            CLogger::coutstr({"*** CONFIG FILE = [", argData.configFileNameStr, "] ***"});
         }
     
         // Signal email file task
@@ -237,9 +237,9 @@ int main(int argc, char** argv) {
         // Output to log file ( CRedirect(std::cout) is the simplest solution). Once the try is exited
         // CRedirect object will be destroyed and cout restored.
 
-        if (!argData.logFileName.empty()) {
-            CLogger::coutstr({"*** LOG FILE = [", argData.logFileName, "] ***"});
-            logFile.change(argData.logFileName, std::ios_base::out | std::ios_base::app);
+        if (!argData.logFileNameStr.empty()) {
+            CLogger::coutstr({"*** LOG FILE = [", argData.logFileNameStr, "] ***"});
+            logFile.change(argData.logFileNameStr, std::ios_base::out | std::ios_base::app);
             CLogger::coutstr({std::string(100, '=')});
         }
 

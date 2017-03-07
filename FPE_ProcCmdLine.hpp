@@ -21,32 +21,32 @@
 // Command line parameter data
 
 struct ParamArgData {
-    std::string  watchFolder;        // Watch Folder
-    std::string  destinationFolder;  // Destination Folder for copies.
-    std::string  commandToRun;       // Command to run
-    bool         bFileCopy;          // Task file copy
-    bool         bVideoConversion;   // Task video conversion
-    bool         bRunCommand;        // Task perform command
-    int          maxWatchDepth;      // Watch depth -1=all,0=just watch folder,1=next level down etc.
-    bool         bDeleteSource;      // Delete source file
-    std::string  extension;          // Override destination file extension
-    bool         bQuiet;             // Quiet mode no tracing output.
-    int          killCount;          // Kill Count
-    bool         bSingleThread;      // Run task in the main thread
-    std::string  logFileName;        // Log file name
-    std::string  configFileName;     // Config file name
-    bool         bEmailFile;         // Email or save file to Inbox.
-    std::string  userName;           // Email account user name
-    std::string  userPassword;       // Email account user name password
-    std::string  serverURL;          // Email SMTP/IMAP server URL
-    std::string  emailRecipient;     // Email recipient
-    std::string  mailBoxName;        // IMAP Mailbox name
+    std::string  watchFolderStr;        // Watch Folder
+    std::string  destinationFolderStr;  // Destination Folder for copies.
+    std::string  commandToRunStr;       // Command to run
+    bool         bFileCopy;             // Task file copy
+    bool         bVideoConversion;      // Task video conversion
+    bool         bRunCommand;           // Task perform command
+    int          maxWatchDepth;         // Watch depth -1=all,0=just watch folder,1=next level down etc.
+    bool         bDeleteSource;         // Delete source file
+    std::string  extensionStr;          // Override destination file extension
+    bool         bQuiet;                // Quiet mode no tracing output.
+    int          killCount;             // Kill Count
+    bool         bSingleThread;         // Run task in the main thread
+    std::string  logFileNameStr;        // Log file name
+    std::string  configFileNameStr;     // Config file name
+    bool         bEmailFile;            // Email or save file to Inbox.
+    std::string  userNameStr;           // Email account user name
+    std::string  userPasswordStr;       // Email account user name password
+    std::string  serverURLStr;          // Email SMTP/IMAP server URL
+    std::string  emailRecipientStr;     // Email recipient
+    std::string  mailBoxNameStr;        // IMAP Mailbox name
 
 };
 
 // Handbrake command
 
-const std::string kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
+const std::string kHandbrakeCommandStr = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
 
 // Process command line parameters
 

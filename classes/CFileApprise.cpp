@@ -22,7 +22,7 @@
 //
 // Dependencies: C11++               - Language standard features used.    
 //               Class CLogger       - Logging functionality. 
-//               inotify/Linux       - Linux file system events.
+//               inotify/Linux       - Linux file system events
 //
 
 // =================
@@ -126,10 +126,10 @@ void CFileApprise::displayInotifyEvent(struct inotify_event *event) {
 }
 
 //
-// Clean up inotify. Not closing the inotify file descriptor cleans up all
+// Clean up inotify. Note: closing the inotify file descriptor cleans up all
 // used resources including watch descriptors but removing them all before
 // hand will cause any pending read for events to return and the watcher loop
-// to stop.
+// to stop. 
 //
 
 void CFileApprise::destroyWatchTable(void) {
