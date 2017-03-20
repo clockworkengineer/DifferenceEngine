@@ -20,15 +20,18 @@
 #include <memory>
 
 //
-// Class defintions
+// Antikythera Classes
 //
 
+#include "CFileZIP.hpp"
 #include "CFileTask.hpp" 
 #include "CRedirect.hpp" 
 #include "CLogger.hpp"
 #include "CMailSMTP.hpp"
 #include "CMailIMAP.hpp"
 
+using namespace Antik;
+        
 //
 // Process command line arguments
 //

@@ -20,9 +20,11 @@
 // 1) File copy
 // 2) Video file conversion (using handbrake)
 // 3) Run shell 
-// 4) Email file as attachment (if the server is IMAP then mail message is appended to a mailbox),
+// 4) Email file as attachment (if the server is IMAP then mail message is appended to a mailbox)
+// 5) Append file to a ZIP archive
 // 
-// Dependencies: C11++, classes (CFileTask, CMailSend, CLogger), Linux, Boost C++ Libraries.
+// Dependencies: C11++, classes (CFileTask, CMailSMTP, CMailIMAP, CMailIMAPParse,
+//               CFileZIP, CFileMIME, CLogger), Linux, Boost C++ Libraries.
 //
 
 // =============
@@ -42,15 +44,19 @@
 #include "FPE_ActionFuncs.hpp"
 
 //
-// Class definitions
+// Antikythera Classes
 //
 
+#include "CFileZIP.hpp"
 #include "CFileTask.hpp"  
 #include "CMailSMTP.hpp"
 #include "CMailIMAP.hpp"
 #include "CMailIMAPParse.hpp"
 #include "CFileMIME.hpp"
 
+using namespace Antik;
+        
+//
 //
 // Process wait definitions
 //
@@ -386,6 +392,58 @@ bool emailFile(const std::string &filenamePathStr, const std::shared_ptr<void> f
     } catch (const std::exception & e) {
         funcData->cerrstr({"Standard exception occured: [", e.what(), "]"});
     }
+
+    return (bSuccess);
+
+}
+
+//
+// Add file to ZIP archive.
+//
+
+bool zipFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData) {
+
+    // ASSERT for any invalid parameters.
+
+    assert(fnData != nullptr);
+    assert(filenamePathStr.length() != 0);
+
+    ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+    bool bSuccess = false;
+
+    // Form source and zips file paths
+
+    fs::path sourceFile(filenamePathStr);
+    fs::path zipFilePath(funcData->zipArchiveStr);
+
+    // Create path for ZIP archive if needed.
+
+    if (!fs::exists(zipFilePath.parent_path())) {
+        if (fs::create_directories(zipFilePath.parent_path())) {
+            funcData->coutstr({"CREATED :", zipFilePath.parent_path().string()});
+        } else {
+            funcData->cerrstr({"CREATED FAILED FOR :", zipFilePath.parent_path().string()});
+        }
+    }
+    
+    // Create archive if doesn't exist
+    
+    CFileZIP zipFile(zipFilePath.string());
+    
+    if (!fs::exists(zipFilePath)) {
+        funcData->coutstr({"CREATING ARCHIVE ", zipFilePath.string()});
+        zipFile.create();
+    }
+    
+    // Append file to archive
+    
+    zipFile.open();
+    
+    if (bSuccess = zipFile.append(sourceFile.string(), sourceFile.filename().string())) {
+        funcData->coutstr({"APPENDED [", sourceFile.filename().string(), "] TO ARCHIVE [",zipFilePath.string(), "]" });
+    }  
+
+    zipFile.close();
 
     return (bSuccess);
 

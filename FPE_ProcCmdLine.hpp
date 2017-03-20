@@ -27,6 +27,7 @@ struct ParamArgData {
     bool         bFileCopy;             // Task file copy
     bool         bVideoConversion;      // Task video conversion
     bool         bRunCommand;           // Task perform command
+    bool         bZipArchive;           // Task add to ZIP archive
     int          maxWatchDepth;         // Watch depth -1=all,0=just watch folder,1=next level down etc.
     bool         bDeleteSource;         // Delete source file
     std::string  extensionStr;          // Override destination file extension
@@ -41,6 +42,7 @@ struct ParamArgData {
     std::string  serverURLStr;          // Email SMTP/IMAP server URL
     std::string  emailRecipientStr;     // Email recipient
     std::string  mailBoxNameStr;        // IMAP Mailbox name
+    std::string  zipArchiveStr;         // Destination ZIP Archive
 
 };
 

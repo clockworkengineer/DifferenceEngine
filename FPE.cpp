@@ -22,14 +22,15 @@
 // 2) Video file conversion (using Handbrake)
 // 3) Run shell command
 // 4) Email file as a attachment
+// 5) File append to ZIP archive
 // 
 // All of this can be setup by using parameters  passed to the program from
 // command line (FPE --help for a full list).
 // 
-// Dependencies: C11++, Classes (CFileTask, CRedirect, CIFileApprise, 
-//               CLogger, CMailSend), Linux, Boost C++ Libraries.
+// Dependencies: C11++, Classes (CFileTask, CMailSMTP, CMailIMAP, CMailIMAPParse,
+//               CFileZIP, CFileMIME, CLogger), Linux, Boost C++ Libraries.
 //
- 
+
 // =============
 // INCLUDE FILES
 // =============
@@ -49,9 +50,10 @@
 void exitWithError(std::string errmsgStr) {
 
     // Closedown email, display error and exit.
-    
+
     CMailSMTP::closedown();
-    
+    CMailIMAP::closedown();
+
     CLogger::cerrstr({errmsgStr});
 
     exit(EXIT_FAILURE);
@@ -70,16 +72,16 @@ void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CFi
     assert(taskActFcn != nullptr);
 
     // Date and Time stamp output
-    
+
     CLogger::setDateTimeStamped(true);
-        
+
     // Create function data (wrap in void shared pointer for passing to task).
 
     std::shared_ptr<void> fnData(new ActFnData{argData.watchFolderStr,
         argData.destinationFolderStr, argData.commandToRunStr, argData.bDeleteSource,
         argData.extensionStr, argData.userNameStr, argData.userPasswordStr, argData.serverURLStr,
-        argData.emailRecipientStr, argData.mailBoxNameStr, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr), 
-       ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)});
+        argData.emailRecipientStr, argData.mailBoxNameStr, argData.zipArchiveStr, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr),
+        ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)});
 
     // Use function data to access set coutstr/cerrstr
 
@@ -103,7 +105,7 @@ void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CFi
         taskThread->join();
     } else {
         task.monitor();
-    
+
     }
 
     // If an exception occurred rethrow (end of chain)
@@ -114,27 +116,149 @@ void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CFi
 
 }
 
+//
+// Preprocess program argument data and display run options
+//
+
+void prerocessParamArgData(ParamArgData& argData, CRedirect& logFile) {
+
+
+    // Email/archive does not require a destination folder
+
+    if (argData.bEmailFile || argData.bZipArchive) {
+        argData.destinationFolderStr = "";
+    }
+
+    // Only have ZIP archive if file add to ZIP archive task
+
+    if (!argData.bZipArchive) {
+        argData.zipArchiveStr = "";
+    }
+
+    // Create watch folder for task.
+
+    if (!fs::exists(argData.watchFolderStr)) {
+        CLogger::coutstr({"Watch folder [", argData.watchFolderStr, "] DOES NOT EXIST."});
+        if (fs::create_directory(argData.watchFolderStr)) {
+            CLogger::coutstr({"Creating watch folder [", argData.watchFolderStr, "]"});
+        }
+    }
+
+    CLogger::coutstr({"*** WATCH FOLDER = [", argData.watchFolderStr, "] ***"});
+
+    // Create destination folder for task
+
+    if (!argData.destinationFolderStr.empty() && !fs::exists(argData.destinationFolderStr)) {
+        CLogger::coutstr({"Destination folder ", argData.destinationFolderStr, " does not exist."});
+        if (fs::create_directory(argData.destinationFolderStr)) {
+            CLogger::coutstr({"Creating destination folder ", argData.destinationFolderStr});
+        }
+    }
+
+    // Signal any destination folder.
+
+    if (!argData.destinationFolderStr.empty()) {
+        CLogger::coutstr({"*** DESTINATION FOLDER = [", argData.destinationFolderStr, "] ***"});
+    }
+
+    // Signal any archive
+
+    if (!argData.zipArchiveStr.empty()) {
+        CLogger::coutstr({"*** ZIP ARCHIVE = [", argData.zipArchiveStr, "] ***"});
+    }
+
+    // Signal config file used
+
+    if (!argData.configFileNameStr.empty()) {
+        CLogger::coutstr({"*** CONFIG FILE = [", argData.configFileNameStr, "] ***"});
+    }
+
+    // Signal email file task
+
+    if (argData.bEmailFile) {
+        CLogger::coutstr({"*** EMAIL FILE TASK ***"});
+    }
+
+    // Signal file copy task
+
+    if (argData.bFileCopy) {
+        CLogger::coutstr({"*** FILE COPY TASK ***"});
+    }
+
+    // Signal file ZIP archive task
+
+    if (argData.bZipArchive) {
+        CLogger::coutstr({"*** FILE ARCHIVE TASK ***"});
+    }
+
+    // Signal video conversion task
+
+    if (argData.bVideoConversion) {
+        CLogger::coutstr({"*** VIDEO CONVERSION TASK ***"});
+    }
+
+    // Signal run command task
+
+    if (argData.bRunCommand) {
+        CLogger::coutstr({"*** RUN COMMAND TASK ***"});
+    }
+
+    // Signal quiet mode
+
+    if (argData.bQuiet) {
+        CLogger::coutstr({"*** QUIET MODE ***"});
+    }
+
+    // Signal source will be deleted on success
+
+    if (argData.bDeleteSource) {
+        CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
+    }
+
+    // Signal using single thread
+
+    if (argData.bSingleThread) {
+        CLogger::coutstr({"*** SINGLE THREAD ***"});
+    }
+
+    // Signal using killCount
+
+    if (argData.killCount) {
+        CLogger::coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
+    }
+
+    // Output to log file ( CRedirect(std::cout) is the simplest solution). Once the try is exited
+    // CRedirect object will be destroyed and cout restored.
+
+    if (!argData.logFileNameStr.empty()) {
+        CLogger::coutstr({"*** LOG FILE = [", argData.logFileNameStr, "] ***"});
+        logFile.change(argData.logFileNameStr, std::ios_base::out | std::ios_base::app);
+        CLogger::coutstr({std::string(100, '=')});
+    }
+
+}
+
 // ============================
 // ===== MAIN ENTRY POINT =====
 // ============================
 
 int main(int argc, char** argv) {
 
-    ParamArgData argData;   // Command lien arguments  
-    
+    ParamArgData argData; // Command lien arguments  
+
     try {
-        
+
         // Initialise CMailSMTP/CMailIMAP internals
-        
+
         CMailSMTP::init();
         CMailIMAP::init();
-        
+
         // std::cout to logfile if parameter specified.
-        
+
         CRedirect logFile{std::cout};
 
         // Process FPE command line arguments.
-     
+
         procCmdLine(argc, argv, argData);
 
         // FPE up and running
@@ -147,101 +271,10 @@ int main(int argc, char** argv) {
             std::to_string(BOOST_VERSION / 100000), ".", // major version
             std::to_string(BOOST_VERSION / 100 % 1000), ".", // minor version
             std::to_string(BOOST_VERSION % 100)}); // patch level
-
-        // Email does not require a destination folder
             
-        if (argData.bEmailFile) {
-            argData.destinationFolderStr = "";
-        }
-            
-        // Create watch folder for task.
+        // Preprocess program argument data
 
-        if (!fs::exists(argData.watchFolderStr)) {
-            CLogger::coutstr({"Watch folder [", argData.watchFolderStr, "] DOES NOT EXIST."});
-            if (fs::create_directory(argData.watchFolderStr)) {
-                CLogger::coutstr({"Creating watch folder [", argData.watchFolderStr, "]"});
-            }
-        }
-            
-        CLogger::coutstr({"*** WATCH FOLDER = [",argData.watchFolderStr , "] ***"});
-
-        // Create destination folder for task
-
-        if (!argData.destinationFolderStr.empty() && !fs::exists(argData.destinationFolderStr)) {
-            CLogger::coutstr({"Destination folder ", argData.destinationFolderStr, " does not exist."});
-            if (fs::create_directory(argData.destinationFolderStr)) {
-                CLogger::coutstr({"Creating destination folder ", argData.destinationFolderStr});
-            }
-        }
-
-        // Run does not require a destination
-        
-        if (!argData.destinationFolderStr.empty()) {
-            CLogger::coutstr({"*** DESTINATION FOLDER = [", argData.destinationFolderStr, "] ***"});
-        }
-        
-        // Signal config file used
-        
-        if (!argData.configFileNameStr.empty()) {
-            CLogger::coutstr({"*** CONFIG FILE = [", argData.configFileNameStr, "] ***"});
-        }
-    
-        // Signal email file task
-
-        if (argData.bEmailFile) {
-            CLogger::coutstr({"*** EMAIL FILE TASK ***"});
-        }
-
-        // Signal file copy task
-
-        if (argData.bFileCopy) {
-            CLogger::coutstr({"*** FILE COPY TASK ***"});
-        }
-
-        // Signal video conversion task
-
-        if (argData.bVideoConversion) {
-            CLogger::coutstr({"*** VIDEO CONVERSION TASK ***"});
-        }
-
-        // Signal run command task
-
-        if (argData.bRunCommand) {
-            CLogger::coutstr({"*** RUN COMMAND TASK ***"});
-        }
-
-        // Signal quiet mode
-
-        if (argData.bQuiet) {
-            CLogger::coutstr({"*** QUIET MODE ***"});
-        }
-
-        // Signal source will be deleted on success
-
-        if (argData.bDeleteSource) {
-            CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
-        }
-
-        // Signal using single thread
-
-        if (argData.bSingleThread) {
-            CLogger::coutstr({"*** SINGLE THREAD ***"});
-        }
-
-        // Signal using killCount
-
-        if (argData.killCount) {
-            CLogger::coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
-        }
-
-        // Output to log file ( CRedirect(std::cout) is the simplest solution). Once the try is exited
-        // CRedirect object will be destroyed and cout restored.
-
-        if (!argData.logFileNameStr.empty()) {
-            CLogger::coutstr({"*** LOG FILE = [", argData.logFileNameStr, "] ***"});
-            logFile.change(argData.logFileNameStr, std::ios_base::out | std::ios_base::app);
-            CLogger::coutstr({std::string(100, '=')});
-        }
+        prerocessParamArgData(argData, logFile);
 
         // Create task object
 
@@ -251,29 +284,31 @@ int main(int argc, char** argv) {
             createTaskAndRun(std::string("Video Conversion"), argData, handBrake);
         } else if (argData.bEmailFile) {
             createTaskAndRun(std::string("Email Attachment"), argData, emailFile);
+        } else if (argData.bZipArchive) {
+            createTaskAndRun(std::string("File to ZIP Archive"), argData, zipFile);
         } else {
             createTaskAndRun(std::string("Run Command"), argData, runCommand);
         }
 
-    //
-    // Catch any errors
-    //    
+        //
+        // Catch any errors
+        //    
 
     } catch (const fs::filesystem_error & e) {
-        exitWithError(std::string("BOOST file system exception occured: [")+e.what()+"]");
+        exitWithError(std::string("BOOST file system exception occured: [") + e.what() + "]");
     } catch (const std::system_error &e) {
-        exitWithError(std::string("Caught a system_error exception: [")+e.what()+"]");
+        exitWithError(std::string("Caught a system_error exception: [") + e.what() + "]");
     } catch (const std::exception & e) {
-        exitWithError(std::string("Standard exception occured: [")+e.what()+"]");
+        exitWithError(std::string("Standard exception occured: [") + e.what() + "]");
     }
 
     CLogger::coutstr({"FPE Exiting."});
 
     // Closedown mail
-    
+
     CMailSMTP::closedown();
     CMailIMAP::closedown();
- 
+
     exit(EXIT_SUCCESS);
 
 } 

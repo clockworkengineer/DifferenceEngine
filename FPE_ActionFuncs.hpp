@@ -26,6 +26,8 @@
 
 #include "CLogger.hpp"
 
+using namespace Antik;
+
 // Action function data
 
 struct ActFnData {
@@ -39,6 +41,7 @@ struct ActFnData {
     std::string  serverURLStr;          // Email SMTP server URL
     std::string  emailRecipientStr;     // Email recipient
     std::string  mailBoxNameStr;        // IMAP Mailbox name
+    std::string  zipArchiveStr;         // ZIP archive file
     CLogger::LogStringsFn coutstr;      // coutstr output
     CLogger::LogStringsFn cerrstr;      // cerrstr output
 };
@@ -54,6 +57,7 @@ bool handBrake(const std::string& filenamePathStr, const std::shared_ptr<void> f
 bool copyFile(const std::string& filenamePathStr,  const std::shared_ptr<void> fnData);
 bool runCommand(const std::string& filenamePathStr,  const std::shared_ptr<void> fnData);
 bool emailFile(const std::string& filenamePathStr,  const std::shared_ptr<void> fnData);
+bool zipFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData);
 
 #endif /* FPE_ACTIONFUNCS_HPP */
 

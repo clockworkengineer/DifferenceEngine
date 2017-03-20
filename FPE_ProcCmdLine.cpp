@@ -58,6 +58,7 @@ void addCommonOptions(po::options_description& commonOptions, ParamArgData& argD
             ("email", "Task = Email File Attachment")
             ("copy", "Task = File Copy Watcher")
             ("video", "Task = Video Conversion Watcher")
+            ("zip", "Task = File ZIP Archive Watcher")
             ("command", po::value<std::string>(&argData.commandToRunStr), "Task = Run Shell Command")
             ("watch,w", po::value<std::string>(&argData.watchFolderStr)->required(), "Watch Folder")
             ("destination,d", po::value<std::string>(&argData.destinationFolderStr)->required(), "Destination Folder")
@@ -72,7 +73,8 @@ void addCommonOptions(po::options_description& commonOptions, ParamArgData& argD
             ("user,u", po::value<std::string>(&argData.userNameStr), "Account username")
             ("password,p", po::value<std::string>(&argData.userPasswordStr), "Account username password")
             ("recipient,r", po::value<std::string>(&argData.emailRecipientStr), "Recipients(s) for email with attached file")
-            ("mailbox,m", po::value<std::string>(&argData.mailBoxNameStr), "IMAP Mailbox name for drop box");
+            ("mailbox,m", po::value<std::string>(&argData.mailBoxNameStr), "IMAP Mailbox name for drop box")
+            ("archive,a", po::value<std::string>(&argData.zipArchiveStr), "ZIP destination archive");
 
 
 }
@@ -92,6 +94,7 @@ void procCmdLine(int argc, char** argv, ParamArgData& argData) {
     argData.bFileCopy = false;
     argData.bVideoConversion = false;
     argData.bRunCommand = false;
+    argData.bZipArchive = false;
     argData.maxWatchDepth = -1;
     argData.bDeleteSource = false;
     argData.extensionStr = "";
@@ -105,6 +108,7 @@ void procCmdLine(int argc, char** argv, ParamArgData& argData) {
     argData.userPasswordStr = "";
     argData.serverURLStr = "";
     argData.emailRecipientStr = "";
+    argData.zipArchiveStr = "";
 
     // Define and parse the program options
 
@@ -173,6 +177,13 @@ void procCmdLine(int argc, char** argv, ParamArgData& argData) {
         if (vm.count("video")) {
             argData.bVideoConversion = true;
             argData.commandToRunStr = kHandbrakeCommandStr;
+            taskCount++;
+        }
+        
+        // Add file to ZIP Archive
+
+        if (vm.count("zip")) {
+            argData.bZipArchive = true;
             taskCount++;
         }
 
