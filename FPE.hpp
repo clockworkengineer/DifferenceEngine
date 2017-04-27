@@ -23,14 +23,18 @@
 // Antikythera Classes
 //
 
-#include "CFileZIP.hpp"
-#include "CFileTask.hpp" 
+#include "CZIP.hpp"
+#include "CTask.hpp" 
 #include "CRedirect.hpp" 
 #include "CLogger.hpp"
-#include "CMailSMTP.hpp"
-#include "CMailIMAP.hpp"
+#include "CSMTP.hpp"
+#include "CIMAP.hpp"
 
-using namespace Antik;
+using namespace Antik::IMAP;
+using namespace Antik::File;
+using namespace Antik::SMTP;
+using namespace Antik::Util;
+using namespace Antik::ZIP;
         
 //
 // Process command line arguments

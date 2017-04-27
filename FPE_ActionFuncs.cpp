@@ -23,8 +23,8 @@
 // 4) Email file as attachment (if the server is IMAP then mail message is appended to a mailbox)
 // 5) Append file to a ZIP archive
 // 
-// Dependencies: C11++, classes (CFileTask, CMailSMTP, CMailIMAP, CMailIMAPParse,
-//               CFileZIP, CFileMIME, CLogger), Linux, Boost C++ Libraries.
+// Dependencies: C11++, classes (CFileTask, CSMTP, CIMAP, CIMAPParse,
+//               CZIP, CMIME, CLogger), Linux, Boost C++ Libraries.
 //
 
 // =============
@@ -47,14 +47,18 @@
 // Antikythera Classes
 //
 
-#include "CFileZIP.hpp"
-#include "CFileTask.hpp"  
-#include "CMailSMTP.hpp"
-#include "CMailIMAP.hpp"
-#include "CMailIMAPParse.hpp"
-#include "CFileMIME.hpp"
+#include "CZIP.hpp"
+#include "CTask.hpp"  
+#include "CSMTP.hpp"
+#include "CIMAP.hpp"
+#include "CIMAPParse.hpp"
+#include "CMIME.hpp"
 
-using namespace Antik;
+using namespace Antik::IMAP;
+using namespace Antik::File;
+using namespace Antik::SMTP;
+using namespace Antik::Util;
+using namespace Antik::ZIP;
         
 //
 //
@@ -334,8 +338,8 @@ bool emailFile(const std::string &filenamePathStr, const std::shared_ptr<void> f
     ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
     bool bSuccess = false;
 
-    CMailSMTP smtp;
-    CMailIMAP imap;
+    CSMTP smtp;
+    CIMAP imap;
 
     // Form source file path
 
@@ -349,7 +353,7 @@ bool emailFile(const std::string &filenamePathStr, const std::shared_ptr<void> f
         smtp.setToAddress("<" + funcData->emailRecipientStr + ">");
 
         smtp.setMailSubject("FPE Attached File");
-        smtp.addFileAttachment(filenamePathStr, CFileMIME::getFileMIMEType(filenamePathStr),  "base64");
+        smtp.addFileAttachment(filenamePathStr, CMIME::getFileMIMEType(filenamePathStr),  "base64");
         
         if(funcData->serverURLStr.find(std::string("smtp")) == 0) {
             
@@ -373,8 +377,8 @@ bool emailFile(const std::string &filenamePathStr, const std::shared_ptr<void> f
 
             std::string commandResponseStr(imap.sendCommand(commandLineStr));
             
-            CMailIMAPParse::COMMANDRESPONSE commandResponse(CMailIMAPParse::parseResponse(commandLineStr));
-            if (commandResponse->status == CMailIMAPParse::RespCode::BAD) {
+            CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(commandLineStr));
+            if (commandResponse->status == CIMAPParse::RespCode::BAD) {
                 funcData->cerrstr({commandResponse->errorMessageStr});
             } else {
                 funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->mailBoxNameStr + "]"});
@@ -385,9 +389,9 @@ bool emailFile(const std::string &filenamePathStr, const std::shared_ptr<void> f
             
        }
 
-    } catch (const CMailSMTP::Exception &e) {
+    } catch (const CSMTP::Exception &e) {
         funcData->cerrstr({e.what()});
-    } catch (const CMailIMAP::Exception &e) {
+    } catch (const CIMAP::Exception &e) {
         funcData->cerrstr({e.what()});
     } catch (const std::exception & e) {
         funcData->cerrstr({"Standard exception occured: [", e.what(), "]"});
@@ -428,7 +432,7 @@ bool zipFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnD
     
     // Create archive if doesn't exist
     
-    CFileZIP zipFile(zipFilePath.string());
+    CZIP zipFile(zipFilePath.string());
     
     if (!fs::exists(zipFilePath)) {
         funcData->coutstr({"CREATING ARCHIVE ", zipFilePath.string()});
@@ -439,7 +443,7 @@ bool zipFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnD
     
     zipFile.open();
     
-    if (bSuccess = zipFile.append(sourceFile.string(), sourceFile.filename().string())) {
+    if (bSuccess = zipFile.add(sourceFile.string(), sourceFile.filename().string())) {
         funcData->coutstr({"APPENDED [", sourceFile.filename().string(), "] TO ARCHIVE [",zipFilePath.string(), "]" });
     }  
 

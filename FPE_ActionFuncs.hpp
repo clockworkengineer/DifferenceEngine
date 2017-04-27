@@ -26,7 +26,7 @@
 
 #include "CLogger.hpp"
 
-using namespace Antik;
+using namespace Antik::Util;
 
 // Action function data
 

@@ -27,7 +27,7 @@
 // All of this can be setup by using parameters  passed to the program from
 // command line (FPE --help for a full list).
 // 
-// Dependencies: C11++, Classes (CFileTask, CMailSMTP, CMailIMAP, CMailIMAPParse,
+// Dependencies: C11++, Classes (CTask, CSMTP, CIMAP, CIMAPParse,
 //               CFileZIP, CFileMIME, CLogger), Linux, Boost C++ Libraries.
 //
 
@@ -51,8 +51,8 @@ void exitWithError(std::string errmsgStr) {
 
     // Closedown email, display error and exit.
 
-    CMailSMTP::closedown();
-    CMailIMAP::closedown();
+    CSMTP::closedown();
+    CIMAP::closedown();
 
     CLogger::cerrstr({errmsgStr});
 
@@ -64,7 +64,7 @@ void exitWithError(std::string errmsgStr) {
 // Create task and run in thread.
 //
 
-void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CFileTask::TaskActionFcn taskActFcn) {
+void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CTask::TaskActionFcn taskActFcn) {
 
     // ASSERT if strings length 0 , pointer parameters NULL
 
@@ -89,19 +89,19 @@ void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CFi
 
     // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
 
-    std::shared_ptr<CFileTask::TaskOptions> options;
+    std::shared_ptr<CTask::TaskOptions> options;
 
-    options.reset(new CFileTask::TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
+    options.reset(new CTask::TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
 
     // Create task object
 
-    CFileTask task(taskNameStr, argData.watchFolderStr, taskActFcn, fnData, argData.maxWatchDepth, options);
+    CTask task(taskNameStr, argData.watchFolderStr, taskActFcn, fnData, argData.maxWatchDepth, options);
 
     // Create task object thread and start to watch else use FPE thread.
 
     if (!argData.bSingleThread) {
         std::unique_ptr<std::thread> taskThread;
-        taskThread.reset(new std::thread(&CFileTask::monitor, &task));
+        taskThread.reset(new std::thread(&CTask::monitor, &task));
         taskThread->join();
     } else {
         task.monitor();
@@ -248,10 +248,10 @@ int main(int argc, char** argv) {
 
     try {
 
-        // Initialise CMailSMTP/CMailIMAP internals
+        // Initialise CSMTP/CIMAP internals
 
-        CMailSMTP::init();
-        CMailIMAP::init();
+        CSMTP::init();
+        CIMAP::init();
 
         // std::cout to logfile if parameter specified.
 
@@ -306,8 +306,8 @@ int main(int argc, char** argv) {
 
     // Closedown mail
 
-    CMailSMTP::closedown();
-    CMailIMAP::closedown();
+    CSMTP::closedown();
+    CIMAP::closedown();
 
     exit(EXIT_SUCCESS);
 
