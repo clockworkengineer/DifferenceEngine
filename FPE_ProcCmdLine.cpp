@@ -11,7 +11,7 @@
  */
 
 //
-// Module: Command Line Parameter Processing
+// Module: FPE_ProcCmdLine
 //
 // Description: Parse command line parameters and fill in structure ParamArgData.
 // 
@@ -32,206 +32,330 @@
 
 #include "FPE_ProcCmdLine.hpp"
 
+//
+// Antikythera Classes
+//
+
+#include "CLogger.hpp"
+
 // Boost  file system library & program options processing
 
 #include "boost/program_options.hpp" 
 #include <boost/filesystem.hpp>
 
-namespace po = boost::program_options;
-namespace fs = boost::filesystem;
 
-// ===============
-// LOCAL FUNCTIONS
-// ===============
+// =========
+// NAMESPACE
+// =========
 
-// ================
-// PUBLIC FUNCTIONS
-// ================
+namespace FPE_ProcCmdLine {
 
-//
-// Add options common to both command line and config file
-//
+    // =======
+    // IMPORTS
+    // =======
 
-void addCommonOptions(po::options_description& commonOptions, ParamArgData& argData) {
-    
-    commonOptions.add_options()
-            ("email", "Task = Email File Attachment")
-            ("copy", "Task = File Copy Watcher")
-            ("video", "Task = Video Conversion Watcher")
-            ("zip", "Task = File ZIP Archive Watcher")
-            ("command", po::value<std::string>(&argData.commandToRunStr), "Task = Run Shell Command")
-            ("watch,w", po::value<std::string>(&argData.watchFolderStr)->required(), "Watch Folder")
-            ("destination,d", po::value<std::string>(&argData.destinationFolderStr)->required(), "Destination Folder")
-            ("maxdepth", po::value<int>(&argData.maxWatchDepth), "Maximum Watch Depth")
-            ("extension,e", po::value<std::string>(&argData.extensionStr), "Override destination file extension")
-            ("quiet,q", "Quiet mode (no trace output)")
-            ("delete", "Delete Source File")
-            ("log,l", po::value<std::string>(&argData.logFileNameStr), "Log file")
-            ("single,s", "Run task in main thread")
-            ("killcount,k", po::value<int>(&argData.killCount), "Files to process before closedown")
-            ("server,s", po::value<std::string>(&argData.serverURLStr), "SMTP Server URL and port")
-            ("user,u", po::value<std::string>(&argData.userNameStr), "Account username")
-            ("password,p", po::value<std::string>(&argData.userPasswordStr), "Account username password")
-            ("recipient,r", po::value<std::string>(&argData.emailRecipientStr), "Recipients(s) for email with attached file")
-            ("mailbox,m", po::value<std::string>(&argData.mailBoxNameStr), "IMAP Mailbox name for drop box")
-            ("archive,a", po::value<std::string>(&argData.zipArchiveStr), "ZIP destination archive");
+    using namespace std;
+
+    namespace po = boost::program_options;
+    namespace fs = boost::filesystem;
+
+    // ===============
+    // LOCAL FUNCTIONS
+    // ===============
+
+    //
+    // Add options common to both command line and config file
+    //
+
+    static void addCommonOptions(po::options_description& commonOptions, ParamArgData& argumentData) {
+
+        commonOptions.add_options()
+                ("email", "Task = Email File Attachment")
+                ("copy", "Task = File Copy Watcher")
+                ("video", "Task = Video Conversion Watcher")
+                ("zip", "Task = File ZIP Archive Watcher")
+                ("command", po::value<string>(&argumentData.commandToRunStr), "Task = Run Shell Command")
+                ("watch,w", po::value<string>(&argumentData.watchFolderStr)->required(), "Watch Folder")
+                ("destination,d", po::value<string>(&argumentData.destinationFolderStr)->required(), "Destination Folder")
+                ("maxdepth", po::value<int>(&argumentData.maxWatchDepth), "Maximum Watch Depth")
+                ("extension,e", po::value<string>(&argumentData.extensionStr), "Override destination file extension")
+                ("quiet,q", "Quiet mode (no trace output)")
+                ("delete", "Delete Source File")
+                ("log,l", po::value<string>(&argumentData.logFileNameStr), "Log file")
+                ("single,s", "Run task in main thread")
+                ("killcount,k", po::value<int>(&argumentData.killCount), "Files to process before closedown")
+                ("server,s", po::value<string>(&argumentData.serverURLStr), "SMTP Server URL and port")
+                ("user,u", po::value<string>(&argumentData.userNameStr), "Account username")
+                ("password,p", po::value<string>(&argumentData.userPasswordStr), "Account username password")
+                ("recipient,r", po::value<string>(&argumentData.emailRecipientStr), "Recipients(s) for email with attached file")
+                ("mailbox,m", po::value<string>(&argumentData.mailBoxNameStr), "IMAP Mailbox name for drop box")
+                ("archive,a", po::value<string>(&argumentData.zipArchiveStr), "ZIP destination archive");
 
 
-}
+    }
 
-//
-// Read in and process command line arguments using boost. Note this is the only 
-// component that uses std::cout and std:cerr directly and not the thread safe 
-// coutstr/cerrstr but that is not necessary as still in single thread mode when
-// reading and processing parameters.
-//
+    // ================
+    // PUBLIC FUNCTIONS
+    // ================
 
-void procCmdLine(int argc, char** argv, ParamArgData& argData) {
+        //
+    // Preprocess program argument data and display run options
+    //
 
-    // Default values
+    void processArgumentData(ParamArgData& argumentData, CRedirect& logFile) {
 
-    argData.bDeleteSource = false;
-    argData.bFileCopy = false;
-    argData.bVideoConversion = false;
-    argData.bRunCommand = false;
-    argData.bZipArchive = false;
-    argData.maxWatchDepth = -1;
-    argData.bDeleteSource = false;
-    argData.extensionStr = "";
-    argData.bQuiet = false;
-    argData.killCount = 0;
-    argData.bSingleThread = false;
-    argData.logFileNameStr = "";
-    argData.configFileNameStr = "";
-    argData.bEmailFile = false;
-    argData.userNameStr = "";
-    argData.userPasswordStr = "";
-    argData.serverURLStr = "";
-    argData.emailRecipientStr = "";
-    argData.zipArchiveStr = "";
 
-    // Define and parse the program options
+        // Email/archive does not require a destination folder
 
-    po::options_description commandLine("Command Line Options");
-
-    // Command line (first unique then add those shared with config file
-
-    commandLine.add_options()
-            ("help", "Display help message")
-            ("config", po::value<std::string>(&argData.configFileNameStr), "Configuration file name");
-
-    addCommonOptions(commandLine, argData);
-
-    // Config file options
-
-    po::options_description configFile("Configuration File Options");
-
-    addCommonOptions(configFile, argData);
-
-    po::variables_map vm;
-
-    try {
-
-        int taskCount = 0;
-
-        // Process command line arguments
-
-        po::store(po::parse_command_line(argc, argv, commandLine), vm);
-
-        // Display options and exit with success
-
-        if (vm.count("help")) {
-            std::cout << "File Processing Engine Application" << std::endl << commandLine << std::endl;
-            exit(EXIT_SUCCESS);
+        if (argumentData.bEmailFile || argumentData.bZipArchive) {
+            argumentData.destinationFolderStr = "";
         }
 
-        // Load config file specified
+        // Only have ZIP archive if file add to ZIP archive task
 
-        if (vm.count("config")) {
-            if (fs::exists(vm["config"].as<std::string>().c_str())) {
-                std::ifstream ifs{vm["config"].as<std::string>().c_str()};
-                if (ifs) {
-                    po::store(po::parse_config_file(ifs, configFile), vm);
-                }
-            } else {
-                throw po::error("Specified config file does not exist.");
+        if (!argumentData.bZipArchive) {
+            argumentData.zipArchiveStr = "";
+        }
+
+        // Create watch folder for task.
+
+        if (!fs::exists(argumentData.watchFolderStr)) {
+            CLogger::coutstr({"Watch folder [", argumentData.watchFolderStr, "] DOES NOT EXIST."});
+            if (fs::create_directory(argumentData.watchFolderStr)) {
+                CLogger::coutstr({"Creating watch folder [", argumentData.watchFolderStr, "]"});
             }
         }
 
-        // Email watched files.
+        CLogger::coutstr({"*** WATCH FOLDER = [", argumentData.watchFolderStr, "] ***"});
 
-        if (vm.count("email")) {
-            argData.bEmailFile = true;
-            taskCount++;
+        // Create destination folder for task
+
+        if (!argumentData.destinationFolderStr.empty() && !fs::exists(argumentData.destinationFolderStr)) {
+            CLogger::coutstr({"Destination folder ", argumentData.destinationFolderStr, " does not exist."});
+            if (fs::create_directory(argumentData.destinationFolderStr)) {
+                CLogger::coutstr({"Creating destination folder ", argumentData.destinationFolderStr});
+            }
         }
 
-        // Copy watched files.
+        // Signal any destination folder.
 
-        if (vm.count("copy")) {
-            argData.bFileCopy = true;
-            taskCount++;
+        if (!argumentData.destinationFolderStr.empty()) {
+            CLogger::coutstr({"*** DESTINATION FOLDER = [", argumentData.destinationFolderStr, "] ***"});
         }
 
-        // Convert watched video files
+        // Signal any archive
 
-        if (vm.count("video")) {
-            argData.bVideoConversion = true;
-            argData.commandToRunStr = kHandbrakeCommandStr;
-            taskCount++;
-        }
-        
-        // Add file to ZIP Archive
-
-        if (vm.count("zip")) {
-            argData.bZipArchive = true;
-            taskCount++;
+        if (!argumentData.zipArchiveStr.empty()) {
+            CLogger::coutstr({"*** ZIP ARCHIVE = [", argumentData.zipArchiveStr, "] ***"});
         }
 
-        // Run command on watched files
+        // Signal config file used
 
-        if (vm.count("command")) {
-            argData.bRunCommand = true;
-            taskCount++;
+        if (!argumentData.configFileNameStr.empty()) {
+            CLogger::coutstr({"*** CONFIG FILE = [", argumentData.configFileNameStr, "] ***"});
         }
 
-        // Delete source file
+        // Signal email file task
 
-        if (vm.count("delete")) {
-            argData.bDeleteSource = true;
+        if (argumentData.bEmailFile) {
+            CLogger::coutstr({"*** EMAIL FILE TASK ***"});
         }
 
-        // No trace output
+        // Signal file copy task
 
-        if (vm.count("quiet")) {
-            argData.bQuiet = true;
+        if (argumentData.bFileCopy) {
+            CLogger::coutstr({"*** FILE COPY TASK ***"});
         }
 
-        // Use main thread for task.
+        // Signal file ZIP archive task
 
-        if (vm.count("single")) {
-            argData.bSingleThread = true;
+        if (argumentData.bZipArchive) {
+            CLogger::coutstr({"*** FILE ARCHIVE TASK ***"});
         }
 
-        // Default task file copy. More than one task throw error.
+        // Signal video conversion task
 
-        if (taskCount == 0) {
-            argData.bFileCopy = true;
-        } else if (taskCount > 1) {
-            throw po::error("More than one task specified");
+        if (argumentData.bVideoConversion) {
+            CLogger::coutstr({"*** VIDEO CONVERSION TASK ***"});
         }
 
-        po::notify(vm);
+        // Signal run command task
 
-        // Make watch/destination paths absolute
+        if (argumentData.bRunCommand) {
+            CLogger::coutstr({"*** RUN COMMAND TASK ***"});
+        }
 
-        argData.watchFolderStr = fs::absolute(argData.watchFolderStr).string();
-        argData.destinationFolderStr = fs::absolute(argData.destinationFolderStr).string();
+        // Signal quiet mode
 
-    } catch (po::error& e) {
-        std::cerr << "FPE Error: " << e.what() << std::endl << std::endl;
-        std::cerr << commandLine << std::endl;
-        exit(EXIT_FAILURE);
+        if (argumentData.bQuiet) {
+            CLogger::coutstr({"*** QUIET MODE ***"});
+        }
+
+        // Signal source will be deleted on success
+
+        if (argumentData.bDeleteSource) {
+            CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
+        }
+
+        // Signal using single thread
+
+        if (argumentData.bSingleThread) {
+            CLogger::coutstr({"*** SINGLE THREAD ***"});
+        }
+
+        // Signal using killCount
+
+        if (argumentData.killCount) {
+            CLogger::coutstr({"*** KILL COUNT = ", to_string(argumentData.killCount), " ***"});
+        }
+
+        // Output to log file ( CRedirect(cout) is the simplest solution). Once the try is exited
+        // CRedirect object will be destroyed and cout restored.
+
+        if (!argumentData.logFileNameStr.empty()) {
+            CLogger::coutstr({"*** LOG FILE = [", argumentData.logFileNameStr, "] ***"});
+            logFile.change(argumentData.logFileNameStr, ios_base::out | ios_base::app);
+            CLogger::coutstr({string(100, '=')});
+        }
+
     }
 
-}
+    //
+    // Read in and process command line arguments using boost. Note this is the only 
+    // component that uses cout and std:cerr directly and not the thread safe 
+    // coutstr/cerrstr but that is not necessary as still in single thread mode when
+    // reading and processing parameters.
+    //
 
+    ParamArgData fetchCommandLineArgumentData(int argc, char** argv) {
+
+        ParamArgData argumentData { };
+        
+        // Define and parse the program options
+
+        po::options_description commandLine("Command Line Options");
+
+        // Command line (first unique then add those shared with config file
+
+        commandLine.add_options()
+                ("help", "Display help message")
+                ("config", po::value<string>(&argumentData.configFileNameStr), "Configuration file name");
+
+        addCommonOptions(commandLine, argumentData);
+
+        // Config file options
+
+        po::options_description configFile("Configuration File Options");
+
+        addCommonOptions(configFile, argumentData);
+
+        po::variables_map vm;
+
+        try {
+
+            int taskCount = 0;
+
+            // Process command line arguments
+
+            po::store(po::parse_command_line(argc, argv, commandLine), vm);
+
+            // Display options and exit with success
+
+            if (vm.count("help")) {
+                cout << "File Processing Engine Application" << endl << commandLine << endl;
+                exit(EXIT_SUCCESS);
+            }
+
+            // Load config file specified
+
+            if (vm.count("config")) {
+                if (fs::exists(vm["config"].as<string>().c_str())) {
+                    ifstream ifs{vm["config"].as<string>().c_str()};
+                    if (ifs) {
+                        po::store(po::parse_config_file(ifs, configFile), vm);
+                    }
+                } else {
+                    throw po::error("Specified config file does not exist.");
+                }
+            }
+
+            // Email watched files.
+
+            if (vm.count("email")) {
+                argumentData.bEmailFile = true;
+                taskCount++;
+            }
+
+            // Copy watched files.
+
+            if (vm.count("copy")) {
+                argumentData.bFileCopy = true;
+                taskCount++;
+            }
+
+            // Convert watched video files
+
+            if (vm.count("video")) {
+                argumentData.bVideoConversion = true;
+                argumentData.commandToRunStr = kHandbrakeCommandStr;
+                taskCount++;
+            }
+
+            // Add file to ZIP Archive
+
+            if (vm.count("zip")) {
+                argumentData.bZipArchive = true;
+                taskCount++;
+            }
+
+            // Run command on watched files
+
+            if (vm.count("command")) {
+                argumentData.bRunCommand = true;
+                taskCount++;
+            }
+
+            // Delete source file
+
+            if (vm.count("delete")) {
+                argumentData.bDeleteSource = true;
+            }
+
+            // No trace output
+
+            if (vm.count("quiet")) {
+                argumentData.bQuiet = true;
+            }
+
+            // Use main thread for task.
+
+            if (vm.count("single")) {
+                argumentData.bSingleThread = true;
+            }
+
+            // Default task file copy. More than one task throw error.
+
+            if (taskCount == 0) {
+                argumentData.bFileCopy = true;
+            } else if (taskCount > 1) {
+                throw po::error("More than one task specified");
+            }
+
+            po::notify(vm);
+
+            // Make watch/destination paths absolute
+
+            argumentData.watchFolderStr = fs::absolute(argumentData.watchFolderStr).string();
+            argumentData.destinationFolderStr = fs::absolute(argumentData.destinationFolderStr).string();
+
+        } catch (po::error& e) {
+            cerr << "FPE Error: " << e.what() << endl << endl;
+            cerr << commandLine << endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        return(argumentData);
+
+    }
+
+} // FPE_ProcCmdLine

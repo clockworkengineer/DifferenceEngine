@@ -35,208 +35,206 @@
 // INCLUDE FILES
 // =============
 
-// File Processing Engine Definitions
-
+//
+// Program components.
+//
 #include "FPE.hpp"
-
-// ===============
-// LOCAL FUNCTIONS
-// ===============
+#include "FPE_ProcCmdLine.hpp"
+#include "FPE_ActionFuncs.hpp"
 
 //
-// Exit with error message/status
+// Antikythera Classes
 //
 
-void exitWithError(std::string errmsgStr) {
-
-    // Closedown email, display error and exit.
-
-    CSMTP::closedown();
-    CIMAP::closedown();
-
-    CLogger::cerrstr({errmsgStr});
-
-    exit(EXIT_FAILURE);
-
-}
+#include "CTask.hpp" 
 
 //
-// Create task and run in thread.
+// Boost file system library definitions
 //
 
-void createTaskAndRun(const std::string& taskNameStr, ParamArgData& argData, CTask::TaskActionFcn taskActFcn) {
+#include <boost/filesystem.hpp>
 
-    // ASSERT if strings length 0 , pointer parameters NULL
+// =========
+// NAMESPACE
+// =========
 
-    assert(taskNameStr.length() != 0);
-    assert(taskActFcn != nullptr);
+namespace FPE {
 
-    // Date and Time stamp output
+    // =======
+    // IMPORTS
+    // =======
 
-    CLogger::setDateTimeStamped(true);
+    using namespace std;
 
-    // Create function data (wrap in void shared pointer for passing to task).
+    using namespace Antik::File;
 
-    std::shared_ptr<void> fnData(new ActFnData{argData.watchFolderStr,
-        argData.destinationFolderStr, argData.commandToRunStr, argData.bDeleteSource,
-        argData.extensionStr, argData.userNameStr, argData.userPasswordStr, argData.serverURLStr,
-        argData.emailRecipientStr, argData.mailBoxNameStr, argData.zipArchiveStr, ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr),
-        ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)});
+    using namespace FPE_ProcCmdLine;
+    using namespace FPE_ActionFuncs;
+    
+    namespace fs = boost::filesystem;
 
-    // Use function data to access set coutstr/cerrstr
+    // ===============
+    // LOCAL FUNCTIONS
+    // ===============
 
-    ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+    //
+    // Exit with error message/status
+    //
 
-    // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
+    static void exitWithError(const string& errmsgStr) {
 
-    std::shared_ptr<CTask::TaskOptions> options;
+        // Closedown action functions, display error and exit.
 
-    options.reset(new CTask::TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
+        actionFuncCloseDown();
 
-    // Create task object
+        CLogger::cerrstr({errmsgStr});
 
-    CTask task(taskNameStr, argData.watchFolderStr, taskActFcn, fnData, argData.maxWatchDepth, options);
-
-    // Create task object thread and start to watch else use FPE thread.
-
-    if (!argData.bSingleThread) {
-        std::unique_ptr<std::thread> taskThread;
-        taskThread.reset(new std::thread(&CTask::monitor, &task));
-        taskThread->join();
-    } else {
-        task.monitor();
+        exit(EXIT_FAILURE);
 
     }
 
-    // If an exception occurred rethrow (end of chain)
+    
+    //
+    // Create task and run in thread.
+    //
 
-    if (task.getThrownException()) {
-        std::rethrow_exception(task.getThrownException());
-    }
+    static void createTaskAndRun(const string& taskNameStr, const ParamArgData& argData, CTask::TaskActionFcn taskActFcn) {
 
-}
+        // ASSERT if strings length 0 , pointer parameters NULL
 
-//
-// Preprocess program argument data and display run options
-//
+        assert(taskNameStr.length() != 0);
+        assert(taskActFcn != nullptr);
 
-void prerocessParamArgData(ParamArgData& argData, CRedirect& logFile) {
+        // Date and Time stamp output
 
+        CLogger::setDateTimeStamped(true);
 
-    // Email/archive does not require a destination folder
+        // Create function data (wrap in void shared pointer for passing to task).
 
-    if (argData.bEmailFile || argData.bZipArchive) {
-        argData.destinationFolderStr = "";
-    }
-
-    // Only have ZIP archive if file add to ZIP archive task
-
-    if (!argData.bZipArchive) {
-        argData.zipArchiveStr = "";
-    }
-
-    // Create watch folder for task.
-
-    if (!fs::exists(argData.watchFolderStr)) {
-        CLogger::coutstr({"Watch folder [", argData.watchFolderStr, "] DOES NOT EXIST."});
-        if (fs::create_directory(argData.watchFolderStr)) {
-            CLogger::coutstr({"Creating watch folder [", argData.watchFolderStr, "]"});
+        shared_ptr<void> fnData(new ActFnData
+        {
+            argData.watchFolderStr,
+            argData.destinationFolderStr,
+            argData.commandToRunStr,
+            argData.bDeleteSource,
+            argData.extensionStr,
+            argData.userNameStr,
+            argData.userPasswordStr,
+            argData.serverURLStr,
+            argData.emailRecipientStr,
+            argData.mailBoxNameStr,
+            argData.zipArchiveStr,
+            ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr),
+            ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)
         }
-    }
+        );
 
-    CLogger::coutstr({"*** WATCH FOLDER = [", argData.watchFolderStr, "] ***"});
+        // Use function data to access set coutstr/cerrstr
 
-    // Create destination folder for task
+        ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
 
-    if (!argData.destinationFolderStr.empty() && !fs::exists(argData.destinationFolderStr)) {
-        CLogger::coutstr({"Destination folder ", argData.destinationFolderStr, " does not exist."});
-        if (fs::create_directory(argData.destinationFolderStr)) {
-            CLogger::coutstr({"Creating destination folder ", argData.destinationFolderStr});
+        // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
+
+        shared_ptr<CTask::TaskOptions> options;
+
+        options.reset(new CTask::TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
+
+        // Create task object
+
+        CTask task(taskNameStr, argData.watchFolderStr, taskActFcn, fnData, argData.maxWatchDepth, options);
+
+        // Create task object thread and start to watch else use FPE thread.
+
+        if (!argData.bSingleThread) {
+            unique_ptr<thread> taskThread;
+            taskThread.reset(new thread(&CTask::monitor, &task));
+            taskThread->join();
+        } else {
+            task.monitor();
+
         }
+
+        // If an exception occurred rethrow (end of chain)
+
+        if (task.getThrownException()) {
+            rethrow_exception(task.getThrownException());
+        }
+
     }
 
-    // Signal any destination folder.
+    // ================
+    // PUBLIC FUNCTIONS
+    // ================
 
-    if (!argData.destinationFolderStr.empty()) {
-        CLogger::coutstr({"*** DESTINATION FOLDER = [", argData.destinationFolderStr, "] ***"});
+    void FileProcessingEngine(int argc, char** argv) {
+
+        ParamArgData argumentData; // Command line arguments  
+
+        try {
+
+            // Action function initialization.
+
+            actionFuncInit();
+  
+            // cout to logfile if parameter specified.
+
+            CRedirect logFile{cout};
+
+            // Get FPE command line arguments.
+
+            argumentData = fetchCommandLineArgumentData(argc, argv);
+
+            // FPE up and running
+
+            CLogger::coutstr({"FPE Running..."});
+
+            // Display BOOST version
+
+            CLogger::coutstr({"Using Boost ",
+                to_string(BOOST_VERSION / 100000), ".", // major version
+                to_string(BOOST_VERSION / 100 % 1000), ".", // minor version
+                to_string(BOOST_VERSION % 100)}); // patch level
+
+            // Process program argument data
+
+            processArgumentData(argumentData, logFile);
+
+            // Create task object
+
+            if (argumentData.bFileCopy) {
+                createTaskAndRun(string("File Copy"), argumentData, copyFile);
+            } else if (argumentData.bVideoConversion) {
+                createTaskAndRun(string("Video Conversion"), argumentData, handBrake);
+            } else if (argumentData.bEmailFile) {
+                createTaskAndRun(string("Email Attachment"), argumentData, emailFile);
+            } else if (argumentData.bZipArchive) {
+                createTaskAndRun(string("File to ZIP Archive"), argumentData, zipFile);
+            } else {
+                createTaskAndRun(string("Run Command"), argumentData, runCommand);
+            }
+
+        //
+        // Catch any errors
+        //    
+
+        } catch (const fs::filesystem_error & e) {
+            exitWithError(string("BOOST file system exception occured: [") + e.what() + "]");
+        } catch (const system_error &e) {
+            exitWithError(string("Caught a system_error exception: [") + e.what() + "]");
+        } catch (const exception & e) {
+            exitWithError(string("Standard exception occured: [") + e.what() + "]");
+        }
+
+        CLogger::coutstr({"FPE Exiting."});
+
+        // Closedown action functions
+
+        actionFuncCloseDown();
+
+
     }
 
-    // Signal any archive
-
-    if (!argData.zipArchiveStr.empty()) {
-        CLogger::coutstr({"*** ZIP ARCHIVE = [", argData.zipArchiveStr, "] ***"});
-    }
-
-    // Signal config file used
-
-    if (!argData.configFileNameStr.empty()) {
-        CLogger::coutstr({"*** CONFIG FILE = [", argData.configFileNameStr, "] ***"});
-    }
-
-    // Signal email file task
-
-    if (argData.bEmailFile) {
-        CLogger::coutstr({"*** EMAIL FILE TASK ***"});
-    }
-
-    // Signal file copy task
-
-    if (argData.bFileCopy) {
-        CLogger::coutstr({"*** FILE COPY TASK ***"});
-    }
-
-    // Signal file ZIP archive task
-
-    if (argData.bZipArchive) {
-        CLogger::coutstr({"*** FILE ARCHIVE TASK ***"});
-    }
-
-    // Signal video conversion task
-
-    if (argData.bVideoConversion) {
-        CLogger::coutstr({"*** VIDEO CONVERSION TASK ***"});
-    }
-
-    // Signal run command task
-
-    if (argData.bRunCommand) {
-        CLogger::coutstr({"*** RUN COMMAND TASK ***"});
-    }
-
-    // Signal quiet mode
-
-    if (argData.bQuiet) {
-        CLogger::coutstr({"*** QUIET MODE ***"});
-    }
-
-    // Signal source will be deleted on success
-
-    if (argData.bDeleteSource) {
-        CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
-    }
-
-    // Signal using single thread
-
-    if (argData.bSingleThread) {
-        CLogger::coutstr({"*** SINGLE THREAD ***"});
-    }
-
-    // Signal using killCount
-
-    if (argData.killCount) {
-        CLogger::coutstr({"*** KILL COUNT = ", std::to_string(argData.killCount), " ***"});
-    }
-
-    // Output to log file ( CRedirect(std::cout) is the simplest solution). Once the try is exited
-    // CRedirect object will be destroyed and cout restored.
-
-    if (!argData.logFileNameStr.empty()) {
-        CLogger::coutstr({"*** LOG FILE = [", argData.logFileNameStr, "] ***"});
-        logFile.change(argData.logFileNameStr, std::ios_base::out | std::ios_base::app);
-        CLogger::coutstr({std::string(100, '=')});
-    }
-
-}
+} // namespace FPE
 
 // ============================
 // ===== MAIN ENTRY POINT =====
@@ -244,71 +242,7 @@ void prerocessParamArgData(ParamArgData& argData, CRedirect& logFile) {
 
 int main(int argc, char** argv) {
 
-    ParamArgData argData; // Command lien arguments  
-
-    try {
-
-        // Initialise CSMTP/CIMAP internals
-
-        CSMTP::init();
-        CIMAP::init();
-
-        // std::cout to logfile if parameter specified.
-
-        CRedirect logFile{std::cout};
-
-        // Process FPE command line arguments.
-
-        procCmdLine(argc, argv, argData);
-
-        // FPE up and running
-
-        CLogger::coutstr({"FPE Running..."});
-
-        // Display BOOST version
-
-        CLogger::coutstr({"Using Boost ",
-            std::to_string(BOOST_VERSION / 100000), ".", // major version
-            std::to_string(BOOST_VERSION / 100 % 1000), ".", // minor version
-            std::to_string(BOOST_VERSION % 100)}); // patch level
-            
-        // Preprocess program argument data
-
-        prerocessParamArgData(argData, logFile);
-
-        // Create task object
-
-        if (argData.bFileCopy) {
-            createTaskAndRun(std::string("File Copy"), argData, copyFile);
-        } else if (argData.bVideoConversion) {
-            createTaskAndRun(std::string("Video Conversion"), argData, handBrake);
-        } else if (argData.bEmailFile) {
-            createTaskAndRun(std::string("Email Attachment"), argData, emailFile);
-        } else if (argData.bZipArchive) {
-            createTaskAndRun(std::string("File to ZIP Archive"), argData, zipFile);
-        } else {
-            createTaskAndRun(std::string("Run Command"), argData, runCommand);
-        }
-
-        //
-        // Catch any errors
-        //    
-
-    } catch (const fs::filesystem_error & e) {
-        exitWithError(std::string("BOOST file system exception occured: [") + e.what() + "]");
-    } catch (const std::system_error &e) {
-        exitWithError(std::string("Caught a system_error exception: [") + e.what() + "]");
-    } catch (const std::exception & e) {
-        exitWithError(std::string("Standard exception occured: [") + e.what() + "]");
-    }
-
-    CLogger::coutstr({"FPE Exiting."});
-
-    // Closedown mail
-
-    CSMTP::closedown();
-    CIMAP::closedown();
-
+    FPE::FileProcessingEngine(argc, argv);
     exit(EXIT_SUCCESS);
 
-} 
+}

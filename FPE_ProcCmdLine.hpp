@@ -18,41 +18,67 @@
 
 #include <string>
 
-// Command line parameter data
+//
+// Antikythera Classes
+//
 
-struct ParamArgData {
-    std::string  watchFolderStr;        // Watch Folder
-    std::string  destinationFolderStr;  // Destination Folder for copies.
-    std::string  commandToRunStr;       // Command to run
-    bool         bFileCopy;             // Task file copy
-    bool         bVideoConversion;      // Task video conversion
-    bool         bRunCommand;           // Task perform command
-    bool         bZipArchive;           // Task add to ZIP archive
-    int          maxWatchDepth;         // Watch depth -1=all,0=just watch folder,1=next level down etc.
-    bool         bDeleteSource;         // Delete source file
-    std::string  extensionStr;          // Override destination file extension
-    bool         bQuiet;                // Quiet mode no tracing output.
-    int          killCount;             // Kill Count
-    bool         bSingleThread;         // Run task in the main thread
-    std::string  logFileNameStr;        // Log file name
-    std::string  configFileNameStr;     // Config file name
-    bool         bEmailFile;            // Email or save file to Inbox.
-    std::string  userNameStr;           // Email account user name
-    std::string  userPasswordStr;       // Email account user name password
-    std::string  serverURLStr;          // Email SMTP/IMAP server URL
-    std::string  emailRecipientStr;     // Email recipient
-    std::string  mailBoxNameStr;        // IMAP Mailbox name
-    std::string  zipArchiveStr;         // Destination ZIP Archive
+#include "CRedirect.hpp"
 
-};
+// =========
+// NAMESPACE
+// =========
 
-// Handbrake command
+namespace FPE_ProcCmdLine {
+ 
+    // =======
+    // IMPORTS
+    // =======
 
-const std::string kHandbrakeCommandStr = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
+    using namespace Antik::Util;
+    
+    // Command line parameter data
 
-// Process command line parameters
+    struct ParamArgData {
+        std::string watchFolderStr;       // Watch Folder
+        std::string destinationFolderStr; // Destination Folder for copies.
+        std::string commandToRunStr;      // Command to run
+        bool bFileCopy { false };         // Task file copy
+        bool bVideoConversion { false };  // Task video conversion
+        bool bRunCommand { false };       // Task perform command
+        bool bZipArchive { false };       // Task add to ZIP archive
+        int maxWatchDepth { -1 };         // Watch depth -1=all,0=just watch folder,1=next level down etc.
+        bool bDeleteSource { false };     // Delete source file
+        std::string extensionStr;         // Override destination file extension
+        bool bQuiet { false };            // Quiet mode no tracing output.
+        int killCount { 0 };              // Kill Count
+        bool bSingleThread { false };     // Run task in the main thread
+        std::string logFileNameStr;       // Log file name
+        std::string configFileNameStr;    // Config file name
+        bool bEmailFile { false };        // Email or save file to Inbox.
+        std::string userNameStr;          // Email account user name
+        std::string userPasswordStr;      // Email account user name password
+        std::string serverURLStr;         // Email SMTP/IMAP server URL
+        std::string emailRecipientStr;    // Email recipient
+        std::string mailBoxNameStr;       // IMAP Mailbox name
+        std::string zipArchiveStr;        // Destination ZIP Archive
 
-void procCmdLine (int argc, char** argv, ParamArgData& argData);
+    };
 
+    // Handbrake command
+
+    constexpr const char *kHandbrakeCommandStr = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
+
+    //
+    // Process command argument data
+    //
+    
+    void processArgumentData(ParamArgData& argumentData, CRedirect& logFile);
+     
+    // Get command line parameters
+
+    ParamArgData fetchCommandLineArgumentData(int argc, char** argv);
+    
+
+} // namespace FPE_ProcCmdLine
 #endif /* FPE_PROCCMDLINE_HPP */
 
