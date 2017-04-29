@@ -18,23 +18,11 @@
 
 #include <string>
 
-//
-// Antikythera Classes
-//
-
-#include "CRedirect.hpp"
-
 // =========
 // NAMESPACE
 // =========
 
 namespace FPE_ProcCmdLine {
- 
-    // =======
-    // IMPORTS
-    // =======
-
-    using namespace Antik::Util;
     
     // Command line parameter data
 
@@ -61,7 +49,6 @@ namespace FPE_ProcCmdLine {
         std::string emailRecipientStr;    // Email recipient
         std::string mailBoxNameStr;       // IMAP Mailbox name
         std::string zipArchiveStr;        // Destination ZIP Archive
-
     };
 
     // Handbrake command
@@ -72,7 +59,7 @@ namespace FPE_ProcCmdLine {
     // Process command argument data
     //
     
-    void processArgumentData(ParamArgData& argumentData, CRedirect& logFile);
+    void processArgumentData(ParamArgData& argumentData);
      
     // Get command line parameters
 

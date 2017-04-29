@@ -46,7 +46,8 @@
 // Antikythera Classes
 //
 
-#include "CTask.hpp" 
+#include "CTask.hpp"
+#include "CRedirect.hpp"
 
 //
 // Boost file system library definitions
@@ -67,10 +68,11 @@ namespace FPE {
     using namespace std;
 
     using namespace Antik::File;
+    using namespace Antik::Util;
 
     using namespace FPE_ProcCmdLine;
     using namespace FPE_ActionFuncs;
-    
+
     namespace fs = boost::filesystem;
 
     // ===============
@@ -93,7 +95,7 @@ namespace FPE {
 
     }
 
-    
+
     //
     // Create task and run in thread.
     //
@@ -105,14 +107,9 @@ namespace FPE {
         assert(taskNameStr.length() != 0);
         assert(taskActFcn != nullptr);
 
-        // Date and Time stamp output
-
-        CLogger::setDateTimeStamped(true);
-
         // Create function data (wrap in void shared pointer for passing to task).
 
-        shared_ptr<void> fnData(new ActFnData
-        {
+        shared_ptr<void> fnData(new ActFnData{
             argData.watchFolderStr,
             argData.destinationFolderStr,
             argData.commandToRunStr,
@@ -172,10 +169,14 @@ namespace FPE {
 
         try {
 
+            // Date and Time stamp output
+
+            CLogger::setDateTimeStamped(true);
+
             // Action function initialization.
 
             actionFuncInit();
-  
+
             // cout to logfile if parameter specified.
 
             CRedirect logFile{cout};
@@ -197,7 +198,16 @@ namespace FPE {
 
             // Process program argument data
 
-            processArgumentData(argumentData, logFile);
+            processArgumentData(argumentData);
+
+            // Output to log file ( CRedirect(cout) is the simplest solution). 
+            // Once the try is exited CRedirect object will be destroyed and 
+            // cout restored.
+
+            if (!argumentData.logFileNameStr.empty()) {
+                logFile.change(argumentData.logFileNameStr, ios_base::out | ios_base::app);
+                CLogger::coutstr({string(100, '=')});
+            }
 
             // Create task object
 
@@ -213,9 +223,9 @@ namespace FPE {
                 createTaskAndRun(string("Run Command"), argumentData, runCommand);
             }
 
-        //
-        // Catch any errors
-        //    
+            //
+            // Catch any errors
+            //    
 
         } catch (const fs::filesystem_error & e) {
             exitWithError(string("BOOST file system exception occured: [") + e.what() + "]");

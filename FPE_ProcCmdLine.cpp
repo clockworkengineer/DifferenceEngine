@@ -56,6 +56,8 @@ namespace FPE_ProcCmdLine {
 
     using namespace std;
 
+    using namespace Antik::Util;
+       
     namespace po = boost::program_options;
     namespace fs = boost::filesystem;
 
@@ -98,11 +100,11 @@ namespace FPE_ProcCmdLine {
     // PUBLIC FUNCTIONS
     // ================
 
-        //
-    // Preprocess program argument data and display run options
+    //
+    // Process program argument data and display run options
     //
 
-    void processArgumentData(ParamArgData& argumentData, CRedirect& logFile) {
+    void processArgumentData(ParamArgData& argumentData) {
 
 
         // Email/archive does not require a destination folder
@@ -137,85 +139,82 @@ namespace FPE_ProcCmdLine {
             }
         }
 
-        // Signal any destination folder.
+        // Display any destination folder.
 
         if (!argumentData.destinationFolderStr.empty()) {
             CLogger::coutstr({"*** DESTINATION FOLDER = [", argumentData.destinationFolderStr, "] ***"});
         }
 
-        // Signal any archive
+        // Display any archive
 
         if (!argumentData.zipArchiveStr.empty()) {
             CLogger::coutstr({"*** ZIP ARCHIVE = [", argumentData.zipArchiveStr, "] ***"});
         }
 
-        // Signal config file used
+        // Display config file used
 
         if (!argumentData.configFileNameStr.empty()) {
             CLogger::coutstr({"*** CONFIG FILE = [", argumentData.configFileNameStr, "] ***"});
         }
 
-        // Signal email file task
+        // Display email file task
 
         if (argumentData.bEmailFile) {
             CLogger::coutstr({"*** EMAIL FILE TASK ***"});
         }
 
-        // Signal file copy task
+        // Display file copy task
 
         if (argumentData.bFileCopy) {
             CLogger::coutstr({"*** FILE COPY TASK ***"});
         }
 
-        // Signal file ZIP archive task
+        // Display file ZIP archive task
 
         if (argumentData.bZipArchive) {
             CLogger::coutstr({"*** FILE ARCHIVE TASK ***"});
         }
 
-        // Signal video conversion task
+        // Display video conversion task
 
         if (argumentData.bVideoConversion) {
             CLogger::coutstr({"*** VIDEO CONVERSION TASK ***"});
         }
 
-        // Signal run command task
+        // Display run command task
 
         if (argumentData.bRunCommand) {
             CLogger::coutstr({"*** RUN COMMAND TASK ***"});
         }
 
-        // Signal quiet mode
+        // Display quiet mode
 
         if (argumentData.bQuiet) {
             CLogger::coutstr({"*** QUIET MODE ***"});
         }
 
-        // Signal source will be deleted on success
+        // Display source will be deleted on success
 
         if (argumentData.bDeleteSource) {
             CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
         }
 
-        // Signal using single thread
+        // Display using single thread
 
         if (argumentData.bSingleThread) {
             CLogger::coutstr({"*** SINGLE THREAD ***"});
         }
 
-        // Signal using killCount
+        // Display using killCount
 
         if (argumentData.killCount) {
             CLogger::coutstr({"*** KILL COUNT = ", to_string(argumentData.killCount), " ***"});
         }
 
-        // Output to log file ( CRedirect(cout) is the simplest solution). Once the try is exited
-        // CRedirect object will be destroyed and cout restored.
+        // Display log file
 
         if (!argumentData.logFileNameStr.empty()) {
             CLogger::coutstr({"*** LOG FILE = [", argumentData.logFileNameStr, "] ***"});
-            logFile.change(argumentData.logFileNameStr, ios_base::out | ios_base::app);
-            CLogger::coutstr({string(100, '=')});
         }
 
     }
