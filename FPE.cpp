@@ -38,6 +38,7 @@
 //
 // Program components.
 //
+
 #include "FPE.hpp"
 #include "FPE_ProcCmdLine.hpp"
 #include "FPE_ActionFuncs.hpp"
@@ -214,7 +215,7 @@ namespace FPE {
             if (argumentData.bFileCopy) {
                 createTaskAndRun(string("File Copy"), argumentData, copyFile);
             } else if (argumentData.bVideoConversion) {
-                createTaskAndRun(string("Video Conversion"), argumentData, handBrake);
+                createTaskAndRun(string("Video Conversion"), argumentData, videoConversion);
             } else if (argumentData.bEmailFile) {
                 createTaskAndRun(string("Email Attachment"), argumentData, emailFile);
             } else if (argumentData.bZipArchive) {

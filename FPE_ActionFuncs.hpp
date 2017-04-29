@@ -37,8 +37,10 @@ namespace FPE_ActionFuncs {
 
     using namespace Antik::Util;
 
+    //
     // Action function data
-
+    //
+    
     struct ActFnData {
         std::string watchFolderStr;         // Watch Folder
         std::string destinationFolderStr;   // Destination Folder for copies.
@@ -55,7 +57,9 @@ namespace FPE_ActionFuncs {
         CLogger::LogStringsFn cerrstr;      // cerrstr output
     };
 
+    //
     // Action function initialization / closedown.
+    //
     
     bool actionFuncInit(void);
     bool actionFuncCloseDown(void);
@@ -64,10 +68,12 @@ namespace FPE_ActionFuncs {
     //
     //  TaskActionFcn sampleLambda = [] (auto filenamePath, auto fnData) 
     //  -> bool { std::cout << "[" << filenamePath+filenameStr << "]" << std::endl; return true; };
-
+    
+    //
     // Action function prototypes
-
-    bool handBrake(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
+    //
+    
+    bool videoConversion(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
     bool copyFile(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
     bool runCommand(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
     bool emailFile(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);

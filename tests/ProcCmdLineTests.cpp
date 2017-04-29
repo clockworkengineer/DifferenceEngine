@@ -24,6 +24,8 @@
 
 #include "FPE_ProcCmdLine.hpp"
 
+using namespace FPE_ProcCmdLine;
+
 // =======================
 // UNIT TEST FIXTURE CLASS
 // =======================
@@ -59,7 +61,7 @@ protected:
 // ===============
 
 //
-// Count length of argv to pass to procCmdLine.
+// Count length of argv to pass to fetchCommandLineArgumentData.
 //
 
 int ProcCmdLineTests::argvLen (char *argv[]) {
@@ -82,7 +84,7 @@ TEST_F(ProcCmdLineTests, NoParameters) {
     
     char *argv[] = { (char *)"fpe" ,  nullptr};
      
-    EXPECT_EXIT(procCmdLine(this->argvLen(argv), argv, argData), ::testing::ExitedWithCode(1), "FPE Error: the option '--destination' is required but missing");
+    EXPECT_EXIT(argData = fetchCommandLineArgumentData(this->argvLen(argv), argv), ::testing::ExitedWithCode(1), "FPE Error: the option '--destination' is required but missing");
 
 }
 
@@ -104,7 +106,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
         nullptr
     };
     
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
     
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -137,7 +139,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
         nullptr
     };
 
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -169,7 +171,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
         nullptr
     };
  
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
   
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -203,7 +205,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
         nullptr
     };
 
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -237,7 +239,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
         nullptr
     };
 
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -273,7 +275,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
         nullptr
     };
  
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
  
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -309,7 +311,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
         nullptr
     };
 
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
     
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -341,7 +343,7 @@ TEST_F(ProcCmdLineTests, NoTaskDefaultCopyDelete) {
         nullptr
     };
     
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
  
     EXPECT_TRUE(argData.bDeleteSource);
     EXPECT_TRUE(argData.bFileCopy);
@@ -375,7 +377,7 @@ TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
         nullptr
     };
  
-    EXPECT_EXIT (procCmdLine(this->argvLen(argv), argv, argData), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
+    EXPECT_EXIT (argData = fetchCommandLineArgumentData(this->argvLen(argv), argv), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
  
 }
 
@@ -399,7 +401,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
         nullptr
     };
 
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);
@@ -433,7 +435,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
         nullptr
     };
 
-    procCmdLine(this->argvLen(argv), argv, argData);
+    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_FALSE(argData.bDeleteSource);
     EXPECT_FALSE(argData.bFileCopy);

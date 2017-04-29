@@ -25,6 +25,9 @@
 #include "FPE_ActionFuncs.hpp"
 #include "FPE_ProcCmdLine.hpp"
 
+using namespace FPE_ActionFuncs;
+using namespace FPE_ProcCmdLine;
+
 // Boost file system and format libraries definitions
 
 #include <boost/filesystem.hpp>
@@ -418,7 +421,7 @@ TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommandSourceExistsTryToDelete) {
 
 TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam1) {
 
-    EXPECT_DEATH(handBrake(this->filePath+this->fileName, nullptr), ActionFuncsTests::kParamAssertion1);
+    EXPECT_DEATH(videoConversion(this->filePath+this->fileName, nullptr), ActionFuncsTests::kParamAssertion1);
 
 }
 
@@ -428,7 +431,7 @@ TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam1) {
 
 TEST_F(ActionFuncsTests, TaskHandBrakeAssertParam2) {
 
-    EXPECT_DEATH(handBrake(this->filePath+this->fileName, this->fnData), ActionFuncsTests::kParamAssertion2);
+    EXPECT_DEATH(videoConversion(this->filePath+this->fileName, this->fnData), ActionFuncsTests::kParamAssertion2);
 
 }
 
@@ -446,7 +449,7 @@ TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFile) {
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist now 
 
     this->funcData->commandToRunStr = kHandbrakeCommandStr;
-    EXPECT_FALSE(handBrake(this->filePath+this->fileName, this->fnData));
+    EXPECT_FALSE(videoConversion(this->filePath+this->fileName, this->fnData));
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted
 
@@ -467,7 +470,7 @@ TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFileDeleteSource) {
 
     this->funcData->bDeleteSource = true;
     this->funcData->commandToRunStr = kHandbrakeCommandStr;
-    EXPECT_FALSE(handBrake(this->filePath+this->fileName, this->fnData));
+    EXPECT_FALSE(videoConversion(this->filePath+this->fileName, this->fnData));
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted
 

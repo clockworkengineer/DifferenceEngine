@@ -28,7 +28,9 @@
 
 #include <iostream>
 
-// Process command line arguments
+//
+// Program components.
+//
 
 #include "FPE_ProcCmdLine.hpp"
 
@@ -38,7 +40,9 @@
 
 #include "CLogger.hpp"
 
+//
 // Boost  file system library & program options processing
+//
 
 #include "boost/program_options.hpp" 
 #include <boost/filesystem.hpp>
@@ -76,6 +80,7 @@ namespace FPE_ProcCmdLine {
                 ("copy", "Task = File Copy Watcher")
                 ("video", "Task = Video Conversion Watcher")
                 ("zip", "Task = File ZIP Archive Watcher")
+                ("task", "Task = File ZIP Archive Watcher")
                 ("command", po::value<string>(&argumentData.commandToRunStr), "Task = Run Shell Command")
                 ("watch,w", po::value<string>(&argumentData.watchFolderStr)->required(), "Watch Folder")
                 ("destination,d", po::value<string>(&argumentData.destinationFolderStr)->required(), "Destination Folder")

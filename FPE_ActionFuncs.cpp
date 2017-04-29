@@ -38,7 +38,7 @@
 #include <system_error>
 
 //
-// Task Action functions
+// Program components.
 //
 
 #include "FPE_ActionFuncs.hpp"
@@ -250,7 +250,7 @@ namespace FPE_ActionFuncs {
     // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
     //
 
-    bool handBrake(const string& filenamePathStr, const shared_ptr<void> fnData) {
+    bool videoConversion(const string& filenamePathStr, const shared_ptr<void> fnData) {
 
         // ASSERT for any invalid parameters.
 

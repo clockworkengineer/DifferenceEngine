@@ -24,8 +24,10 @@
 
 namespace FPE_ProcCmdLine {
     
+    //
     // Command line parameter data
-
+    //
+    
     struct ParamArgData {
         std::string watchFolderStr;       // Watch Folder
         std::string destinationFolderStr; // Destination Folder for copies.
@@ -51,8 +53,10 @@ namespace FPE_ProcCmdLine {
         std::string zipArchiveStr;        // Destination ZIP Archive
     };
 
+    //
     // Handbrake command
-
+    //
+    
     constexpr const char *kHandbrakeCommandStr = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
 
     //
