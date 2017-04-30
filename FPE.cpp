@@ -47,7 +47,6 @@
 // Antikythera Classes
 //
 
-#include "CTask.hpp"
 #include "CRedirect.hpp"
 
 //
@@ -101,29 +100,29 @@ namespace FPE {
     // Create task and run in thread.
     //
 
-    static void createTaskAndRun(const string& taskNameStr, const ParamArgData& argData, CTask::TaskActionFcn taskActFcn) {
+    static void createTaskAndRun(const ParamArgData& argumentData) {
 
         // ASSERT if strings length 0 , pointer parameters NULL
 
-        assert(taskNameStr.length() != 0);
-        assert(taskActFcn != nullptr);
+        assert(argumentData.taskFunc.name.length() != 0);
+        assert(argumentData.taskFunc.actFcn != nullptr);
 
         // Create function data (wrap in void shared pointer for passing to task).
 
         shared_ptr<void> fnData(new ActFnData{
-            argData.watchFolderStr,
-            argData.destinationFolderStr,
-            argData.commandToRunStr,
-            argData.bDeleteSource,
-            argData.extensionStr,
-            argData.userNameStr,
-            argData.userPasswordStr,
-            argData.serverURLStr,
-            argData.emailRecipientStr,
-            argData.mailBoxNameStr,
-            argData.zipArchiveStr,
-            ((argData.bQuiet) ? CLogger::noOp : CLogger::coutstr),
-            ((argData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)
+            argumentData.watchFolderStr,
+            argumentData.destinationFolderStr,
+            argumentData.commandToRunStr,
+            argumentData.bDeleteSource,
+            argumentData.extensionStr,
+            argumentData.userNameStr,
+            argumentData.userPasswordStr,
+            argumentData.serverURLStr,
+            argumentData.emailRecipientStr,
+            argumentData.mailBoxNameStr,
+            argumentData.zipArchiveStr,
+            ((argumentData.bQuiet) ? CLogger::noOp : CLogger::coutstr),
+            ((argumentData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)
         }
         );
 
@@ -135,15 +134,15 @@ namespace FPE {
 
         shared_ptr<CTask::TaskOptions> options;
 
-        options.reset(new CTask::TaskOptions{argData.killCount, funcData->coutstr, funcData->cerrstr});
+        options.reset(new CTask::TaskOptions{argumentData.killCount, funcData->coutstr, funcData->cerrstr});
 
         // Create task object
 
-        CTask task(taskNameStr, argData.watchFolderStr, taskActFcn, fnData, argData.maxWatchDepth, options);
+        CTask task(argumentData.taskFunc.name, argumentData.watchFolderStr, argumentData.taskFunc.actFcn, fnData, argumentData.maxWatchDepth, options);
 
         // Create task object thread and start to watch else use FPE thread.
 
-        if (!argData.bSingleThread) {
+        if (!argumentData.bSingleThread) {
             unique_ptr<thread> taskThread;
             taskThread.reset(new thread(&CTask::monitor, &task));
             taskThread->join();
@@ -212,21 +211,11 @@ namespace FPE {
 
             // Create task object
 
-            if (argumentData.bFileCopy) {
-                createTaskAndRun(string("File Copy"), argumentData, copyFile);
-            } else if (argumentData.bVideoConversion) {
-                createTaskAndRun(string("Video Conversion"), argumentData, videoConversion);
-            } else if (argumentData.bEmailFile) {
-                createTaskAndRun(string("Email Attachment"), argumentData, emailFile);
-            } else if (argumentData.bZipArchive) {
-                createTaskAndRun(string("File to ZIP Archive"), argumentData, zipFile);
-            } else {
-                createTaskAndRun(string("Run Command"), argumentData, runCommand);
-            }
-
-            //
-            // Catch any errors
-            //    
+            createTaskAndRun(argumentData);
+    
+        //
+        // Catch any errors
+        //    
 
         } catch (const fs::filesystem_error & e) {
             exitWithError(string("BOOST file system exception occured: [") + e.what() + "]");

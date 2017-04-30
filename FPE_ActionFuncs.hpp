@@ -20,9 +20,10 @@
 #include <memory>
 
 //
-// CLogger trace output
+// Antikythera Classes
 //
 
+#include "CTask.hpp"
 #include "CLogger.hpp"
 
 // =========
@@ -36,7 +37,28 @@ namespace FPE_ActionFuncs {
     // =======
 
     using namespace Antik::Util;
+    using namespace Antik::File;
 
+    //
+    // Task Action Function Names
+    //
+    
+    constexpr const char *kTaskCopyFileStr      { "Copy File" };
+    constexpr const char *kVideoConversionStr   { "Video Conversion" };
+    constexpr const char *kEmailFileStr         { "Email Attachment" };
+    constexpr const char *kZipFileStr           { "ZIP Archive" };
+    constexpr const char *kRunCommandStr        { "Run Command" };
+
+    //
+    // Task Action Function Table
+    //
+    
+    struct TaskActionFunc {
+        int number;                     // Ordinal Value for task
+        std::string name;               // Task Name
+        CTask::TaskActionFcn actFcn;    // Action Function Pointer
+    };
+    
     //
     // Action function data
     //
@@ -63,7 +85,13 @@ namespace FPE_ActionFuncs {
     
     bool actionFuncInit(void);
     bool actionFuncCloseDown(void);
-    
+
+    //
+    //  Get task details from taskList table
+    //
+
+    TaskActionFunc getTaskDetails(int taskNumber);
+     
     //  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto
     //
     //  TaskActionFcn sampleLambda = [] (auto filenamePath, auto fnData) 
@@ -79,7 +107,7 @@ namespace FPE_ActionFuncs {
     bool emailFile(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
     bool zipFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData);
 
-
 } // namespace FPE_ActionFuncs
+
 #endif /* FPE_ACTIONFUNCS_HPP */
 

@@ -60,8 +60,10 @@ namespace FPE_ProcCmdLine {
 
     using namespace std;
 
+    using namespace FPE_ActionFuncs;
+
     using namespace Antik::Util;
-       
+
     namespace po = boost::program_options;
     namespace fs = boost::filesystem;
 
@@ -76,11 +78,7 @@ namespace FPE_ProcCmdLine {
     static void addCommonOptions(po::options_description& commonOptions, ParamArgData& argumentData) {
 
         commonOptions.add_options()
-                ("email", "Task = Email File Attachment")
-                ("copy", "Task = File Copy Watcher")
-                ("video", "Task = Video Conversion Watcher")
-                ("zip", "Task = File ZIP Archive Watcher")
-                ("task", "Task = File ZIP Archive Watcher")
+                ("task,t", po::value<int>(&argumentData.taskFunc.number)->required(), "Task Number To Run")
                 ("command", po::value<string>(&argumentData.commandToRunStr), "Task = Run Shell Command")
                 ("watch,w", po::value<string>(&argumentData.watchFolderStr)->required(), "Watch Folder")
                 ("destination,d", po::value<string>(&argumentData.destinationFolderStr)->required(), "Destination Folder")
@@ -112,16 +110,23 @@ namespace FPE_ProcCmdLine {
     void processArgumentData(ParamArgData& argumentData) {
 
 
-        // Email/archive does not require a destination folder
+        // Email / Archive file does not require a destination folder
 
-        if (argumentData.bEmailFile || argumentData.bZipArchive) {
+        if ((argumentData.taskFunc.name == kEmailFileStr) ||
+                (argumentData.taskFunc.name == kZipFileStr)) {
             argumentData.destinationFolderStr = "";
         }
 
         // Only have ZIP archive if file add to ZIP archive task
 
-        if (!argumentData.bZipArchive) {
+        if (argumentData.taskFunc.name != kZipFileStr) {
             argumentData.zipArchiveStr = "";
+        }
+
+        // Display config file used
+
+        if (!argumentData.configFileNameStr.empty()) {
+            CLogger::coutstr({"*** CONFIG FILE = [", argumentData.configFileNameStr, "] ***"});
         }
 
         // Create watch folder for task.
@@ -156,40 +161,11 @@ namespace FPE_ProcCmdLine {
             CLogger::coutstr({"*** ZIP ARCHIVE = [", argumentData.zipArchiveStr, "] ***"});
         }
 
-        // Display config file used
 
-        if (!argumentData.configFileNameStr.empty()) {
-            CLogger::coutstr({"*** CONFIG FILE = [", argumentData.configFileNameStr, "] ***"});
-        }
+        // Display Task
 
-        // Display email file task
-
-        if (argumentData.bEmailFile) {
-            CLogger::coutstr({"*** EMAIL FILE TASK ***"});
-        }
-
-        // Display file copy task
-
-        if (argumentData.bFileCopy) {
-            CLogger::coutstr({"*** FILE COPY TASK ***"});
-        }
-
-        // Display file ZIP archive task
-
-        if (argumentData.bZipArchive) {
-            CLogger::coutstr({"*** FILE ARCHIVE TASK ***"});
-        }
-
-        // Display video conversion task
-
-        if (argumentData.bVideoConversion) {
-            CLogger::coutstr({"*** VIDEO CONVERSION TASK ***"});
-        }
-
-        // Display run command task
-
-        if (argumentData.bRunCommand) {
-            CLogger::coutstr({"*** RUN COMMAND TASK ***"});
+        if (!argumentData.taskFunc.name.empty()) {
+            CLogger::coutstr({"*** TASK = [", argumentData.taskFunc.name, "] ***"});
         }
 
         // Display quiet mode
@@ -233,8 +209,8 @@ namespace FPE_ProcCmdLine {
 
     ParamArgData fetchCommandLineArgumentData(int argc, char** argv) {
 
-        ParamArgData argumentData { };
-        
+        ParamArgData argumentData{};
+
         // Define and parse the program options
 
         po::options_description commandLine("Command Line Options");
@@ -256,8 +232,6 @@ namespace FPE_ProcCmdLine {
         po::variables_map vm;
 
         try {
-
-            int taskCount = 0;
 
             // Process command line arguments
 
@@ -283,40 +257,22 @@ namespace FPE_ProcCmdLine {
                 }
             }
 
-            // Email watched files.
+            // Task validation (this needs more tests)
 
-            if (vm.count("email")) {
-                argumentData.bEmailFile = true;
-                taskCount++;
-            }
+            if (vm.count("task")) {
+                argumentData.taskFunc = getTaskDetails(vm["task"].as<int>());
+                if (argumentData.taskFunc.name == "") {
+                    throw po::error("Invalid Task Number.");
+                } else if (argumentData.taskFunc.name == kVideoConversionStr) {
+                    argumentData.commandToRunStr = kHandbrakeCommandStr;
+                } else if ((argumentData.taskFunc.name == kRunCommandStr) &&
+                        (vm["command"].as<string>().empty())) {
+                    throw po::error("No Command Specified");
+                } else if ((argumentData.taskFunc.name == kZipFileStr) &&
+                        (vm["archive"].as<string>().empty())) {
+                    throw po::error("No Archive Specified");
+                }
 
-            // Copy watched files.
-
-            if (vm.count("copy")) {
-                argumentData.bFileCopy = true;
-                taskCount++;
-            }
-
-            // Convert watched video files
-
-            if (vm.count("video")) {
-                argumentData.bVideoConversion = true;
-                argumentData.commandToRunStr = kHandbrakeCommandStr;
-                taskCount++;
-            }
-
-            // Add file to ZIP Archive
-
-            if (vm.count("zip")) {
-                argumentData.bZipArchive = true;
-                taskCount++;
-            }
-
-            // Run command on watched files
-
-            if (vm.count("command")) {
-                argumentData.bRunCommand = true;
-                taskCount++;
             }
 
             // Delete source file
@@ -337,14 +293,6 @@ namespace FPE_ProcCmdLine {
                 argumentData.bSingleThread = true;
             }
 
-            // Default task file copy. More than one task throw error.
-
-            if (taskCount == 0) {
-                argumentData.bFileCopy = true;
-            } else if (taskCount > 1) {
-                throw po::error("More than one task specified");
-            }
-
             po::notify(vm);
 
             // Make watch/destination paths absolute
@@ -357,8 +305,8 @@ namespace FPE_ProcCmdLine {
             cerr << commandLine << endl;
             exit(EXIT_FAILURE);
         }
-        
-        return(argumentData);
+
+        return (argumentData);
 
     }
 

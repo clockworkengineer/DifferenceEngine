@@ -18,6 +18,12 @@
 
 #include <string>
 
+//
+// Program components.
+//
+
+#include "FPE_ActionFuncs.hpp"
+
 // =========
 // NAMESPACE
 // =========
@@ -29,13 +35,11 @@ namespace FPE_ProcCmdLine {
     //
     
     struct ParamArgData {
+        FPE_ActionFuncs::TaskActionFunc taskFunc; // Task Action Function Details
+   //     int taskNumber;                   // Task Number to run (see task --list)
         std::string watchFolderStr;       // Watch Folder
         std::string destinationFolderStr; // Destination Folder for copies.
         std::string commandToRunStr;      // Command to run
-        bool bFileCopy { false };         // Task file copy
-        bool bVideoConversion { false };  // Task video conversion
-        bool bRunCommand { false };       // Task perform command
-        bool bZipArchive { false };       // Task add to ZIP archive
         int maxWatchDepth { -1 };         // Watch depth -1=all,0=just watch folder,1=next level down etc.
         bool bDeleteSource { false };     // Delete source file
         std::string extensionStr;         // Override destination file extension
@@ -44,7 +48,6 @@ namespace FPE_ProcCmdLine {
         bool bSingleThread { false };     // Run task in the main thread
         std::string logFileNameStr;       // Log file name
         std::string configFileNameStr;    // Config file name
-        bool bEmailFile { false };        // Email or save file to Inbox.
         std::string userNameStr;          // Email account user name
         std::string userPasswordStr;      // Email account user name password
         std::string serverURLStr;         // Email SMTP/IMAP server URL
@@ -71,5 +74,6 @@ namespace FPE_ProcCmdLine {
     
 
 } // namespace FPE_ProcCmdLine
+
 #endif /* FPE_PROCCMDLINE_HPP */
 

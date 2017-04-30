@@ -85,6 +85,22 @@ namespace FPE_ActionFuncs {
     using namespace Antik::ZIP;
 
     // ===============
+    // LOCAL VARIABLES
+    // ===============
+
+    //
+    // Task Action Functions
+    //
+    
+    static const vector<TaskActionFunc> taskList {
+        { 0, kTaskCopyFileStr, copyFile},
+        { 1, kVideoConversionStr, videoConversion},
+        { 2, kEmailFileStr, emailFile},
+        { 3, kZipFileStr, zipFile},
+        { 4, kRunCommandStr, runCommand}
+    };
+   
+    // ===============
     // LOCAL FUNCTIONS
     // ===============
 
@@ -184,15 +200,26 @@ namespace FPE_ActionFuncs {
     
     bool actionFuncInit() {
 
-        Antik::SMTP::CSMTP::init();
-        Antik::IMAP::CIMAP::init();
+        CSMTP::init();
+        CIMAP::init();
     }
 
     bool actionFuncCloseDown() {
 
-        Antik::SMTP::CSMTP::closedown();
-        Antik::IMAP::CIMAP::closedown();
+        CSMTP::closedown();
+        CIMAP::closedown();
 
+    }
+    
+    //
+    //  Get task details from taskList table
+    //
+    
+    TaskActionFunc getTaskDetails (int taskNumber) {
+        if((taskNumber >= 0) && (taskNumber < taskList.size())) {
+            return (taskList[taskNumber]);
+        }
+        return(TaskActionFunc());
     }
     
     //
