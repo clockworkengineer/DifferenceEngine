@@ -78,18 +78,18 @@ namespace FPE_ProcCmdLine {
     static void addCommonOptions(po::options_description& commonOptions, ParamArgData& argumentData) {
 
         commonOptions.add_options()
-                ("task,t", po::value<int>(&argumentData.taskFunc.number)->required(), "Task Number To Run")
-                ("command", po::value<string>(&argumentData.commandToRunStr), "Task = Run Shell Command")
-                ("watch,w", po::value<string>(&argumentData.watchFolderStr)->required(), "Watch Folder")
-                ("destination,d", po::value<string>(&argumentData.destinationFolderStr)->required(), "Destination Folder")
-                ("maxdepth", po::value<int>(&argumentData.maxWatchDepth), "Maximum Watch Depth")
+                ("watch,w", po::value<string>(&argumentData.watchFolderStr)->required(), "Watch folder")
+                ("destination,d", po::value<string>(&argumentData.destinationFolderStr)->required(), "Destination folder")
+                ("task,t", po::value<int>(&argumentData.taskFunc.number)->required(), "Task number")
+                ("command", po::value<string>(&argumentData.commandToRunStr), "Shell command to run")
+                ("maxdepth", po::value<int>(&argumentData.maxWatchDepth), "Maximum watch depth")
                 ("extension,e", po::value<string>(&argumentData.extensionStr), "Override destination file extension")
                 ("quiet,q", "Quiet mode (no trace output)")
-                ("delete", "Delete Source File")
+                ("delete", "Delete source file")
                 ("log,l", po::value<string>(&argumentData.logFileNameStr), "Log file")
                 ("single,s", "Run task in main thread")
                 ("killcount,k", po::value<int>(&argumentData.killCount), "Files to process before closedown")
-                ("server,s", po::value<string>(&argumentData.serverURLStr), "SMTP Server URL and port")
+                ("server,s", po::value<string>(&argumentData.serverURLStr), "SMTP server URL and port")
                 ("user,u", po::value<string>(&argumentData.userNameStr), "Account username")
                 ("password,p", po::value<string>(&argumentData.userPasswordStr), "Account username password")
                 ("recipient,r", po::value<string>(&argumentData.emailRecipientStr), "Recipients(s) for email with attached file")
@@ -99,6 +99,18 @@ namespace FPE_ProcCmdLine {
 
     }
 
+    //
+    // If a parameter is not present throw an exception.
+    //
+    
+    static void parameterPresent(const string& param, po::variables_map& vm) {
+        
+        if (!vm.count(param) || vm[param].as<string>().empty()) {
+            throw po::error("Required argument '"+param+"' missing.");
+        }
+
+    }
+    
     // ================
     // PUBLIC FUNCTIONS
     // ================
@@ -110,17 +122,37 @@ namespace FPE_ProcCmdLine {
     void processArgumentData(ParamArgData& argumentData) {
 
 
-        // Email / Archive file does not require a destination folder
+        //
+        // Set any unneeded parameters for task to none
+        //
+        
+        // Do not require destination for tasks
 
         if ((argumentData.taskFunc.name == kEmailFileStr) ||
-                (argumentData.taskFunc.name == kZipFileStr)) {
+            (argumentData.taskFunc.name == kZipFileStr) ||
+            (argumentData.taskFunc.name != kRunCommandStr)) {
             argumentData.destinationFolderStr = "";
         }
 
-        // Only have ZIP archive if file add to ZIP archive task
+        // Only have ZIP archive if ZIP archive task
 
         if (argumentData.taskFunc.name != kZipFileStr) {
             argumentData.zipArchiveStr = "";
+        }
+        
+        // Only have shell command if run command task
+
+        if (argumentData.taskFunc.name != kRunCommandStr) {
+            argumentData.commandToRunStr = "";
+        }
+
+        // Only mail server details if email file task
+
+        if (argumentData.taskFunc.name != kEmailFileStr) {
+            argumentData.serverURLStr = "";
+            argumentData.userNameStr = "";
+            argumentData.userPasswordStr = "";
+            argumentData.mailBoxNameStr= "";
         }
 
         // Display config file used
@@ -153,6 +185,24 @@ namespace FPE_ProcCmdLine {
 
         if (!argumentData.destinationFolderStr.empty()) {
             CLogger::coutstr({"*** DESTINATION FOLDER = [", argumentData.destinationFolderStr, "] ***"});
+        }
+
+        // Display shell command
+
+        if (!argumentData.commandToRunStr.empty()) {
+            CLogger::coutstr({"*** SHELL COMMAND = [", argumentData.commandToRunStr, "] ***"});
+        }
+
+        // Display server url
+
+        if (!argumentData.serverURLStr.empty()) {
+            CLogger::coutstr({"*** SERVER URL = [", argumentData.serverURLStr, "] ***"});
+        }
+
+        // Display mailbox name
+
+        if (!argumentData.mailBoxNameStr.empty()) {
+            CLogger::coutstr({"*** MEILBOX = [", argumentData.mailBoxNameStr, "] ***"});
         }
 
         // Display any archive
@@ -257,7 +307,10 @@ namespace FPE_ProcCmdLine {
                 }
             }
 
-            // Task validation (this needs more tests)
+            // Task parameter validation. Parameters  valid to the task being
+            // run are checked for and if not present an exception is thrown to
+            // produce a relevant error message.Any extra parameters not required 
+            // for a task are just ignored.
 
             if (vm.count("task")) {
                 argumentData.taskFunc = getTaskDetails(vm["task"].as<int>());
@@ -265,14 +318,17 @@ namespace FPE_ProcCmdLine {
                     throw po::error("Invalid Task Number.");
                 } else if (argumentData.taskFunc.name == kVideoConversionStr) {
                     argumentData.commandToRunStr = kHandbrakeCommandStr;
-                } else if ((argumentData.taskFunc.name == kRunCommandStr) &&
-                        (vm["command"].as<string>().empty())) {
-                    throw po::error("No Command Specified");
-                } else if ((argumentData.taskFunc.name == kZipFileStr) &&
-                        (vm["archive"].as<string>().empty())) {
-                    throw po::error("No Archive Specified");
+                } else if (argumentData.taskFunc.name == kRunCommandStr) {
+                    parameterPresent("command", vm);
+                } else if (argumentData.taskFunc.name == kZipFileStr) {
+                    parameterPresent("archive", vm);
+                } else if (argumentData.taskFunc.name == kEmailFileStr) {
+                    parameterPresent("server", vm);
+                    parameterPresent("user", vm);
+                    parameterPresent("password", vm);
+                    parameterPresent("recipient", vm);
+                    parameterPresent("mailbox", vm);
                 }
-
             }
 
             // Delete source file

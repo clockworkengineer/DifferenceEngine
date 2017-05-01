@@ -89,7 +89,7 @@ TEST_F(ProcCmdLineTests, NoParameters) {
 }
 
 //
-// Command fpe --copy --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --task 0 --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
@@ -98,7 +98,8 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
       
     char *argv[] = {
         (char *) "fpe",
-        (char *) "--copy",
+        (char *) "--task",
+        (char *) "0",
         (char *) "--watch",
         (char *) "/home/pi/watchstuff/watch/",
         (char *) "--destination",
@@ -109,9 +110,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
     
     EXPECT_FALSE(argData.bDeleteSource);
-    EXPECT_TRUE(argData.bFileCopy);
-    EXPECT_FALSE(argData.bRunCommand);
-    EXPECT_FALSE(argData.bVideoConversion);
+    ASSERT_STREQ("Copy File", argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -121,7 +120,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
 }
 
 //
-// Command fpe --delete --copy --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --delete --task 0 --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
@@ -131,7 +130,8 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
     char *argv[] = {
         (char *) "fpe",
         (char *) "--delete",
-        (char *) "--copy",
+        (char *) "--task",
+        (char *) "0",
         (char *) "--watch",
         (char *) "/home/pi/watchstuff/watch/",
         (char *) "--destination",
@@ -142,9 +142,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_TRUE(argData.bDeleteSource);
-    EXPECT_TRUE(argData.bFileCopy);
-    EXPECT_FALSE(argData.bRunCommand);
-    EXPECT_FALSE(argData.bVideoConversion);
+    ASSERT_STREQ("Copy File", argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -154,7 +152,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
 }
 
 //
-// Command fpe --video --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --task 1 --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
@@ -163,7 +161,8 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
     
     char *argv[] = {
         (char *) "fpe",
-        (char *) "--video",
+        (char *) "--task",
+        (char *) "1",
         (char *) "--watch",
         (char *) "/home/pi/watchstuff/watch/",
         (char *) "--destination",
@@ -174,9 +173,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
   
     EXPECT_FALSE(argData.bDeleteSource);
-    EXPECT_FALSE(argData.bFileCopy);
-    EXPECT_FALSE(argData.bRunCommand);
-    EXPECT_TRUE(argData.bVideoConversion);
+    ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -187,7 +184,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
 }
 
 //
-// Command fpe --delete --video --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --delete --task 1 --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
@@ -197,7 +194,8 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
     char *argv[] = {
         (char *) "fpe",
         (char *) "--delete",
-        (char *) "--video",
+        (char *) "--task",
+        (char *) "1",
         (char *) "--watch",
         (char *) "/home/pi/watchstuff/watch/",
         (char *) "--destination",
@@ -208,9 +206,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_TRUE(argData.bDeleteSource);
-    EXPECT_FALSE(argData.bFileCopy);
-    EXPECT_FALSE(argData.bRunCommand);
-    EXPECT_TRUE(argData.bVideoConversion);
+    ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -221,7 +217,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
 }
 
 //
-// Command fpe --command "echo %1% -------> %2%" --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --task 4 "echo %1% -------> %2%" --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
@@ -230,6 +226,8 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
 
     char *argv[] = {
         (char *) "fpe",
+        (char *) "--task",
+        (char *) "4",
         (char *) "--command",
         (char *) "echo %1% -------> %2%",
         (char *) "--watch",
@@ -242,9 +240,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_FALSE(argData.bDeleteSource);
-    EXPECT_FALSE(argData.bFileCopy);
-    EXPECT_TRUE(argData.bRunCommand);
-    EXPECT_FALSE(argData.bVideoConversion);
+    ASSERT_STREQ("Run Command" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -256,7 +252,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
 }
 
 //
-// Command fpe --delete --command "echo %1% -------> %2%" /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --delete --task 4 "echo %1% -------> %2%" /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
@@ -266,7 +262,9 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
     char *argv[] = {
         (char *) "fpe",
         (char *) "--delete",
-        (char *) "--command",
+        (char *) "--task",
+        (char *) "4",
+        (char *) "--command", 
         (char *) "echo %1% -------> %2%",
         (char *) "--watch",
         (char *) "/home/pi/watchstuff/watch/",
@@ -278,9 +276,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
  
     EXPECT_TRUE(argData.bDeleteSource);
-    EXPECT_FALSE(argData.bFileCopy);
-    EXPECT_TRUE(argData.bRunCommand);
-    EXPECT_FALSE(argData.bVideoConversion);
+    ASSERT_STREQ("Run Command" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -292,7 +288,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
 }
 
 //
-// Command fpe --copy --maxdepth 3 /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --task 0 --maxdepth 3 /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
@@ -301,7 +297,8 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
 
     char *argv[] = {
         (char *) "fpe",
-        (char *) "--copy",
+        (char *) "--task",
+        (char *) "0",
         (char*) "--maxdepth",
         (char *) "3",
         (char *) "--watch",
@@ -314,9 +311,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
     
     EXPECT_FALSE(argData.bDeleteSource);
-    EXPECT_TRUE(argData.bFileCopy);
-    EXPECT_FALSE(argData.bRunCommand);
-    EXPECT_FALSE(argData.bVideoConversion);
+    ASSERT_STREQ("Copy File", argData.taskFunc.name.c_str());
     EXPECT_EQ(3, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -324,7 +319,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
     EXPECT_FALSE(argData.bQuiet);
 
 }
-
+#if 0
 //
 // Command fpe --delete /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
@@ -359,7 +354,7 @@ TEST_F(ProcCmdLineTests, NoTaskDefaultCopyDelete) {
 }
 
 //
-// Command fpe --copy --video --delete /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --task 0 --task 1 --delete /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
@@ -368,8 +363,8 @@ TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
 
     char *argv[] = {
         (char *) "fpe",
-        (char *) "--copy",
-        (char *) "--video",
+        (char *) "--task 0",
+        (char *) "--task 1",
         (char *) "--watch",
         (char *) "/home/pi/watchstuff/watch/",
         (char *) "--destination",
@@ -380,9 +375,9 @@ TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
     EXPECT_EXIT (argData = fetchCommandLineArgumentData(this->argvLen(argv), argv), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
  
 }
-
+#endif
 //
-// Command fpe --delete --video --extension ".mkv" --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --delete --task 1 --extension ".mkv" --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
@@ -391,7 +386,8 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
 
     char *argv[] = {
         (char *) "fpe",
-        (char *) "--video",
+        (char *) "--task",
+        (char *) "1",
         (char *) "--extension",
         (char *) ".mkv",
         (char *) "--watch",
@@ -404,9 +400,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_FALSE(argData.bDeleteSource);
-    EXPECT_FALSE(argData.bFileCopy);
-    EXPECT_FALSE(argData.bRunCommand);
-    EXPECT_TRUE(argData.bVideoConversion);
+    ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
@@ -417,7 +411,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
 }
 
 //
-// Command fpe --video --quiet  --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
+// Command fpe --task 1 --quiet  --watch /home/pi/watchstuff/watch/ --destination /home/pi/watchstuff/destination/
 //
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
@@ -426,7 +420,8 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
 
     char *argv[] = {
         (char *) "fpe",
-        (char *) "--video",
+        (char *) "--task",
+        (char *) "1",
         (char *) "--quiet",
         (char *) "--watch",
         (char *) "/home/pi/watchstuff/watch/",
@@ -438,9 +433,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
     argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
 
     EXPECT_FALSE(argData.bDeleteSource);
-    EXPECT_FALSE(argData.bFileCopy);
-    EXPECT_FALSE(argData.bRunCommand);
-    EXPECT_TRUE(argData.bVideoConversion);
+    ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, argData.maxWatchDepth);
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
     ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
