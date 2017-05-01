@@ -13,9 +13,14 @@
 //
 // Module: FPE_ProcCmdLine
 //
-// Description: Parse command line parameters and fill in structure ParamArgData.
+// Description: Command line argument processing functionality.
 // 
-// Dependencies: C11++, Boost C++ Libraries.
+// Dependencies:
+// 
+// C11++              : Use of C11++ features.
+// Antikythera Classes: CLogger
+// Linux              : Target platform
+// Boost              : File system, program options.
 //
 
 // =============
@@ -100,10 +105,10 @@ namespace FPE_ProcCmdLine {
     }
 
     //
-    // If a parameter is not present throw an exception.
+    // If a argument is not present throw an exception.
     //
     
-    static void parameterPresent(const string& param, po::variables_map& vm) {
+    static void checkArgumentPresent(const string& param, po::variables_map& vm) {
         
         if (!vm.count(param) || vm[param].as<string>().empty()) {
             throw po::error("Required argument '"+param+"' missing.");
@@ -123,7 +128,7 @@ namespace FPE_ProcCmdLine {
 
 
         //
-        // Set any unneeded parameters for task to none
+        // Set any unneeded arguments for task to none
         //
         
         // Do not require destination for tasks
@@ -254,7 +259,7 @@ namespace FPE_ProcCmdLine {
     // Read in and process command line arguments using boost. Note this is the only 
     // component that uses cout and std:cerr directly and not the thread safe 
     // coutstr/cerrstr but that is not necessary as still in single thread mode when
-    // reading and processing parameters.
+    // reading and processing arguments.
     //
 
     ParamArgData fetchCommandLineArgumentData(int argc, char** argv) {
@@ -307,9 +312,9 @@ namespace FPE_ProcCmdLine {
                 }
             }
 
-            // Task parameter validation. Parameters  valid to the task being
+            // Task argument validation. Parameters  valid to the task being
             // run are checked for and if not present an exception is thrown to
-            // produce a relevant error message.Any extra parameters not required 
+            // produce a relevant error message.Any extra arguments not required 
             // for a task are just ignored.
 
             if (vm.count("task")) {
@@ -319,15 +324,15 @@ namespace FPE_ProcCmdLine {
                 } else if (argumentData.taskFunc.name == kVideoConversionStr) {
                     argumentData.commandToRunStr = kHandbrakeCommandStr;
                 } else if (argumentData.taskFunc.name == kRunCommandStr) {
-                    parameterPresent("command", vm);
+                    checkArgumentPresent("command", vm);
                 } else if (argumentData.taskFunc.name == kZipFileStr) {
-                    parameterPresent("archive", vm);
+                    checkArgumentPresent("archive", vm);
                 } else if (argumentData.taskFunc.name == kEmailFileStr) {
-                    parameterPresent("server", vm);
-                    parameterPresent("user", vm);
-                    parameterPresent("password", vm);
-                    parameterPresent("recipient", vm);
-                    parameterPresent("mailbox", vm);
+                    checkArgumentPresent("server", vm);
+                    checkArgumentPresent("user", vm);
+                    checkArgumentPresent("password", vm);
+                    checkArgumentPresent("recipient", vm);
+                    checkArgumentPresent("mailbox", vm);
                 }
             }
 

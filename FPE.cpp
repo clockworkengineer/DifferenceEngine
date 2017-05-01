@@ -27,8 +27,12 @@
 // All of this can be setup by using parameters  passed to the program from
 // command line (FPE --help for a full list).
 // 
-// Dependencies: C11++, Classes (CTask, CSMTP, CIMAP, CIMAPParse,
-//               CFileZIP, CFileMIME, CLogger), Linux, Boost C++ Libraries.
+// Dependencies:
+// 
+// C11++              : Use of C11++ features.
+// Antikythera Classes: CTask, CSMTP, CIMAP, CIMAPParse, CZIP, CMIME, CLogger
+// Linux              : Target platform
+// Boost              : File system, program option.
 //
 
 // =============
@@ -102,7 +106,7 @@ namespace FPE {
 
     static void createTaskAndRun(const ParamArgData& argumentData) {
 
-        // ASSERT if strings length 0 , pointer parameters NULL
+        // ASSERT if task name length == 0 , action function pointer == nullptr
 
         assert(argumentData.taskFunc.name.length() != 0);
         assert(argumentData.taskFunc.actFcn != nullptr);

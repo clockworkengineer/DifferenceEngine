@@ -35,9 +35,8 @@ namespace FPE_ProcCmdLine {
     //
     
     struct ParamArgData {
-        FPE_ActionFuncs::TaskActionFunc taskFunc; // Task Action Function Details
-   //     int taskNumber;                   // Task Number to run (see task --list)
-        std::string watchFolderStr;       // Watch Folder
+        FPE_ActionFuncs::TaskActionFunc taskFunc; // Task action function details
+        std::string watchFolderStr;       // Watch folder
         std::string destinationFolderStr; // Destination Folder for copies.
         std::string commandToRunStr;      // Command to run
         int maxWatchDepth { -1 };         // Watch depth -1=all,0=just watch folder,1=next level down etc.
@@ -52,8 +51,8 @@ namespace FPE_ProcCmdLine {
         std::string userPasswordStr;      // Email account user name password
         std::string serverURLStr;         // Email SMTP/IMAP server URL
         std::string emailRecipientStr;    // Email recipient
-        std::string mailBoxNameStr;       // IMAP Mailbox name
-        std::string zipArchiveStr;        // Destination ZIP Archive
+        std::string mailBoxNameStr;       // IMAP mailbox name
+        std::string zipArchiveStr;        // Destination ZIP archive
     };
 
     //

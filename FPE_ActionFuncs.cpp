@@ -15,7 +15,7 @@
 //
 // Description: The task action functions used by the FPE and their support functions.
 // 
-// Currently four actions are provided.
+// Currently five actions are provided.
 //
 // 1) File copy
 // 2) Video file conversion (using handbrake)
@@ -23,8 +23,12 @@
 // 4) Email file as attachment (if the server is IMAP then mail message is appended to a mailbox)
 // 5) Append file to a ZIP archive
 // 
-// Dependencies: C11++, classes (CFileTask, CSMTP, CIMAP, CIMAPParse,
-//               CZIP, CMIME, CLogger), Linux, Boost C++ Libraries.
+// Dependencies:
+// 
+// C11++              : Use of C11++ features.
+// Antikythera Classes: CTask, CSMTP, CIMAP, CIMAPParse, CZIP, CMIME
+// Linux              : Target platform
+// Boost              : File system.
 //
 
 // =============
@@ -142,6 +146,7 @@ namespace FPE_ActionFuncs {
         }
 
         return (exitStatus);
+        
     }
 
     //
@@ -391,7 +396,6 @@ namespace FPE_ActionFuncs {
         bool bSuccess = false;
 
         CSMTP smtp;
-        CIMAP imap;
 
         // Form source file path
 
@@ -415,6 +419,7 @@ namespace FPE_ActionFuncs {
 
             } else if (funcData->serverURLStr.find(string("imap")) == 0) {
 
+                CIMAP imap;
                 string mailMessageStr;
                 string commandLineStr;
 
