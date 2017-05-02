@@ -77,8 +77,6 @@ namespace FPE {
     using namespace FPE_ProcCmdLine;
     using namespace FPE_ActionFuncs;
 
-    namespace fs = boost::filesystem;
-
     // ===============
     // LOCAL FUNCTIONS
     // ===============
@@ -185,24 +183,20 @@ namespace FPE {
 
             CRedirect logFile{cout};
 
-            // Get FPE command line arguments.
-
-            argumentData = fetchCommandLineArgumentData(argc, argv);
-
             // FPE up and running
 
             CLogger::coutstr({"FPE Running..."});
 
             // Display BOOST version
 
-            CLogger::coutstr({"Using Boost ",
-                to_string(BOOST_VERSION / 100000), ".", // major version
-                to_string(BOOST_VERSION / 100 % 1000), ".", // minor version
-                to_string(BOOST_VERSION % 100)}); // patch level
+            CLogger::coutstr({"USING BOOST [",
+                to_string(BOOST_VERSION / 100000)+"."+
+                to_string(BOOST_VERSION / 100 % 1000)+"."+
+                to_string(BOOST_VERSION % 100)+"]"});
 
-            // Process program argument data
+            // Get FPE command line arguments.
 
-            processArgumentData(argumentData);
+            argumentData = fetchCommandLineArgumentData(argc, argv);
 
             // Output to log file ( CRedirect(cout) is the simplest solution). 
             // Once the try is exited CRedirect object will be destroyed and 
@@ -216,12 +210,12 @@ namespace FPE {
             // Create task object
 
             createTaskAndRun(argumentData);
-    
-        //
-        // Catch any errors
-        //    
 
-        } catch (const fs::filesystem_error & e) {
+            //
+            // Catch any errors
+            //    
+
+        } catch (const boost::filesystem::filesystem_error & e) {
             exitWithError(string("BOOST file system exception occured: [") + e.what() + "]");
         } catch (const system_error &e) {
             exitWithError(string("Caught a system_error exception: [") + e.what() + "]");

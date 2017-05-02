@@ -60,12 +60,6 @@ namespace FPE_ProcCmdLine {
     //
     
     constexpr const char *kHandbrakeCommandStr = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
-
-    //
-    // Process command argument data
-    //
-    
-    void processArgumentData(ParamArgData& argumentData);
      
     // Get command line parameters
 

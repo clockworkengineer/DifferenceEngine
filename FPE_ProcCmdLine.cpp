@@ -103,7 +103,7 @@ namespace FPE_ProcCmdLine {
 
 
     }
-
+    
     //
     // If a argument is not present throw an exception.
     //
@@ -129,16 +129,12 @@ namespace FPE_ProcCmdLine {
 
     }
 
-    // ================
-    // PUBLIC FUNCTIONS
-    // ================
-
-    //
+     //
     // Process program argument data and display run options. Note: Any
-    // arguments not needed for task are set to none.
+    // arguments not needed for task are set to empty.
     //
 
-    void processArgumentData(ParamArgData& argumentData) {
+    static void processArgumentData(ParamArgData& argumentData) {
 
         // Do not require destination for tasks
 
@@ -168,7 +164,12 @@ namespace FPE_ProcCmdLine {
             argumentData.userPasswordStr = "";
             argumentData.mailBoxNameStr = "";
         }
+   
+        // Make watch/destination paths absolute
 
+        argumentData.watchFolderStr = fs::absolute(argumentData.watchFolderStr).string();
+        argumentData.destinationFolderStr = fs::absolute(argumentData.destinationFolderStr).string();
+ 
         // Display arguments
 
         displayArgument("CONFIG FILE", argumentData.configFileNameStr);
@@ -196,12 +197,7 @@ namespace FPE_ProcCmdLine {
         if (argumentData.killCount) {
             CLogger::coutstr({"*** KILL COUNT = ", to_string(argumentData.killCount), " ***"});
         }
-
-        // Make watch/destination paths absolute
-
-        argumentData.watchFolderStr = fs::absolute(argumentData.watchFolderStr).string();
-        argumentData.destinationFolderStr = fs::absolute(argumentData.destinationFolderStr).string();
-
+    
         // Create watch folder for task if necessary 
 
         if (!fs::exists(argumentData.watchFolderStr)) {
@@ -215,6 +211,10 @@ namespace FPE_ProcCmdLine {
         }
 
     }
+
+    // ================
+    // PUBLIC FUNCTIONS
+    // ================
 
     //
     // Read in and process command line arguments using boost. Note this is the only 
@@ -320,6 +320,10 @@ namespace FPE_ProcCmdLine {
             cerr << commandLine << endl;
             exit(EXIT_FAILURE);
         }
+
+        // Process program argument data
+
+        processArgumentData(argumentData);
 
         return (argumentData);
 
