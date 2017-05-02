@@ -107,35 +107,44 @@ namespace FPE_ProcCmdLine {
     //
     // If a argument is not present throw an exception.
     //
-    
-    static void checkArgumentPresent(const string& param, po::variables_map& vm) {
-        
-        if (!vm.count(param) || vm[param].as<string>().empty()) {
-            throw po::error("Required argument '"+param+"' missing.");
+
+    static void checkArgumentPresent(const vector<string>& arguments, po::variables_map& configVarMap) {
+
+        for (auto arg : arguments) {
+            if (!configVarMap.count(arg) || configVarMap[arg].as<string>().empty()) {
+                throw po::error("Required argument '" + arg + "' missing.");
+            }
         }
 
     }
-    
+
+    //
+    // Display string argument
+    //
+
+    static void displayArgument(const string& label, const string argumentStr) {
+        if (!argumentStr.empty()) {
+            CLogger::coutstr({"*** ", label, " = [", argumentStr, "] ***"});
+        }
+
+    }
+
     // ================
     // PUBLIC FUNCTIONS
     // ================
 
     //
-    // Process program argument data and display run options
+    // Process program argument data and display run options. Note: Any
+    // arguments not needed for task are set to none.
     //
 
     void processArgumentData(ParamArgData& argumentData) {
 
-
-        //
-        // Set any unneeded arguments for task to none
-        //
-        
         // Do not require destination for tasks
 
         if ((argumentData.taskFunc.name == kEmailFileStr) ||
-            (argumentData.taskFunc.name == kZipFileStr) ||
-            (argumentData.taskFunc.name != kRunCommandStr)) {
+                (argumentData.taskFunc.name == kZipFileStr) ||
+                (argumentData.taskFunc.name == kRunCommandStr)) {
             argumentData.destinationFolderStr = "";
         }
 
@@ -144,7 +153,7 @@ namespace FPE_ProcCmdLine {
         if (argumentData.taskFunc.name != kZipFileStr) {
             argumentData.zipArchiveStr = "";
         }
-        
+
         // Only have shell command if run command task
 
         if (argumentData.taskFunc.name != kRunCommandStr) {
@@ -157,100 +166,52 @@ namespace FPE_ProcCmdLine {
             argumentData.serverURLStr = "";
             argumentData.userNameStr = "";
             argumentData.userPasswordStr = "";
-            argumentData.mailBoxNameStr= "";
+            argumentData.mailBoxNameStr = "";
         }
 
-        // Display config file used
+        // Display arguments
 
-        if (!argumentData.configFileNameStr.empty()) {
-            CLogger::coutstr({"*** CONFIG FILE = [", argumentData.configFileNameStr, "] ***"});
-        }
-
-        // Create watch folder for task.
-
-        if (!fs::exists(argumentData.watchFolderStr)) {
-            CLogger::coutstr({"Watch folder [", argumentData.watchFolderStr, "] DOES NOT EXIST."});
-            if (fs::create_directory(argumentData.watchFolderStr)) {
-                CLogger::coutstr({"Creating watch folder [", argumentData.watchFolderStr, "]"});
-            }
-        }
-
-        CLogger::coutstr({"*** WATCH FOLDER = [", argumentData.watchFolderStr, "] ***"});
-
-        // Create destination folder for task
-
-        if (!argumentData.destinationFolderStr.empty() && !fs::exists(argumentData.destinationFolderStr)) {
-            CLogger::coutstr({"Destination folder ", argumentData.destinationFolderStr, " does not exist."});
-            if (fs::create_directory(argumentData.destinationFolderStr)) {
-                CLogger::coutstr({"Creating destination folder ", argumentData.destinationFolderStr});
-            }
-        }
-
-        // Display any destination folder.
-
-        if (!argumentData.destinationFolderStr.empty()) {
-            CLogger::coutstr({"*** DESTINATION FOLDER = [", argumentData.destinationFolderStr, "] ***"});
-        }
-
-        // Display shell command
-
-        if (!argumentData.commandToRunStr.empty()) {
-            CLogger::coutstr({"*** SHELL COMMAND = [", argumentData.commandToRunStr, "] ***"});
-        }
-
-        // Display server url
-
-        if (!argumentData.serverURLStr.empty()) {
-            CLogger::coutstr({"*** SERVER URL = [", argumentData.serverURLStr, "] ***"});
-        }
-
-        // Display mailbox name
-
-        if (!argumentData.mailBoxNameStr.empty()) {
-            CLogger::coutstr({"*** MEILBOX = [", argumentData.mailBoxNameStr, "] ***"});
-        }
-
-        // Display any archive
-
-        if (!argumentData.zipArchiveStr.empty()) {
-            CLogger::coutstr({"*** ZIP ARCHIVE = [", argumentData.zipArchiveStr, "] ***"});
-        }
-
-
-        // Display Task
-
-        if (!argumentData.taskFunc.name.empty()) {
-            CLogger::coutstr({"*** TASK = [", argumentData.taskFunc.name, "] ***"});
-        }
-
-        // Display quiet mode
+        displayArgument("CONFIG FILE", argumentData.configFileNameStr);
+        displayArgument("WATCH FOLDER", argumentData.watchFolderStr);
+        displayArgument("DESTINATION FOLDER", argumentData.destinationFolderStr);
+        displayArgument("SHELL COMMAND", argumentData.commandToRunStr);
+        displayArgument("SERVER URL", argumentData.serverURLStr);
+        displayArgument("MAILBOX", argumentData.mailBoxNameStr);
+        displayArgument("ZIP ARCHIVE", argumentData.zipArchiveStr);
+        displayArgument("TASK", argumentData.taskFunc.name);
+        displayArgument("LOG FILE", argumentData.logFileNameStr);
 
         if (argumentData.bQuiet) {
             CLogger::coutstr({"*** QUIET MODE ***"});
         }
 
-        // Display source will be deleted on success
-
         if (argumentData.bDeleteSource) {
             CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
         }
-
-        // Display using single thread
 
         if (argumentData.bSingleThread) {
             CLogger::coutstr({"*** SINGLE THREAD ***"});
         }
 
-        // Display using killCount
-
         if (argumentData.killCount) {
             CLogger::coutstr({"*** KILL COUNT = ", to_string(argumentData.killCount), " ***"});
         }
 
-        // Display log file
+        // Make watch/destination paths absolute
 
-        if (!argumentData.logFileNameStr.empty()) {
-            CLogger::coutstr({"*** LOG FILE = [", argumentData.logFileNameStr, "] ***"});
+        argumentData.watchFolderStr = fs::absolute(argumentData.watchFolderStr).string();
+        argumentData.destinationFolderStr = fs::absolute(argumentData.destinationFolderStr).string();
+
+        // Create watch folder for task if necessary 
+
+        if (!fs::exists(argumentData.watchFolderStr)) {
+            fs::create_directory(argumentData.watchFolderStr);
+        }
+
+        // Create destination folder for task if necessary 
+
+        if (!argumentData.destinationFolderStr.empty() && !fs::exists(argumentData.destinationFolderStr)) {
+            fs::create_directory(argumentData.destinationFolderStr);
         }
 
     }
@@ -284,28 +245,30 @@ namespace FPE_ProcCmdLine {
 
         addCommonOptions(configFile, argumentData);
 
-        po::variables_map vm;
+        po::variables_map configVarMap;
 
         try {
 
             // Process command line arguments
 
-            po::store(po::parse_command_line(argc, argv, commandLine), vm);
+            po::store(po::parse_command_line(argc, argv, commandLine), configVarMap);
 
             // Display options and exit with success
 
-            if (vm.count("help")) {
+            if (configVarMap.count("help")) {
                 cout << "File Processing Engine Application" << endl << commandLine << endl;
                 exit(EXIT_SUCCESS);
             }
 
             // Load config file specified
 
-            if (vm.count("config")) {
-                if (fs::exists(vm["config"].as<string>().c_str())) {
-                    ifstream ifs{vm["config"].as<string>().c_str()};
-                    if (ifs) {
-                        po::store(po::parse_config_file(ifs, configFile), vm);
+            if (configVarMap.count("config")) {
+                if (fs::exists(configVarMap["config"].as<string>().c_str())) {
+                    ifstream configFileStream{configVarMap["config"].as<string>().c_str()};
+                    if (configFileStream) {
+                        po::store(po::parse_config_file(configFileStream, configFile), configVarMap);
+                    } else {
+                        throw po::error("Error opening config file.");
                     }
                 } else {
                     throw po::error("Specified config file does not exist.");
@@ -317,52 +280,43 @@ namespace FPE_ProcCmdLine {
             // produce a relevant error message.Any extra arguments not required 
             // for a task are just ignored.
 
-            if (vm.count("task")) {
-                argumentData.taskFunc = getTaskDetails(vm["task"].as<int>());
+            if (configVarMap.count("task")) {
+                argumentData.taskFunc = getTaskDetails(configVarMap["task"].as<int>());
                 if (argumentData.taskFunc.name == "") {
                     throw po::error("Invalid Task Number.");
                 } else if (argumentData.taskFunc.name == kVideoConversionStr) {
                     argumentData.commandToRunStr = kHandbrakeCommandStr;
                 } else if (argumentData.taskFunc.name == kRunCommandStr) {
-                    checkArgumentPresent("command", vm);
+                    checkArgumentPresent({"command"}, configVarMap);
                 } else if (argumentData.taskFunc.name == kZipFileStr) {
-                    checkArgumentPresent("archive", vm);
+                    checkArgumentPresent({"archive"}, configVarMap);
                 } else if (argumentData.taskFunc.name == kEmailFileStr) {
-                    checkArgumentPresent("server", vm);
-                    checkArgumentPresent("user", vm);
-                    checkArgumentPresent("password", vm);
-                    checkArgumentPresent("recipient", vm);
-                    checkArgumentPresent("mailbox", vm);
+                    checkArgumentPresent({"server", "user", "password", "recipient", "mailbox"}, configVarMap);
                 }
             }
 
             // Delete source file
 
-            if (vm.count("delete")) {
+            if (configVarMap.count("delete")) {
                 argumentData.bDeleteSource = true;
             }
 
             // No trace output
 
-            if (vm.count("quiet")) {
+            if (configVarMap.count("quiet")) {
                 argumentData.bQuiet = true;
             }
 
             // Use main thread for task.
 
-            if (vm.count("single")) {
+            if (configVarMap.count("single")) {
                 argumentData.bSingleThread = true;
             }
 
-            po::notify(vm);
-
-            // Make watch/destination paths absolute
-
-            argumentData.watchFolderStr = fs::absolute(argumentData.watchFolderStr).string();
-            argumentData.destinationFolderStr = fs::absolute(argumentData.destinationFolderStr).string();
+            po::notify(configVarMap);
 
         } catch (po::error& e) {
-            cerr << "FPE Error: " << e.what() << endl << endl;
+            cerr << "FPE Error: " << e.what() << "\n" << endl;
             cerr << commandLine << endl;
             exit(EXIT_FAILURE);
         }
