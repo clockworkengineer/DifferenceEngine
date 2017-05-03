@@ -83,23 +83,23 @@ namespace FPE_ProcCmdLine {
     static void addCommonOptions(po::options_description& commonOptions, ParamArgData& argumentData) {
 
         commonOptions.add_options()
-                ("watch,w", po::value<string>(&argumentData.watchFolderStr)->required(), "Watch folder")
-                ("destination,d", po::value<string>(&argumentData.destinationFolderStr)->required(), "Destination folder")
+                ("watch,w", po::value<string>(&argumentData.params["watch"])->required(), "Watch folder")
+                ("destination,d", po::value<string>(&argumentData.params["destination"])->required(), "Destination folder")
                 ("task,t", po::value<int>(&argumentData.taskFunc.number)->required(), "Task number")
-                ("command", po::value<string>(&argumentData.commandToRunStr), "Shell command to run")
+                ("command", po::value<string>(&argumentData.params["command"]), "Shell command to run")
                 ("maxdepth", po::value<int>(&argumentData.maxWatchDepth), "Maximum watch depth")
-                ("extension,e", po::value<string>(&argumentData.extensionStr), "Override destination file extension")
+                ("extension,e", po::value<string>(&argumentData.params["extension"]), "Override destination file extension")
                 ("quiet,q", "Quiet mode (no trace output)")
                 ("delete", "Delete source file")
-                ("log,l", po::value<string>(&argumentData.logFileNameStr), "Log file")
+                ("log,l", po::value<string>(&argumentData.params["log"]), "Log file")
                 ("single,s", "Run task in main thread")
                 ("killcount,k", po::value<int>(&argumentData.killCount), "Files to process before closedown")
-                ("server,s", po::value<string>(&argumentData.serverURLStr), "SMTP server URL and port")
-                ("user,u", po::value<string>(&argumentData.userNameStr), "Account username")
-                ("password,p", po::value<string>(&argumentData.userPasswordStr), "Account username password")
-                ("recipient,r", po::value<string>(&argumentData.emailRecipientStr), "Recipients(s) for email with attached file")
-                ("mailbox,m", po::value<string>(&argumentData.mailBoxNameStr), "IMAP Mailbox name for drop box")
-                ("archive,a", po::value<string>(&argumentData.zipArchiveStr), "ZIP destination archive");
+                ("server,s", po::value<string>(&argumentData.params["server"]), "SMTP server URL and port")
+                ("user,u", po::value<string>(&argumentData.params["user"]), "Account username")
+                ("password,p", po::value<string>(&argumentData.params["password"]), "Account username password")
+                ("recipient,r", po::value<string>(&argumentData.params["recipient"]), "Recipients(s) for email with attached file")
+                ("mailbox,m", po::value<string>(&argumentData.params["mailbox"]), "IMAP Mailbox name for drop box")
+                ("archive,a", po::value<string>(&argumentData.params["archive"]), "ZIP destination archive");
 
 
     }
@@ -112,7 +112,7 @@ namespace FPE_ProcCmdLine {
 
         for (auto arg : arguments) {
             if (!configVarMap.count(arg) || configVarMap[arg].as<string>().empty()) {
-                throw po::error("Required argument '" + arg + "' missing.");
+                throw po::error("Task argument '" + arg + "' missing.");
             }
         }
 
@@ -122,12 +122,18 @@ namespace FPE_ProcCmdLine {
     // Display string argument
     //
 
-    static void displayArgument(const string& label, const string argumentStr) {
+    static void displayArgument(const string& label, const string& argumentStr) {
         if (!argumentStr.empty()) {
             CLogger::coutstr({"*** ", label, " = [", argumentStr, "] ***"});
         }
-
     }
+      
+    static void displayArgument(bool bFlag, const string& flagStr) {
+        if (bFlag) {
+            CLogger::coutstr({"*** ", flagStr, " ***"});
+        }
+    }
+
 
      //
     // Process program argument data and display run options. Note: Any
@@ -141,73 +147,61 @@ namespace FPE_ProcCmdLine {
         if ((argumentData.taskFunc.name == kEmailFileStr) ||
                 (argumentData.taskFunc.name == kZipFileStr) ||
                 (argumentData.taskFunc.name == kRunCommandStr)) {
-            argumentData.destinationFolderStr = "";
+            argumentData.params.erase("destination");
         }
 
         // Only have ZIP archive if ZIP archive task
 
         if (argumentData.taskFunc.name != kZipFileStr) {
-            argumentData.zipArchiveStr = "";
+            argumentData.params.erase("archive");
         }
 
         // Only have shell command if run command task
 
         if (argumentData.taskFunc.name != kRunCommandStr) {
-            argumentData.commandToRunStr = "";
+            argumentData.params.erase("command");
         }
 
         // Only mail server details if email file task
 
         if (argumentData.taskFunc.name != kEmailFileStr) {
-            argumentData.serverURLStr = "";
-            argumentData.userNameStr = "";
-            argumentData.userPasswordStr = "";
-            argumentData.mailBoxNameStr = "";
+            argumentData.params.erase("server");
+            argumentData.params.erase("user");
+            argumentData.params.erase("password");
+            argumentData.params.erase("mailbox");
         }
-   
+        
         // Make watch/destination paths absolute
 
-        argumentData.watchFolderStr = fs::absolute(argumentData.watchFolderStr).string();
-        argumentData.destinationFolderStr = fs::absolute(argumentData.destinationFolderStr).string();
+        argumentData.params["watch"] = fs::absolute(argumentData.params["watch"]).string();
+        argumentData.params["destination"] = fs::absolute(argumentData.params["destination"]).string();
  
         // Display arguments
 
-        displayArgument("CONFIG FILE", argumentData.configFileNameStr);
-        displayArgument("WATCH FOLDER", argumentData.watchFolderStr);
-        displayArgument("DESTINATION FOLDER", argumentData.destinationFolderStr);
-        displayArgument("SHELL COMMAND", argumentData.commandToRunStr);
-        displayArgument("SERVER URL", argumentData.serverURLStr);
-        displayArgument("MAILBOX", argumentData.mailBoxNameStr);
-        displayArgument("ZIP ARCHIVE", argumentData.zipArchiveStr);
-        displayArgument("TASK", argumentData.taskFunc.name);
-        displayArgument("LOG FILE", argumentData.logFileNameStr);
-
-        if (argumentData.bQuiet) {
-            CLogger::coutstr({"*** QUIET MODE ***"});
-        }
-
-        if (argumentData.bDeleteSource) {
-            CLogger::coutstr({"*** DELETE SOURCE FILE ON SUCESSFUL PROCESSING ***"});
-        }
-
-        if (argumentData.bSingleThread) {
-            CLogger::coutstr({"*** SINGLE THREAD ***"});
-        }
-
-        if (argumentData.killCount) {
-            CLogger::coutstr({"*** KILL COUNT = ", to_string(argumentData.killCount), " ***"});
-        }
-    
+        displayArgument(static_cast<string>("CONFIG FILE"), argumentData.params["config"]);
+        displayArgument(static_cast<string>("WATCH FOLDER"), argumentData.params["watch"]);
+        displayArgument(static_cast<string>("DESTINATION FOLDER"), argumentData.params["destination"]);
+        displayArgument(static_cast<string>("SHELL COMMAND"), argumentData.params["command"]);
+        displayArgument(static_cast<string>("SERVER URL"), argumentData.params["server"]);
+        displayArgument(static_cast<string>("MAILBOX"), argumentData.params["mailbox"]);
+        displayArgument(static_cast<string>("ZIP ARCHIVE"), argumentData.params["archive"]);
+        displayArgument(static_cast<string>("TASK"), argumentData.taskFunc.name);
+        displayArgument(static_cast<string>("LOG FILE"), argumentData.params["log"]);
+        displayArgument((argumentData.killCount > 0),"KILL COUNT = ["+to_string(argumentData.killCount)+"]");
+        displayArgument(argumentData.bQuiet, "QUIET MODE");
+        displayArgument(argumentData.bDeleteSource, "DELETE SOURCE FILE");
+        displayArgument(argumentData.bSingleThread,"SINGLE THREAD");
+     
         // Create watch folder for task if necessary 
 
-        if (!fs::exists(argumentData.watchFolderStr)) {
-            fs::create_directory(argumentData.watchFolderStr);
+        if (!fs::exists(argumentData.params["watch"])) {
+            fs::create_directory(argumentData.params["watch"]);
         }
 
         // Create destination folder for task if necessary 
 
-        if (!argumentData.destinationFolderStr.empty() && !fs::exists(argumentData.destinationFolderStr)) {
-            fs::create_directory(argumentData.destinationFolderStr);
+        if (!argumentData.params["destination"].empty() && !fs::exists(argumentData.params["destination"])) {
+            fs::create_directory(argumentData.params["destination"]);
         }
 
     }
@@ -235,7 +229,7 @@ namespace FPE_ProcCmdLine {
 
         commandLine.add_options()
                 ("help", "Display help message")
-                ("config", po::value<string>(&argumentData.configFileNameStr), "Configuration file name");
+                ("config", po::value<string>(&argumentData.params["config"]), "Configuration file name");
 
         addCommonOptions(commandLine, argumentData);
 
@@ -285,7 +279,7 @@ namespace FPE_ProcCmdLine {
                 if (argumentData.taskFunc.name == "") {
                     throw po::error("Invalid Task Number.");
                 } else if (argumentData.taskFunc.name == kVideoConversionStr) {
-                    argumentData.commandToRunStr = kHandbrakeCommandStr;
+                    argumentData.params["command"] = kHandbrakeCommandStr;
                 } else if (argumentData.taskFunc.name == kRunCommandStr) {
                     checkArgumentPresent({"command"}, configVarMap);
                 } else if (argumentData.taskFunc.name == kZipFileStr) {

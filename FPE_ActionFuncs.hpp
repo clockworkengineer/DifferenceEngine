@@ -18,6 +18,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 
 //
 // Antikythera Classes
@@ -64,17 +65,8 @@ namespace FPE_ActionFuncs {
     //
     
     struct ActFnData {
-        std::string watchFolderStr;         // Watch Folder
-        std::string destinationFolderStr;   // Destination Folder for copies.
-        std::string commandToRunStr;        // Command to run
+        std::unordered_map<std::string, std::string> params;    // Parameter 
         bool bDeleteSource;                 // Delete source file
-        std::string extensionStr;           // Override extension for destination file
-        std::string userNameStr;            // Email account user name
-        std::string userPasswordStr;        // Email account user name password
-        std::string serverURLStr;           // Email server URL
-        std::string emailRecipientStr;      // Email recipient
-        std::string mailBoxNameStr;         // IMAP Mailbox name
-        std::string zipArchiveStr;          // ZIP archive file
         CLogger::LogStringsFn coutstr;      // coutstr output
         CLogger::LogStringsFn cerrstr;      // cerrstr output
     };

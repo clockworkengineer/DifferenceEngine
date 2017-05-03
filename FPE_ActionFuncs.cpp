@@ -244,20 +244,20 @@ namespace FPE_ActionFuncs {
         // Form source and destination file paths
 
         fs::path sourceFile(filenamePathStr);
-        fs::path destinationFile(funcData->destinationFolderStr + sourceFile.filename().string());
+        fs::path destinationFile(funcData->params["destination"] + sourceFile.filename().string());
 
         // Create correct command for whether source and destination specified or just source or none
 
-        bool srcFound = (funcData->commandToRunStr.find("%1%") != string::npos);
-        bool dstFound = (funcData->commandToRunStr.find("%2%") != string::npos);
+        bool srcFound = (funcData->params["command"].find("%1%") != string::npos);
+        bool dstFound = (funcData->params["command"].find("%2%") != string::npos);
 
         string commandStr;
         if (srcFound && dstFound) {
-            commandStr = (boost::format(funcData->commandToRunStr) % sourceFile.string() % destinationFile.string()).str();
+            commandStr = (boost::format(funcData->params["command"]) % sourceFile.string() % destinationFile.string()).str();
         } else if (srcFound) {
-            commandStr = (boost::format(funcData->commandToRunStr) % sourceFile.string()).str();
+            commandStr = (boost::format(funcData->params["command"]) % sourceFile.string()).str();
         } else {
-            commandStr = funcData->commandToRunStr;
+            commandStr = funcData->params["command"];
         }
 
         funcData->coutstr({commandStr});
@@ -295,19 +295,19 @@ namespace FPE_ActionFuncs {
         // Form source and destination file paths
 
         fs::path sourceFile(filenamePathStr);
-        fs::path destinationFile(funcData->destinationFolderStr);
+        fs::path destinationFile(funcData->params["destination"]);
 
         destinationFile /= sourceFile.stem().string();
 
-        if (funcData->extensionStr.length() > 0) {
-            destinationFile.replace_extension(funcData->extensionStr);
+        if (funcData->params["extension"].length() > 0) {
+            destinationFile.replace_extension(funcData->params["extension"]);
         } else {
             destinationFile.replace_extension(".mp4");
         }
 
         // Convert file
 
-        string commandStr = (boost::format(funcData->commandToRunStr) % sourceFile.string() % destinationFile.string()).str();
+        string commandStr = (boost::format(funcData->params["command"]) % sourceFile.string() % destinationFile.string()).str();
 
         funcData->coutstr({"Converting file [", sourceFile.string(), "] To [", destinationFile.string(), "]"});
 
@@ -349,8 +349,8 @@ namespace FPE_ActionFuncs {
 
         // Destination file path += ("filename path" - "watch folder path")
 
-        fs::path destinationFile(funcData->destinationFolderStr +
-                filenamePathStr.substr((funcData->watchFolderStr).length()));
+        fs::path destinationFile(funcData->params["destination"] +
+                filenamePathStr.substr((funcData->params["watch"]).length()));
 
         // Construct full destination path if needed
 
@@ -403,32 +403,32 @@ namespace FPE_ActionFuncs {
 
         try {
 
-            smtp.setServer(funcData->serverURLStr);
-            smtp.setUserAndPassword(funcData->userNameStr, funcData->userPasswordStr);
-            smtp.setFromAddress("<" + funcData->userNameStr + ">");
-            smtp.setToAddress("<" + funcData->emailRecipientStr + ">");
+            smtp.setServer(funcData->params["server"]);
+            smtp.setUserAndPassword(funcData->params["user"], funcData->params["password"]);
+            smtp.setFromAddress("<" + funcData->params["user"] + ">");
+            smtp.setToAddress("<" + funcData->params["recipient"] + ">");
 
             smtp.setMailSubject("FPE Attached File");
             smtp.addFileAttachment(filenamePathStr, CMIME::getFileMIMEType(filenamePathStr), "base64");
 
-            if (funcData->serverURLStr.find(string("smtp")) == 0) {
+            if (funcData->params["server"].find(string("smtp")) == 0) {
 
                 smtp.postMail();
-                funcData->coutstr({"Emailing file [", filenamePathStr, "] ", "to [", funcData->emailRecipientStr, "]"});
+                funcData->coutstr({"Emailing file [", filenamePathStr, "] ", "to [", funcData->params["recipient"], "]"});
                 bSuccess = true;
 
-            } else if (funcData->serverURLStr.find(string("imap")) == 0) {
+            } else if (funcData->params["server"].find(string("imap")) == 0) {
 
                 CIMAP imap;
                 string mailMessageStr;
                 string commandLineStr;
 
-                commandLineStr = "APPEND " + funcData->mailBoxNameStr + " (\\Seen) {";
+                commandLineStr = "APPEND " + funcData->params["mailbox"] + " (\\Seen) {";
                 mailMessageStr = smtp.getMailMessage();
                 commandLineStr += to_string(mailMessageStr.length() - 2) + "}" + mailMessageStr;
 
-                imap.setServer(funcData->serverURLStr);
-                imap.setUserAndPassword(funcData->userNameStr, funcData->userPasswordStr);
+                imap.setServer(funcData->params["server"]);
+                imap.setUserAndPassword(funcData->params["user"], funcData->params["password"]);
 
                 imap.connect();
 
@@ -438,7 +438,7 @@ namespace FPE_ActionFuncs {
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
                     funcData->cerrstr({commandResponse->errorMessageStr});
                 } else {
-                    funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->mailBoxNameStr + "]"});
+                    funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->params["mailbox"] + "]"});
                     bSuccess = true;
                 }
 
@@ -475,7 +475,7 @@ namespace FPE_ActionFuncs {
         // Form source and zips file paths
 
         fs::path sourceFile(filenamePathStr);
-        fs::path zipFilePath(funcData->zipArchiveStr);
+        fs::path zipFilePath(funcData->params["archive"]);
 
         // Create path for ZIP archive if needed.
 

@@ -15,13 +15,13 @@
 //
 // Description: This is a generic file processing engine that sets up a
 // watch folder and waits for files/directories to be copied to it. Any 
-// added directories are also watched (this is recursive) but any added files
+// added directories are also watched (ie.this is recursive) but any added files
 // are be processed using one of its built in task action functions
 // 
 // 1) File copy
 // 2) Video file conversion (using Handbrake)
 // 3) Run shell command
-// 4) Email file as a attachment
+// 4) Email file as a attachment ( or add file to mailbox for IMAP server)
 // 5) File append to ZIP archive
 // 
 // All of this can be setup by using parameters  passed to the program from
@@ -111,22 +111,9 @@ namespace FPE {
 
         // Create function data (wrap in void shared pointer for passing to task).
 
-        shared_ptr<void> fnData(new ActFnData{
-            argumentData.watchFolderStr,
-            argumentData.destinationFolderStr,
-            argumentData.commandToRunStr,
-            argumentData.bDeleteSource,
-            argumentData.extensionStr,
-            argumentData.userNameStr,
-            argumentData.userPasswordStr,
-            argumentData.serverURLStr,
-            argumentData.emailRecipientStr,
-            argumentData.mailBoxNameStr,
-            argumentData.zipArchiveStr,
+        shared_ptr<void> fnData(new ActFnData{argumentData.params,argumentData.bDeleteSource,
             ((argumentData.bQuiet) ? CLogger::noOp : CLogger::coutstr),
-            ((argumentData.bQuiet) ? CLogger::noOp : CLogger::cerrstr)
-        }
-        );
+            ((argumentData.bQuiet) ? CLogger::noOp : CLogger::cerrstr) });
 
         // Use function data to access set coutstr/cerrstr
 
@@ -140,7 +127,7 @@ namespace FPE {
 
         // Create task object
 
-        CTask task(argumentData.taskFunc.name, argumentData.watchFolderStr, argumentData.taskFunc.actFcn, fnData, argumentData.maxWatchDepth, options);
+        CTask task(argumentData.taskFunc.name, argumentData.params.find("watch")->second, argumentData.taskFunc.actFcn, fnData, argumentData.maxWatchDepth, options);
 
         // Create task object thread and start to watch else use FPE thread.
 
@@ -202,8 +189,8 @@ namespace FPE {
             // Once the try is exited CRedirect object will be destroyed and 
             // cout restored.
 
-            if (!argumentData.logFileNameStr.empty()) {
-                logFile.change(argumentData.logFileNameStr, ios_base::out | ios_base::app);
+            if (!argumentData.params["log"].empty()) {
+                logFile.change(argumentData.params["log"], ios_base::out | ios_base::app);
                 CLogger::coutstr({string(100, '=')});
             }
 
@@ -211,9 +198,9 @@ namespace FPE {
 
             createTaskAndRun(argumentData);
 
-            //
-            // Catch any errors
-            //    
+        //
+        // Catch any errors
+        //    
 
         } catch (const boost::filesystem::filesystem_error & e) {
             exitWithError(string("BOOST file system exception occured: [") + e.what() + "]");
