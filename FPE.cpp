@@ -102,7 +102,7 @@ namespace FPE {
     // Create task and run in thread.
     //
 
-    static void createTaskAndRun(const FPEOptions& optionData) {
+    static void createTaskAndRun(FPEOptions& optionData) {
 
         // ASSERT if task name length == 0 , action function pointer == nullptr
 
@@ -112,8 +112,8 @@ namespace FPE {
         // Create function data (wrap in void shared pointer for passing to task).
 
         shared_ptr<void> fnData(new ActFnData{optionData.optionsMap,
-            (getOption<bool>(optionData,"quiet") ? CLogger::noOp : CLogger::coutstr),
-            (getOption<bool>(optionData,"quiet") ? CLogger::noOp : CLogger::cerrstr) });
+            (getOption<bool>(optionData,kQuietOption) ? CLogger::noOp : CLogger::coutstr),
+            (getOption<bool>(optionData,kQuietOption) ? CLogger::noOp : CLogger::cerrstr) });
 
         // Use function data to access set coutstr/cerrstr
 
@@ -122,19 +122,19 @@ namespace FPE {
         // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
 
         shared_ptr<CTask::TaskOptions> options;
-;
-        options.reset(new CTask::TaskOptions{getOption<int>(optionData, "killcount"), funcData->coutstr, funcData->cerrstr});
+
+        options.reset(new CTask::TaskOptions{getOption<int>(optionData, kKillCountOption), funcData->coutstr, funcData->cerrstr});
 
         // Create task object
 
         CTask task(optionData.taskFunc.name, 
-                   getOption<string>(optionData, "watch"), 
+                   optionData.optionsMap[kWatchOption], 
                    optionData.taskFunc.actFcn, 
-                   fnData, getOption<int>(optionData, "killcount"), options);
+                   fnData, getOption<int>(optionData, kKillCountOption), options);
 
         // Create task object thread and start to watch else use FPE thread.
 
-        if (getOption<bool>(optionData,"single")) {
+        if (getOption<bool>(optionData,kSingleOption)) {
             unique_ptr<thread> taskThread;
             taskThread.reset(new thread(&CTask::monitor, &task));
             taskThread->join();
@@ -191,8 +191,8 @@ namespace FPE {
             // Once the try is exited CRedirect object will be destroyed and 
             // cout restored.
 
-            if (!getOption<string>(optionData,"log").empty()) {
-                logFile.change(getOption<string>(optionData,"log"), ios_base::out | ios_base::app);
+            if (!optionData.optionsMap[kLogOption].empty()) {
+                logFile.change(optionData.optionsMap[kLogOption], ios_base::out | ios_base::app);
                 CLogger::coutstr({string(100, '=')});
             }
 

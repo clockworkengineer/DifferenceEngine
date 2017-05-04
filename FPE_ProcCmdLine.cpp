@@ -37,6 +37,7 @@
 // Program components.
 //
 
+#include "FPE.hpp"
 #include "FPE_ProcCmdLine.hpp"
 
 //
@@ -65,6 +66,7 @@ namespace FPE_ProcCmdLine {
 
     using namespace std;
 
+    using namespace FPE;
     using namespace FPE_ActionFuncs;
 
     using namespace Antik::Util;
@@ -83,23 +85,23 @@ namespace FPE_ProcCmdLine {
     static void addCommonOptions(po::options_description& commonOptions, FPEOptions& optionData) {
 
         commonOptions.add_options()
-                ("watch,w", po::value<string>(&optionData.optionsMap["watch"])->required(), "Watch folder")
-                ("destination,d", po::value<string>(&optionData.optionsMap["destination"])->required(), "Destination folder")
+                ("watch,w", po::value<string>(&optionData.optionsMap[kWatchOption])->required(), "Watch folder")
+                ("destination,d", po::value<string>(&optionData.optionsMap[kDestinationOption])->required(), "Destination folder")
                 ("task,t", po::value<int>(&optionData.taskFunc.number)->required(), "Task number")
-                ("command", po::value<string>(&optionData.optionsMap["command"]), "Shell command to run")
-                ("maxdepth", po::value<string>(&optionData.optionsMap["maxdepth"])->default_value("-1"), "Maximum watch depth")
-                ("extension,e", po::value<string>(&optionData.optionsMap["extension"]), "Override destination file extension")
+                ("command", po::value<string>(&optionData.optionsMap[kCommandOption]), "Shell command to run")
+                ("maxdepth", po::value<string>(&optionData.optionsMap[kMaxDepthOption])->default_value("-1"), "Maximum watch depth")
+                ("extension,e", po::value<string>(&optionData.optionsMap[kExtensionOption]), "Override destination file extension")
                 ("quiet,q", "Quiet mode (no trace output)")
                 ("delete", "Delete source file")
-                ("log,l", po::value<string>(&optionData.optionsMap["log"]), "Log file")
+                ("log,l", po::value<string>(&optionData.optionsMap[kLogOption]), "Log file")
                 ("single,s", "Run task in main thread")
-                ("killcount,k", po::value<string>(&optionData.optionsMap["killcount"])->default_value("0"), "Files to process before closedown")
-                ("server,s", po::value<string>(&optionData.optionsMap["server"]), "SMTP server URL and port")
-                ("user,u", po::value<string>(&optionData.optionsMap["user"]), "Account username")
-                ("password,p", po::value<string>(&optionData.optionsMap["password"]), "Account username password")
-                ("recipient,r", po::value<string>(&optionData.optionsMap["recipient"]), "Recipients(s) for email with attached file")
-                ("mailbox,m", po::value<string>(&optionData.optionsMap["mailbox"]), "IMAP Mailbox name for drop box")
-                ("archive,a", po::value<string>(&optionData.optionsMap["archive"]), "ZIP destination archive");
+                ("killcount,k", po::value<string>(&optionData.optionsMap[kKillCountOption])->default_value("0"), "Files to process before closedown")
+                ("server,s", po::value<string>(&optionData.optionsMap[kServerOption]), "SMTP server URL and port")
+                ("user,u", po::value<string>(&optionData.optionsMap[kUserOption]), "Account username")
+                ("password,p", po::value<string>(&optionData.optionsMap[kPasswordOption]), "Account username password")
+                ("recipient,r", po::value<string>(&optionData.optionsMap[kRecipientOption]), "Recipients(s) for email with attached file")
+                ("mailbox,m", po::value<string>(&optionData.optionsMap[kMailBoxOption]), "IMAP Mailbox name for drop box")
+                ("archive,a", po::value<string>(&optionData.optionsMap[kArchiveOption]), "ZIP destination archive");
 
     }
     
@@ -149,61 +151,61 @@ namespace FPE_ProcCmdLine {
         if ((optionData.taskFunc.name == kEmailFileStr) ||
                 (optionData.taskFunc.name == kZipFileStr) ||
                 (optionData.taskFunc.name == kRunCommandStr)) {
-            optionData.optionsMap.erase("destination");
+            optionData.optionsMap.erase(kDestinationOption);
         }
 
         // Only have ZIP archive if ZIP archive task
 
         if (optionData.taskFunc.name != kZipFileStr) {
-            optionData.optionsMap.erase("archive");
+            optionData.optionsMap.erase(kArchiveOption);
         }
 
         // Only have shell command if run command task
 
         if (optionData.taskFunc.name != kRunCommandStr) {
-            optionData.optionsMap.erase("command");
+            optionData.optionsMap.erase(kCommandOption);
         }
 
         // Only mail server details if email file task
 
         if (optionData.taskFunc.name != kEmailFileStr) {
-            optionData.optionsMap.erase("server");
-            optionData.optionsMap.erase("user");
-            optionData.optionsMap.erase("password");
-            optionData.optionsMap.erase("mailbox");
+            optionData.optionsMap.erase(kServerOption);
+            optionData.optionsMap.erase(kUserOption);
+            optionData.optionsMap.erase(kPasswordOption);
+            optionData.optionsMap.erase(kMailBoxOption);
         }
         
         // Make watch/destination paths absolute
 
-        optionData.optionsMap["watch"] = fs::absolute(optionData.optionsMap["watch"]).string();
-        optionData.optionsMap["destination"] = fs::absolute(optionData.optionsMap["destination"]).string();
+        optionData.optionsMap[kWatchOption] = fs::absolute(optionData.optionsMap[kWatchOption]).string();
+        optionData.optionsMap[kDestinationOption] = fs::absolute(optionData.optionsMap[kDestinationOption]).string();
  
         // Display options
 
-        displayOption(static_cast<string>("CONFIG FILE"), optionData.optionsMap["config"]);
-        displayOption(static_cast<string>("WATCH FOLDER"), optionData.optionsMap["watch"]);
-        displayOption(static_cast<string>("DESTINATION FOLDER"), optionData.optionsMap["destination"]);
-        displayOption(static_cast<string>("SHELL COMMAND"), optionData.optionsMap["command"]);
-        displayOption(static_cast<string>("SERVER URL"), optionData.optionsMap["server"]);
-        displayOption(static_cast<string>("MAILBOX"), optionData.optionsMap["mailbox"]);
-        displayOption(static_cast<string>("ZIP ARCHIVE"), optionData.optionsMap["archive"]);
+        displayOption(static_cast<string>("CONFIG FILE"), optionData.optionsMap[kConfigOption]);
+        displayOption(static_cast<string>("WATCH FOLDER"), optionData.optionsMap[kWatchOption]);
+        displayOption(static_cast<string>("DESTINATION FOLDER"), optionData.optionsMap[kDestinationOption]);
+        displayOption(static_cast<string>("SHELL COMMAND"), optionData.optionsMap[kCommandOption]);
+        displayOption(static_cast<string>("SERVER URL"), optionData.optionsMap[kServerOption]);
+        displayOption(static_cast<string>("MAILBOX"), optionData.optionsMap[kMailBoxOption]);
+        displayOption(static_cast<string>("ZIP ARCHIVE"), optionData.optionsMap[kArchiveOption]);
         displayOption(static_cast<string>("TASK"), optionData.taskFunc.name);
-        displayOption(static_cast<string>("LOG FILE"), optionData.optionsMap["log"]);
-        displayOption((getOption<int>(optionData, "killcount") > 0),"KILL COUNT = ["+optionData.optionsMap["killcount"]+"]");
-        displayOption(getOption<bool>(optionData,"quiet"), "QUIET MODE");
-        displayOption(getOption<bool>(optionData,"delete"), "DELETE SOURCE FILE");
-        displayOption(getOption<bool>(optionData,"single"),"SINGLE THREAD");
+        displayOption(static_cast<string>("LOG FILE"), optionData.optionsMap[kLogOption]);
+        displayOption((getOption<int>(optionData, kKillCountOption) > 0),"KILL COUNT = ["+optionData.optionsMap[kKillCountOption]+"]");
+        displayOption(getOption<bool>(optionData,kQuietOption), "QUIET MODE");
+        displayOption(getOption<bool>(optionData,kDeleteOption), "DELETE SOURCE FILE");
+        displayOption(getOption<bool>(optionData,kSingleOption),"SINGLE THREAD");
      
         // Create watch folder for task if necessary 
 
-        if (!fs::exists(optionData.optionsMap["watch"])) {
-            fs::create_directory(optionData.optionsMap["watch"]);
+        if (!fs::exists(optionData.optionsMap[kWatchOption])) {
+            fs::create_directory(optionData.optionsMap[kWatchOption]);
         }
 
         // Create destination folder for task if necessary 
 
-        if (!optionData.optionsMap["destination"].empty() && !fs::exists(optionData.optionsMap["destination"])) {
-            fs::create_directory(optionData.optionsMap["destination"]);
+        if (!optionData.optionsMap[kDestinationOption].empty() && !fs::exists(optionData.optionsMap[kDestinationOption])) {
+            fs::create_directory(optionData.optionsMap[kDestinationOption]);
         }
 
     }
@@ -231,7 +233,7 @@ namespace FPE_ProcCmdLine {
 
         commandLine.add_options()
                 ("help", "Display help message")
-                ("config", po::value<string>(&optionData.optionsMap["config"]), "Configuration file name");
+                (kConfigOption, po::value<string>(&optionData.optionsMap[kConfigOption]), "Configuration file name");
 
         addCommonOptions(commandLine, optionData);
 
@@ -258,9 +260,9 @@ namespace FPE_ProcCmdLine {
 
             // Load config file specified
 
-            if (configVarMap.count("config")) {
-                if (fs::exists(configVarMap["config"].as<string>().c_str())) {
-                    ifstream configFileStream{configVarMap["config"].as<string>().c_str()};
+            if (configVarMap.count(kConfigOption)) {
+                if (fs::exists(configVarMap[kConfigOption].as<string>().c_str())) {
+                    ifstream configFileStream{configVarMap[kConfigOption].as<string>().c_str()};
                     if (configFileStream) {
                         po::store(po::parse_config_file(configFileStream, configFile), configVarMap);
                     } else {
@@ -276,26 +278,26 @@ namespace FPE_ProcCmdLine {
             // produce a relevant error message.Any extra options not required 
             // for a task are just ignored.
 
-            if (configVarMap.count("task")) {
-                optionData.taskFunc = getTaskDetails(configVarMap["task"].as<int>());
+            if (configVarMap.count(kTaskOption)) {
+                optionData.taskFunc = getTaskDetails(configVarMap[kTaskOption].as<int>());
                 if (optionData.taskFunc.name == "") {
                     throw po::error("Invalid Task Number.");
                 } else if (optionData.taskFunc.name == kVideoConversionStr) {
-                    optionData.optionsMap["command"] = kHandbrakeCommandStr;
+                    optionData.optionsMap[kCommandOption] = kHandbrakeCommandStr;
                 } else if (optionData.taskFunc.name == kRunCommandStr) {
-                    checkOptionPresent({"command"}, configVarMap);
+                    checkOptionPresent({kCommandOption}, configVarMap);
                 } else if (optionData.taskFunc.name == kZipFileStr) {
-                    checkOptionPresent({"archive"}, configVarMap);
+                    checkOptionPresent({kArchiveOption}, configVarMap);
                 } else if (optionData.taskFunc.name == kEmailFileStr) {
-                    checkOptionPresent({"server", "user", "password", "recipient", "mailbox"}, configVarMap);
+                    checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kRecipientOption, kMailBoxOption}, configVarMap);
                 }
             }
 
             // Check killcount is a valid int
 
-            if (configVarMap.count("killcount")) {
+            if (configVarMap.count(kKillCountOption)) {
                 try {
-                    stoi(configVarMap["killcount"].as<string>());
+                    stoi(configVarMap[kKillCountOption].as<string>());
                 } catch (const std::exception& e) {
                     throw po::error("killcount is not a valid integer.");
                 }
@@ -303,9 +305,9 @@ namespace FPE_ProcCmdLine {
    
            // Check maxdepth is a valid int
 
-            if (configVarMap.count("maxdepth")) {
+            if (configVarMap.count(kMaxDepthOption)) {
                 try {
-                    stoi(configVarMap["maxdepth"].as<string>());
+                    stoi(configVarMap[kMaxDepthOption].as<string>());
                 } catch (const std::exception& e) {
                     throw po::error("maxdepth is not a valid integer.");
                 }
@@ -313,20 +315,20 @@ namespace FPE_ProcCmdLine {
   
             // Delete source file
 
-            if (configVarMap.count("delete")) {
-                optionData.optionsMap["delete"] = "1";
+            if (configVarMap.count(kDeleteOption)) {
+                optionData.optionsMap[kDeleteOption] = "1";
             }
 
             // No trace output
 
-            if (configVarMap.count("quiet")) {
-                optionData.optionsMap["quiet"] = "1";
+            if (configVarMap.count(kQuietOption)) {
+                optionData.optionsMap[kQuietOption] = "1";
             }
 
             // Use main thread for task.
 
-            if (configVarMap.count("single")) {
-                optionData.optionsMap["single"] = "1";
+            if (configVarMap.count(kSingleOption)) {
+                optionData.optionsMap[kSingleOption] = "1";
             }
 
             po::notify(configVarMap);

@@ -44,11 +44,11 @@ namespace FPE_ActionFuncs {
     // Task Action Function Names
     //
     
-    constexpr const char *kTaskCopyFileStr      { "Copy File" };
-    constexpr const char *kVideoConversionStr   { "Video Conversion" };
-    constexpr const char *kEmailFileStr         { "Email Attachment" };
-    constexpr const char *kZipFileStr           { "ZIP Archive" };
-    constexpr const char *kRunCommandStr        { "Run Command" };
+    constexpr const char *kTaskCopyFileStr      {"Copy File"};
+    constexpr const char *kVideoConversionStr   {"Video Conversion"};
+    constexpr const char *kEmailFileStr         {"Email Attachment"};
+    constexpr const char *kZipFileStr           {"ZIP Archive"};
+    constexpr const char *kRunCommandStr        {"Run Command"};
 
     //
     // Task Action Function Table
@@ -86,7 +86,7 @@ namespace FPE_ActionFuncs {
     //  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto
     //
     //  TaskActionFcn sampleLambda = [] (auto filenamePath, auto fnData) 
-    //  -> bool { std::cout << "[" << filenamePath+filenameStr << "]" << std::endl; return true; };
+    //  -> bool {std::cout << "[" << filenamePath+filenameStr << "]" << std::endl; return true; };
     
     //
     // Action function prototypes

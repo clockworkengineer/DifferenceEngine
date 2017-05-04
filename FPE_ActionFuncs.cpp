@@ -45,6 +45,7 @@
 // Program components.
 //
 
+#include "FPE.hpp"
 #include "FPE_ActionFuncs.hpp"
 
 //
@@ -81,6 +82,8 @@ namespace FPE_ActionFuncs {
     // =======
     
     using namespace std;
+    
+    using namespace FPE;
 
     using namespace Antik::IMAP;
     using namespace Antik::File;
@@ -244,20 +247,20 @@ namespace FPE_ActionFuncs {
         // Form source and destination file paths
 
         fs::path sourceFile(filenamePathStr);
-        fs::path destinationFile(funcData->optionsMap["destination"] + sourceFile.filename().string());
+        fs::path destinationFile(funcData->optionsMap[kDestinationOption] + sourceFile.filename().string());
 
         // Create correct command for whether source and destination specified or just source or none
 
-        bool srcFound = (funcData->optionsMap["command"].find("%1%") != string::npos);
-        bool dstFound = (funcData->optionsMap["command"].find("%2%") != string::npos);
+        bool srcFound = (funcData->optionsMap[kCommandOption].find("%1%") != string::npos);
+        bool dstFound = (funcData->optionsMap[kCommandOption].find("%2%") != string::npos);
 
         string commandStr;
         if (srcFound && dstFound) {
-            commandStr = (boost::format(funcData->optionsMap["command"]) % sourceFile.string() % destinationFile.string()).str();
+            commandStr = (boost::format(funcData->optionsMap[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
         } else if (srcFound) {
-            commandStr = (boost::format(funcData->optionsMap["command"]) % sourceFile.string()).str();
+            commandStr = (boost::format(funcData->optionsMap[kCommandOption]) % sourceFile.string()).str();
         } else {
-            commandStr = funcData->optionsMap["command"];
+            commandStr = funcData->optionsMap[kCommandOption];
         }
 
         funcData->coutstr({commandStr});
@@ -266,7 +269,7 @@ namespace FPE_ActionFuncs {
         if ((result = runShellCommand(commandStr)) == 0) {
             bSuccess = true;
             funcData->coutstr({"Command success."});
-            if (!funcData->optionsMap["delete"].empty()) {
+            if (!funcData->optionsMap[kDeleteOption].empty()) {
                 funcData->coutstr({"DELETING SOURCE [", sourceFile.string(), "]"});
                 fs::remove(sourceFile);
             }
@@ -295,7 +298,7 @@ namespace FPE_ActionFuncs {
         // Form source and destination file paths
 
         fs::path sourceFile(filenamePathStr);
-        fs::path destinationFile(funcData->optionsMap["destination"]);
+        fs::path destinationFile(funcData->optionsMap[kDestinationOption]);
 
         destinationFile /= sourceFile.stem().string();
 
@@ -307,7 +310,7 @@ namespace FPE_ActionFuncs {
 
         // Convert file
 
-        string commandStr = (boost::format(funcData->optionsMap["command"]) % sourceFile.string() % destinationFile.string()).str();
+        string commandStr = (boost::format(funcData->optionsMap[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
 
         funcData->coutstr({"Converting file [", sourceFile.string(), "] To [", destinationFile.string(), "]"});
 
@@ -315,7 +318,7 @@ namespace FPE_ActionFuncs {
         if ((result = runShellCommand(commandStr)) == 0) {
             bSuccess = true;
             funcData->coutstr({"File conversion success."});
-            if (!funcData->optionsMap["delete"].empty()) {
+            if (!funcData->optionsMap[kDeleteOption].empty()) {
                 funcData->coutstr({"DELETING SOURCE [", sourceFile.string(), "]"});
                 fs::remove(sourceFile);
             }
@@ -349,8 +352,8 @@ namespace FPE_ActionFuncs {
 
         // Destination file path += ("filename path" - "watch folder path")
 
-        fs::path destinationFile(funcData->optionsMap["destination"] +
-                filenamePathStr.substr((funcData->optionsMap["watch"]).length()));
+        fs::path destinationFile(funcData->optionsMap[kDestinationOption] +
+                filenamePathStr.substr((funcData->optionsMap[kWatchOption]).length()));
 
         // Construct full destination path if needed
 
@@ -368,7 +371,7 @@ namespace FPE_ActionFuncs {
             funcData->coutstr({"COPY FROM [", sourceFile.string(), "] TO [", destinationFile.string(), "]"});
             fs::copy_file(sourceFile, destinationFile, fs::copy_option::none);
             bSuccess = true;
-            if (!funcData->optionsMap["delete"].empty()) {
+            if (!funcData->optionsMap[kDeleteOption].empty()) {
                 funcData->coutstr({"DELETING SOURCE [", sourceFile.string(), "]"});
                 fs::remove(sourceFile);
             }
@@ -403,32 +406,32 @@ namespace FPE_ActionFuncs {
 
         try {
 
-            smtp.setServer(funcData->optionsMap["server"]);
-            smtp.setUserAndPassword(funcData->optionsMap["user"], funcData->optionsMap["password"]);
-            smtp.setFromAddress("<" + funcData->optionsMap["user"] + ">");
-            smtp.setToAddress("<" + funcData->optionsMap["recipient"] + ">");
+            smtp.setServer(funcData->optionsMap[kServerOption]);
+            smtp.setUserAndPassword(funcData->optionsMap[kUserOption], funcData->optionsMap[kPasswordOption]);
+            smtp.setFromAddress("<" + funcData->optionsMap[kUserOption] + ">");
+            smtp.setToAddress("<" + funcData->optionsMap[kRecipientOption] + ">");
 
             smtp.setMailSubject("FPE Attached File");
             smtp.addFileAttachment(filenamePathStr, CMIME::getFileMIMEType(filenamePathStr), "base64");
 
-            if (funcData->optionsMap["server"].find(string("smtp")) == 0) {
+            if (funcData->optionsMap[kServerOption].find(string("smtp")) == 0) {
 
                 smtp.postMail();
-                funcData->coutstr({"Emailing file [", filenamePathStr, "] ", "to [", funcData->optionsMap["recipient"], "]"});
+                funcData->coutstr({"Emailing file [", filenamePathStr, "] ", "to [", funcData->optionsMap[kRecipientOption], "]"});
                 bSuccess = true;
 
-            } else if (funcData->optionsMap["server"].find(string("imap")) == 0) {
+            } else if (funcData->optionsMap[kServerOption].find(string("imap")) == 0) {
 
                 CIMAP imap;
                 string mailMessageStr;
                 string commandLineStr;
 
-                commandLineStr = "APPEND " + funcData->optionsMap["mailbox"] + " (\\Seen) {";
+                commandLineStr = "APPEND " + funcData->optionsMap[kMailBoxOption] + " (\\Seen) {";
                 mailMessageStr = smtp.getMailMessage();
                 commandLineStr += to_string(mailMessageStr.length() - 2) + "}" + mailMessageStr;
 
-                imap.setServer(funcData->optionsMap["server"]);
-                imap.setUserAndPassword(funcData->optionsMap["user"], funcData->optionsMap["password"]);
+                imap.setServer(funcData->optionsMap[kServerOption]);
+                imap.setUserAndPassword(funcData->optionsMap[kUserOption], funcData->optionsMap[kPasswordOption]);
 
                 imap.connect();
 
@@ -438,7 +441,7 @@ namespace FPE_ActionFuncs {
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
                     funcData->cerrstr({commandResponse->errorMessageStr});
                 } else {
-                    funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->optionsMap["mailbox"] + "]"});
+                    funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->optionsMap[kMailBoxOption] + "]"});
                     bSuccess = true;
                 }
 
@@ -475,7 +478,7 @@ namespace FPE_ActionFuncs {
         // Form source and zips file paths
 
         fs::path sourceFile(filenamePathStr);
-        fs::path zipFilePath(funcData->optionsMap["archive"]);
+        fs::path zipFilePath(funcData->optionsMap[kArchiveOption]);
 
         // Create path for ZIP archive if needed.
 
