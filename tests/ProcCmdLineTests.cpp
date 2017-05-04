@@ -80,7 +80,7 @@ int ProcCmdLineTests::argvLen (char *argv[]) {
 
 TEST_F(ProcCmdLineTests, NoParameters) { 
     
-    ParamArgData argData;
+    FPEOptions argData;
     
     char *argv[] = { (char *)"fpe" ,  nullptr};
      
@@ -94,7 +94,7 @@ TEST_F(ProcCmdLineTests, NoParameters) {
 
 TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
 
-    ParamArgData argData;
+    FPEOptions argData;
       
     char *argv[] = {
         (char *) "fpe",
@@ -125,7 +125,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
 
 TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
 
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",
@@ -157,7 +157,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
     
-    ParamArgData argData;
+    FPEOptions argData;
     
     char *argv[] = {
         (char *) "fpe",
@@ -189,7 +189,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
 
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",
@@ -222,7 +222,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
 
 TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
     
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",
@@ -257,7 +257,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
 
 TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
     
-    ParamArgData argData;
+    FPEOptions argData;
     
     char *argv[] = {
         (char *) "fpe",
@@ -293,7 +293,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
 
 TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
     
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",
@@ -326,7 +326,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
 
 TEST_F(ProcCmdLineTests, NoTaskDefaultCopyDelete) {
     
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",
@@ -359,7 +359,7 @@ TEST_F(ProcCmdLineTests, NoTaskDefaultCopyDelete) {
 
 TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
     
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",
@@ -382,7 +382,7 @@ TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
 
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",
@@ -416,7 +416,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
 
 TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
 
-    ParamArgData argData;
+    FPEOptions argData;
 
     char *argv[] = {
         (char *) "fpe",

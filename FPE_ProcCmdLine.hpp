@@ -32,18 +32,14 @@
 namespace FPE_ProcCmdLine {
     
     //
-    // Command line parameter data
+    // Command line option data. Note all option values are treated as strings
+    // so they may be stored in the optionsMap unordered map.
     //
 
-    struct ParamArgData {
-        FPE_ActionFuncs::TaskActionFunc taskFunc; // Task action function details
-        std::unordered_map<std::string, std::string> params; // Parameter map
-        int maxWatchDepth{ -1};         // Watch depth -1=all,0=just watch folder,1=next level down etc.
-        bool bDeleteSource{ false};     // Delete source file
-        bool bQuiet{ false};            // Quiet mode no tracing output.
-        int killCount {0};              // Kill Count
-        bool bSingleThread{ false};     // Run task in the main thread
-    };
+    struct FPEOptions {
+        FPE_ActionFuncs::TaskActionFunc taskFunc;                // Task action function details
+        std::unordered_map<std::string, std::string> optionsMap; // Options map
+     };
 
     //
     // Handbrake command
@@ -51,10 +47,28 @@ namespace FPE_ProcCmdLine {
     
     constexpr const char *kHandbrakeCommandStr = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
      
-    // Get command line parameters
+    // Get command line options
 
-    ParamArgData fetchCommandLineArgumentData(int argc, char** argv);
+    FPEOptions fetchCommandLineOptionData(int argc, char** argv);
+
+    //
+    //  Get option map value and return as type T
+    //
     
+    template <typename T>
+    T getOption(const FPEOptions& optionData, const std::string& optionStr) {
+
+        T value;
+        
+        auto entry = optionData.optionsMap.find(optionStr);
+        if (entry != optionData.optionsMap.end()) {
+            std::istringstream optionStingStream {entry->second};
+            optionStingStream >> value;
+            return (value);
+        } else {
+            return ( T { }); // Return default for type
+        }
+    }
 
 } // namespace FPE_ProcCmdLine
 

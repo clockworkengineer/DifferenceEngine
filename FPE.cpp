@@ -24,7 +24,7 @@
 // 4) Email file as a attachment ( or add file to mailbox for IMAP server)
 // 5) File append to ZIP archive
 // 
-// All of this can be setup by using parameters  passed to the program from
+// All of this can be setup by using options  passed to the program from
 // command line (FPE --help for a full list).
 // 
 // Dependencies:
@@ -102,18 +102,18 @@ namespace FPE {
     // Create task and run in thread.
     //
 
-    static void createTaskAndRun(const ParamArgData& argumentData) {
+    static void createTaskAndRun(const FPEOptions& optionData) {
 
         // ASSERT if task name length == 0 , action function pointer == nullptr
 
-        assert(argumentData.taskFunc.name.length() != 0);
-        assert(argumentData.taskFunc.actFcn != nullptr);
+        assert(optionData.taskFunc.name.length() != 0);
+        assert(optionData.taskFunc.actFcn != nullptr);
 
         // Create function data (wrap in void shared pointer for passing to task).
 
-        shared_ptr<void> fnData(new ActFnData{argumentData.params,argumentData.bDeleteSource,
-            ((argumentData.bQuiet) ? CLogger::noOp : CLogger::coutstr),
-            ((argumentData.bQuiet) ? CLogger::noOp : CLogger::cerrstr) });
+        shared_ptr<void> fnData(new ActFnData{optionData.optionsMap,
+            (getOption<bool>(optionData,"quiet") ? CLogger::noOp : CLogger::coutstr),
+            (getOption<bool>(optionData,"quiet") ? CLogger::noOp : CLogger::cerrstr) });
 
         // Use function data to access set coutstr/cerrstr
 
@@ -122,22 +122,24 @@ namespace FPE {
         // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
 
         shared_ptr<CTask::TaskOptions> options;
-
-        options.reset(new CTask::TaskOptions{argumentData.killCount, funcData->coutstr, funcData->cerrstr});
+;
+        options.reset(new CTask::TaskOptions{getOption<int>(optionData, "killcount"), funcData->coutstr, funcData->cerrstr});
 
         // Create task object
 
-        CTask task(argumentData.taskFunc.name, argumentData.params.find("watch")->second, argumentData.taskFunc.actFcn, fnData, argumentData.maxWatchDepth, options);
+        CTask task(optionData.taskFunc.name, 
+                   getOption<string>(optionData, "watch"), 
+                   optionData.taskFunc.actFcn, 
+                   fnData, getOption<int>(optionData, "killcount"), options);
 
         // Create task object thread and start to watch else use FPE thread.
 
-        if (!argumentData.bSingleThread) {
+        if (getOption<bool>(optionData,"single")) {
             unique_ptr<thread> taskThread;
             taskThread.reset(new thread(&CTask::monitor, &task));
             taskThread->join();
         } else {
             task.monitor();
-
         }
 
         // If an exception occurred rethrow (end of chain)
@@ -154,7 +156,7 @@ namespace FPE {
 
     void FileProcessingEngine(int argc, char** argv) {
 
-        ParamArgData argumentData; // Command line arguments  
+        FPEOptions optionData; // Command line options  
 
         try {
 
@@ -166,37 +168,37 @@ namespace FPE {
 
             actionFuncInit();
 
-            // cout to logfile if parameter specified.
+            // cout to logfile if option specified.
 
             CRedirect logFile{cout};
+
+            // Display BOOST version
+
+            CLogger::coutstr({"*** BOOST = [",
+                to_string(BOOST_VERSION / 100000)+"."+
+                to_string(BOOST_VERSION / 100 % 1000)+"."+
+                to_string(BOOST_VERSION % 100)+"] ***"});
+
+            // Get FPE command line options.
+
+            optionData = fetchCommandLineOptionData(argc, argv);
 
             // FPE up and running
 
             CLogger::coutstr({"FPE Running..."});
 
-            // Display BOOST version
-
-            CLogger::coutstr({"USING BOOST [",
-                to_string(BOOST_VERSION / 100000)+"."+
-                to_string(BOOST_VERSION / 100 % 1000)+"."+
-                to_string(BOOST_VERSION % 100)+"]"});
-
-            // Get FPE command line arguments.
-
-            argumentData = fetchCommandLineArgumentData(argc, argv);
-
             // Output to log file ( CRedirect(cout) is the simplest solution). 
             // Once the try is exited CRedirect object will be destroyed and 
             // cout restored.
 
-            if (!argumentData.params["log"].empty()) {
-                logFile.change(argumentData.params["log"], ios_base::out | ios_base::app);
+            if (!getOption<string>(optionData,"log").empty()) {
+                logFile.change(getOption<string>(optionData,"log"), ios_base::out | ios_base::app);
                 CLogger::coutstr({string(100, '=')});
             }
 
             // Create task object
 
-            createTaskAndRun(argumentData);
+            createTaskAndRun(optionData);
 
         //
         // Catch any errors

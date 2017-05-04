@@ -65,8 +65,7 @@ namespace FPE_ActionFuncs {
     //
     
     struct ActFnData {
-        std::unordered_map<std::string, std::string> params;    // Parameter 
-        bool bDeleteSource;                 // Delete source file
+        std::unordered_map<std::string, std::string> optionsMap;    // Option map
         CLogger::LogStringsFn coutstr;      // coutstr output
         CLogger::LogStringsFn cerrstr;      // cerrstr output
     };
