@@ -2,46 +2,45 @@
 
 # Introduction #
 
-This is a C++/Linux variant of the JavaScript/Node file processing engine. In its current form it has support for 4 tasks 
+This is a C++/Linux variant of the JavaScript/Node file processing engine. In its current form it has support for 5 tasks 
 
 1. The copying of files from a watched folder to a specified destination (keeping any source directory structure intact).
 2. The conversion of any video files copied to the watch folder to .mp4 (which can now be changed by use of the --extension option) format using HandbrakeCLI and its normal preset. 
 3. The running of a shell script command on each file added to the watch folder.
-4. The attaching of source file to an email and sending to a given recipient(s).
+4. The attaching of source file to an email and sending to a given recipient(s). If the URL specifies an IMAP server then the email is appended to a named mailbox on the server.
+5. The adding to a file specified ZIP archive.
 
 It is run from the command line and typing FPE --help gives a list of its options
 
     File Processing Engine Application
-
     Command Line Options:
-      --help                        Display help message
-      --config arg                  Configuration file name
-      --email                       Task = Email File Attachment
-      --copy                        Task = File Copy Watcher
-      --video                       Task = Video Conversion Watcher
-      --command arg                 Task = Run Shell Command
-      -w [ --watch ] arg            Watch Folder
-      -d [ --destination ] arg      Destination Folder
-      --maxdepth arg                Maximum Watch Depth
-      -e [ --extension ] arg        Override destination file extension
-      -q [ --quiet ]                Quiet mode (no trace output)
-      --delete                      Delete Source File
-      -l [ --log ] arg              Log file
-      -s [ --single ]               Run task in main thread
-      -k [ --killcount ] arg        Files to process before closedown
-      -s [ --server ] arg           SMTP Server URL and port
-      -u [ --user ] arg             Account username
-      -p [ --password ] arg         Account username password
-      -r [ --recipient ] arg        Recipients(s) for email with attached file
+      --help                       Display help message
+      --config arg                 Configuration file name
+      -w [ --watch ] arg           Watch folder
+      -d [ --destination ] arg     Destination folder
+      -t [ --task ] arg            Task number
+      --command arg                Shell command to run
+      --maxdepth arg (=-1)         Maximum watch depth
+      -e [ --extension ] arg       Override destination file extension
+      -q [ --quiet ]               Quiet mode (no trace output)
+      --delete                     Delete source file
+      -l [ --log ] arg             Log file
+      -s [ --single ]              Run task in main thread
+      -k [ --killcount ] arg (=0)  Files to process before closedown
+      -s [ --server ] arg          SMTP server URL and port
+      -u [ --user ] arg            Account username
+      -p [ --password ] arg        Account username password
+      -r [ --recipient ] arg       Recipients(s) for email with attached file
+      -m [ --mailbox ] arg         IMAP Mailbox name for drop box
+      -a [ --archive ] arg         ZIP destination archive
+      --list                       Display a list of supported tasks.
 
-- **config;** Read commands from configuration file. Any values set on the command line but also specified in the configuration will override the file value.
+- **config:** Read commands from configuration file. Any values set on the command line but also specified in the configuration will override the file value.
+- **Task**: Task number to run (for a list of values see --list).
 - **watch:** Folder to watch for files created or moved into.
 - **destination:** Destination folder for any processed source files.
 - **maxdepth:** The maximum depth is how far down  the directory hierarchy that will be watched (-1 the whole tree, 0 just the watcher folder, 1 the next level down etc).
-- **email:** Email file as attachment task
-- **copy:** Copy file task.
-- **video:** Video file conversion task.
-- **command:** Run command task (With this option it takes any file passed through and runs the specified shell script command substituting %1% in the command for the source file and %2% for any destination file).
+- **command:** Shell script command to run (task run command) substituting %1% in the command for the source file and %2% for any destination file).
 - **extension:** Override the extension on the destination file ( only works with *video* at present).
 - **delete:** Delete any source file after successful processing.
 - **quiet:** Run in quiet mode i.e. trace output only comes from the main program and not the task class ( thus significantly reducing the amount).
@@ -52,6 +51,8 @@ It is run from the command line and typing FPE --help gives a list of its option
 - **user:** User account name on server for email task
 - **password:** User account password  on server for email task
 - **recipient:** Recipient(s) for email task email.
+- **archive:** Path to ZIP file archive to which file is added.
+- **list:** List available tasks.
 
 **Note I tend to use the term folder/directory interchangeably coming from a mixed development environment.**
 
@@ -78,8 +79,8 @@ This executes a simple shell script command (--command) for each file name passe
 
 # Email Task Function #
 
-Take the source file name passed in and attach it to an email that is then sent to recipient(s) using a specified server and account. This function utilizes the CMailSMTP class to create an email,
-attach a file and send it to an SMTP server. The class CMailSMTP in turn uses libcurl when talking the internet which is written in highly portable 'C' and so available on a multitude of platforms.
+Take the source file name passed in and attach it to an email that is then sent to recipient(s) using a specified server and account. This function utilizes the CSMTP class to create an email,
+attach a file and send it to an SMTP server. The class CSMTP in turn uses libcurl when talking the internet which is written in highly portable 'C' and so available on a multitude of platforms.
 
 
 # To Do #

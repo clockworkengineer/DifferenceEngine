@@ -101,7 +101,9 @@ namespace FPE_ProcCmdLine {
                 ("password,p", po::value<string>(&optionData.optionsMap[kPasswordOption]), "Account username password")
                 ("recipient,r", po::value<string>(&optionData.optionsMap[kRecipientOption]), "Recipients(s) for email with attached file")
                 ("mailbox,m", po::value<string>(&optionData.optionsMap[kMailBoxOption]), "IMAP Mailbox name for drop box")
-                ("archive,a", po::value<string>(&optionData.optionsMap[kArchiveOption]), "ZIP destination archive");
+                ("archive,a", po::value<string>(&optionData.optionsMap[kArchiveOption]), "ZIP destination archive")
+                ("list", "Display a list of supported tasks.");
+                
 
     }
     
@@ -275,6 +277,20 @@ namespace FPE_ProcCmdLine {
 
             if (configVarMap.count("help")) {
                 cout << "File Processing Engine Application" << endl << commandLine << endl;
+                exit(EXIT_SUCCESS);
+            }
+            
+            // Display list of available tasks
+            
+            if (configVarMap.count("list")) {
+                cout << "File Processing Engine Application Tasks\n\n";
+                int taskNo=0;
+                FPE_ActionFuncs::TaskActionFunc taskFunc;
+                taskFunc = getTaskDetails(taskNo);
+                while (!taskFunc.name.empty()){
+                    cout << taskNo << "\t" << taskFunc.name << "\n";
+                    taskFunc = getTaskDetails(++taskNo);
+                }
                 exit(EXIT_SUCCESS);
             }
 
