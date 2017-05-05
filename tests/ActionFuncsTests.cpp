@@ -16,19 +16,27 @@
 // INCLUDE FILES
 // =============
 
-// Google test definitions
+//
+//Google test definitions
+//
 
 #include "gtest/gtest.h"
 
-// Task Action function and process command line definitions
+//
+// FPE Components
+//
 
+#include "FPE.hpp"
 #include "FPE_ActionFuncs.hpp"
 #include "FPE_ProcCmdLine.hpp"
 
+using namespace FPE;
 using namespace FPE_ActionFuncs;
 using namespace FPE_ProcCmdLine;
 
+//
 // Boost file system and format libraries definitions
+//
 
 #include <boost/filesystem.hpp>
 
@@ -56,10 +64,14 @@ protected:
     
     virtual void SetUp() {
         
-       // Create function data (wrap in void shared pointer for passing to task).
+        std::unordered_map<std::string, std::string> optionsMap;
         
-        this->fnData.reset(new ActFnData{ ActionFuncsTests::kWatchFolder,  ActionFuncsTests::kDestinationFolder, "", false, 
-                                         "", "", "", "", "", "", "", CLogger::noOp, CLogger::noOp});
+        optionsMap[kDestinationOption] =  ActionFuncsTests::kDestinationFolder;
+        optionsMap[kWatchOption] =  ActionFuncsTests::kWatchFolder;
+              
+        // Create function data (wrap in void shared pointer for passing to task).
+        
+        this->fnData.reset(new ActFnData{ optionsMap, CLogger::noOp, CLogger::noOp});
                                          
         this->funcData = static_cast<ActFnData *> (this->fnData.get());
         
@@ -238,7 +250,7 @@ TEST_F(ActionFuncsTests, TaskCopyFileSourceExistsDeleteSource) {
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName));
     EXPECT_FALSE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
 
-    this->funcData->bDeleteSource = true;
+    this->funcData->optionsMap[kDeleteOption] = true;
     EXPECT_TRUE(copyFile(this->filePath+this->fileName, this->fnData));
     
     EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
@@ -263,7 +275,7 @@ TEST_F(ActionFuncsTests, TaskCopyFileDestinationExistsDeleteSource) {
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName));
     EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName));
 
-    this->funcData->bDeleteSource = true;
+    this->funcData->optionsMap[kDeleteOption] = true;
     EXPECT_FALSE(copyFile(this->filePath+this->fileName, this->fnData));
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName));
 
@@ -304,10 +316,10 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceNotExist) {
     
     EXPECT_FALSE(fs::exists(this->filePath + this->fileName));
 
-    this->funcData->commandToRunStr = "echo %1%"; // Doesn't matter file doesn't exist so TRUE.
+    this->funcData->optionsMap[kCommandOption] = "echo %1%"; // Doesn't matter file doesn't exist so TRUE.
     EXPECT_TRUE(runCommand(this->filePath+this->fileName, this->fnData));
 
-    this->funcData->commandToRunStr = "ls %1%"; // Does matter file doesn't exist so FALSE.
+    this->funcData->optionsMap[kCommandOption] = "ls %1%"; // Does matter file doesn't exist so FALSE.
     EXPECT_FALSE(runCommand(this->filePath+this->fileName, this->fnData));
 
 
@@ -327,7 +339,7 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceExists) {
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist
     EXPECT_FALSE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName)); // Destination shouldn't
 
-    this->funcData->commandToRunStr = "cp %1% %2%"; // Copy file using cp
+    this->funcData->optionsMap[kCommandOption] = "cp %1% %2%"; // Copy file using cp
     EXPECT_TRUE(runCommand(this->filePath+this->fileName, this->fnData));
 
     EXPECT_TRUE(fs::exists( ActionFuncsTests::kDestinationFolder + this->fileName)); // Destination should now
@@ -343,10 +355,10 @@ TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommand) {
     this->filePath =  ActionFuncsTests::kWatchFolder;
     this->fileName = "temp1.txt";
 
-    this->funcData->commandToRunStr = "echo %1%"; // Run a valid command
+    this->funcData->optionsMap[kCommandOption] = "echo %1%"; // Run a valid command
     EXPECT_TRUE(runCommand(this->filePath+this->fileName, this->fnData));
 
-    this->funcData->commandToRunStr = "foobar %1%"; // Now run foobar which is not a command
+    this->funcData->optionsMap[kCommandOption] = "foobar %1%"; // Now run foobar which is not a command
     EXPECT_FALSE(runCommand(this->filePath+this->fileName, this->fnData));
 
 
@@ -363,8 +375,8 @@ TEST_F(ActionFuncsTests, TaskRunCommandNoSourceTryToDelete) {
 
     EXPECT_FALSE(fs::exists(this->filePath + this->fileName)); // File should not exist
 
-    this->funcData->bDeleteSource = true;
-    this->funcData->commandToRunStr = "echo %1%"; // Run a valid command
+    this->funcData->optionsMap[kDeleteOption] = true;
+    this->funcData->optionsMap[kCommandOption] = "echo %1%"; // Run a valid command
     EXPECT_TRUE(runCommand(this->filePath+this->fileName, this->fnData));
 
 }
@@ -382,8 +394,8 @@ TEST_F(ActionFuncsTests, TaskRunCommandSourceExistsTryToDelete) {
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist
 
-    this->funcData->bDeleteSource = true;
-    this->funcData->commandToRunStr = "echo %1%"; // Run a valid command
+    this->funcData->optionsMap[kDeleteOption] = true;
+    this->funcData->optionsMap[kCommandOption] = "echo %1%"; // Run a valid command
     EXPECT_TRUE(runCommand(this->filePath+this->fileName, this->fnData));
 
     EXPECT_FALSE(fs::exists(this->filePath + this->fileName)); // File should have been deleted
@@ -403,8 +415,8 @@ TEST_F(ActionFuncsTests, TaskRunCommandInvalidCommandSourceExistsTryToDelete) {
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist
 
-    this->funcData->bDeleteSource = true;
-    this->funcData->commandToRunStr = "foobar %1%"; // Run a invalid command
+    this->funcData->optionsMap[kDeleteOption] = true;
+    this->funcData->optionsMap[kCommandOption] = "foobar %1%"; // Run a invalid command
     EXPECT_FALSE(runCommand(this->filePath+this->fileName, this->fnData));
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted
@@ -448,7 +460,7 @@ TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFile) {
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist now 
 
-    this->funcData->commandToRunStr = kHandbrakeCommandStr;
+    this->funcData->optionsMap[kCommandOption] = kHandbrakeCommandStr;
     EXPECT_FALSE(videoConversion(this->filePath+this->fileName, this->fnData));
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted
@@ -468,8 +480,8 @@ TEST_F(ActionFuncsTests, TaskHandBrakeConvertInvalidFileDeleteSource) {
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should exist now 
 
-    this->funcData->bDeleteSource = true;
-    this->funcData->commandToRunStr = kHandbrakeCommandStr;
+    this->funcData->optionsMap[kDeleteOption] = true;
+    this->funcData->optionsMap[kCommandOption] = kHandbrakeCommandStr;
     EXPECT_FALSE(videoConversion(this->filePath+this->fileName, this->fnData));
 
     EXPECT_TRUE(fs::exists(this->filePath + this->fileName)); // File should have not been deleted

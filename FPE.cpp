@@ -90,9 +90,7 @@ namespace FPE {
         // Closedown action functions, display error and exit.
 
         actionFuncCloseDown();
-
         CLogger::cerrstr({errmsgStr});
-
         exit(EXIT_FAILURE);
 
     }

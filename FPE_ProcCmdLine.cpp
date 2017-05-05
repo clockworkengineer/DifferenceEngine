@@ -173,35 +173,37 @@ namespace FPE_ProcCmdLine {
         if ((optionData.taskFunc.name == kEmailFileStr) ||
                 (optionData.taskFunc.name == kZipFileStr) ||
                 (optionData.taskFunc.name == kRunCommandStr)) {
-            optionData.optionsMap.erase(kDestinationOption);
+            optionData.optionsMap[kDestinationOption]="";
         }
 
         // Only have ZIP archive if ZIP archive task
 
         if (optionData.taskFunc.name != kZipFileStr) {
-            optionData.optionsMap.erase(kArchiveOption);
+            optionData.optionsMap[kArchiveOption]="";
         }
 
         // Only have shell command if run command task
 
         if (optionData.taskFunc.name != kRunCommandStr) {
-            optionData.optionsMap.erase(kCommandOption);
+            optionData.optionsMap[kCommandOption]="";
         }
 
         // Only mail server details if email file task
 
         if (optionData.taskFunc.name != kEmailFileStr) {
-            optionData.optionsMap.erase(kServerOption);
-            optionData.optionsMap.erase(kUserOption);
-            optionData.optionsMap.erase(kPasswordOption);
-            optionData.optionsMap.erase(kMailBoxOption);
+            optionData.optionsMap[kServerOption]="";
+            optionData.optionsMap[kUserOption]="";
+            optionData.optionsMap[kPasswordOption]="";
+            optionData.optionsMap[kMailBoxOption]="";
         }
         
         // Make watch/destination paths absolute
 
         optionData.optionsMap[kWatchOption] = fs::absolute(optionData.optionsMap[kWatchOption]).string();
-        optionData.optionsMap[kDestinationOption] = fs::absolute(optionData.optionsMap[kDestinationOption]).string();
- 
+        if (!optionData.optionsMap[kDestinationOption].empty()) {
+            optionData.optionsMap[kDestinationOption] = fs::absolute(optionData.optionsMap[kDestinationOption]).string();
+        }
+        
         // Display options
 
         displayOption(static_cast<string>("CONFIG FILE"), optionData.optionsMap[kConfigOption]);
@@ -313,7 +315,7 @@ namespace FPE_ProcCmdLine {
 
             checkOptionInt({kTaskOption, kKillCountOption, kMaxDepthOption }, configVarMap);
         
-            // Task option validation. Parameters  valid to the task being
+            // Task option validation. Options  valid to the task being
             // run are checked for and if not present an exception is thrown to
             // produce a relevant error message.Any extra options not required 
             // for a task are just ignored.
@@ -336,19 +338,19 @@ namespace FPE_ProcCmdLine {
             // Delete source file
 
             if (configVarMap.count(kDeleteOption)) {
-                optionData.optionsMap[kDeleteOption] = "1";
+                optionData.optionsMap[kDeleteOption] = "1";  // true
             }
 
             // No trace output
 
             if (configVarMap.count(kQuietOption)) {
-                optionData.optionsMap[kQuietOption] = "1";
+                optionData.optionsMap[kQuietOption] = "1"; // true
             }
 
             // Use main thread for task.
 
             if (configVarMap.count(kSingleOption)) {
-                optionData.optionsMap[kSingleOption] = "1";
+                optionData.optionsMap[kSingleOption] = "1"; // true
             }
 
             po::notify(configVarMap);

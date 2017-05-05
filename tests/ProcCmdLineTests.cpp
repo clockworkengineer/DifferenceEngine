@@ -16,14 +16,19 @@
 // INCLUDE FILES
 // =============
 
+//
 // Google test definitions
+//
 
 #include "gtest/gtest.h"
 
-// Command line processing definition
-
+//
+// FPE Components
+//
+#include "FPE.hpp"
 #include "FPE_ProcCmdLine.hpp"
 
+using namespace FPE;
 using namespace FPE_ProcCmdLine;
 
 // =======================
@@ -61,7 +66,7 @@ protected:
 // ===============
 
 //
-// Count length of argv to pass to fetchCommandLineArgumentData.
+// Count length of argv to pass to fetchCommandLineOptionData.
 //
 
 int ProcCmdLineTests::argvLen (char *argv[]) {
@@ -84,7 +89,7 @@ TEST_F(ProcCmdLineTests, NoParameters) {
     
     char *argv[] = { (char *)"fpe" ,  nullptr};
      
-    EXPECT_EXIT(argData = fetchCommandLineArgumentData(this->argvLen(argv), argv), ::testing::ExitedWithCode(1), "FPE Error: the option '--destination' is required but missing");
+    EXPECT_EXIT(argData = fetchCommandLineOptionData(this->argvLen(argv), argv), ::testing::ExitedWithCode(1), "FPE Error: the option '--destination' is required but missing");
 
 }
 
@@ -107,15 +112,15 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
         nullptr
     };
     
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
     
-    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Copy File", argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
     
 }
 
@@ -139,15 +144,15 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
         nullptr
     };
 
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
 
-    EXPECT_TRUE(argData.bDeleteSource);
+    EXPECT_TRUE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Copy File", argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
   
 }
 
@@ -170,15 +175,15 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
         nullptr
     };
  
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
   
-    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
 
 
 }
@@ -203,15 +208,15 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
         nullptr
     };
 
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
 
-    EXPECT_TRUE(argData.bDeleteSource);
+    EXPECT_TRUE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
 
     
 }
@@ -237,16 +242,16 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
         nullptr
     };
 
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
 
-    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Run Command" , argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRunStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("echo %1% -------> %2%", argData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
 
 
 }
@@ -273,16 +278,16 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
         nullptr
     };
  
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
  
-    EXPECT_TRUE(argData.bDeleteSource);
+    EXPECT_TRUE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Run Command" , argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("echo %1% -------> %2%", argData.commandToRunStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("echo %1% -------> %2%", argData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
 
 
 }
@@ -308,15 +313,15 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
         nullptr
     };
 
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
     
-    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Copy File", argData.taskFunc.name.c_str());
-    EXPECT_EQ(3, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(3, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
 
 }
 #if 0
@@ -338,17 +343,17 @@ TEST_F(ProcCmdLineTests, NoTaskDefaultCopyDelete) {
         nullptr
     };
     
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
  
-    EXPECT_TRUE(argData.bDeleteSource);
+    EXPECT_TRUE(getOption<bool>(argData, kDeleteOption));
     EXPECT_TRUE(argData.bFileCopy);
     EXPECT_FALSE(argData.bRunCommand);
     EXPECT_FALSE(argData.bVideoConversion);
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
 
  
 }
@@ -372,7 +377,7 @@ TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
         nullptr
     };
  
-    EXPECT_EXIT (argData = fetchCommandLineArgumentData(this->argvLen(argv), argv), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
+    EXPECT_EXIT (argData = fetchCommandLineOptionData(this->argvLen(argv), argv), ::testing::ExitedWithCode(1), "FPE Error: More than one task specified");
  
 }
 #endif
@@ -397,15 +402,15 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
         nullptr
     };
 
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
 
-    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ(".mkv", argData.extensionStr.c_str());
-    EXPECT_FALSE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ(".mkv", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
 
     
 }
@@ -430,15 +435,15 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
         nullptr
     };
 
-    argData = fetchCommandLineArgumentData(this->argvLen(argv), argv);
+    argData = fetchCommandLineOptionData(this->argvLen(argv), argv);
 
-    EXPECT_FALSE(argData.bDeleteSource);
+    EXPECT_FALSE(getOption<bool>(argData, kDeleteOption));
     ASSERT_STREQ("Video Conversion" , argData.taskFunc.name.c_str());
-    EXPECT_EQ(-1, argData.maxWatchDepth);
-    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.watchFolderStr.c_str());
-    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.destinationFolderStr.c_str());
-    ASSERT_STREQ("", argData.extensionStr.c_str());
-    EXPECT_TRUE(argData.bQuiet);
+    EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
+    ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
+    EXPECT_TRUE(getOption<bool>(argData, kQuietOption));
 
     
 }
