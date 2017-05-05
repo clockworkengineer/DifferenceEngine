@@ -55,7 +55,6 @@ namespace FPE_ActionFuncs {
     //
     
     struct TaskActionFunc {
-        int number;                     // Ordinal Value for task
         std::string name;               // Task Name
         CTask::TaskActionFcn actFcn;    // Action Function Pointer
     };

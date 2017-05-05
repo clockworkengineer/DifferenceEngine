@@ -100,11 +100,11 @@ namespace FPE_ActionFuncs {
     //
     
     static const vector<TaskActionFunc> taskList {
-        { 0, kTaskCopyFileStr, copyFile},
-        { 1, kVideoConversionStr, videoConversion},
-        { 2, kEmailFileStr, emailFile},
-        { 3, kZipFileStr, zipFile},
-        { 4, kRunCommandStr, runCommand}
+        { kTaskCopyFileStr, copyFile},
+        { kVideoConversionStr, videoConversion},
+        { kEmailFileStr, emailFile},
+        { kZipFileStr, zipFile},
+        { kRunCommandStr, runCommand}
     };
    
     // ===============

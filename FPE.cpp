@@ -172,16 +172,16 @@ namespace FPE {
 
             CRedirect logFile{cout};
 
+            // Get FPE command line options.
+
+            optionData = fetchCommandLineOptionData(argc, argv);
+
             // Display BOOST version
 
             CLogger::coutstr({"*** BOOST = [",
                 to_string(BOOST_VERSION / 100000)+"."+
                 to_string(BOOST_VERSION / 100 % 1000)+"."+
                 to_string(BOOST_VERSION % 100)+"] ***"});
-
-            // Get FPE command line options.
-
-            optionData = fetchCommandLineOptionData(argc, argv);
 
             // FPE up and running
 

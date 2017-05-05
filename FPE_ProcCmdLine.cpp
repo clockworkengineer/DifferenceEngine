@@ -87,7 +87,7 @@ namespace FPE_ProcCmdLine {
         commonOptions.add_options()
                 ("watch,w", po::value<string>(&optionData.optionsMap[kWatchOption])->required(), "Watch folder")
                 ("destination,d", po::value<string>(&optionData.optionsMap[kDestinationOption])->required(), "Destination folder")
-                ("task,t", po::value<int>(&optionData.taskFunc.number)->required(), "Task number")
+                ("task,t", po::value<string>(&optionData.optionsMap[kTaskOption])->required(), "Task number")
                 ("command", po::value<string>(&optionData.optionsMap[kCommandOption]), "Shell command to run")
                 ("maxdepth", po::value<string>(&optionData.optionsMap[kMaxDepthOption])->default_value("-1"), "Maximum watch depth")
                 ("extension,e", po::value<string>(&optionData.optionsMap[kExtensionOption]), "Override destination file extension")
@@ -109,7 +109,7 @@ namespace FPE_ProcCmdLine {
     // If a option is not present throw an exception.
     //
 
-    static void checkOptionPresent(const vector<string>& options, po::variables_map& configVarMap) {
+    static void checkOptionPresent(const vector<string>& options, const po::variables_map& configVarMap) {
 
         for (auto opt : options) {
             if (!configVarMap.count(opt) || configVarMap[opt].as<string>().empty()) {
@@ -118,7 +118,27 @@ namespace FPE_ProcCmdLine {
         }
 
     }
-    
+   
+    //
+    // If an option is not a valid int throw an exception.For the moment just try to convert to an
+    // integer with stoi() (throws an error if the conversion fails). Note stoi() will convert up and to
+    // the first non-numeric character so a string like "89ttt" wil be converted to 89. For the moment this
+    // suffices.
+    //
+    static void checkOptionInt(const vector<string>& options, const po::variables_map& configVarMap) {
+
+        for (auto opt : options) {
+            if (configVarMap.count(opt)) {
+                try {
+                    stoi(configVarMap[opt].as<string>());
+                } catch (const std::exception& e) {
+                    throw po::error(opt + " is not a valid integer.");
+                }
+            }
+        }
+
+    }
+     
     //
     // Display option name and its string value
     //
@@ -138,7 +158,7 @@ namespace FPE_ProcCmdLine {
             CLogger::coutstr({"*** ", descStr, " ***"});
         }
     }
-    
+
     //
     // Process program option data and display run options. Note: Any
     // options not needed for task are set to empty.
@@ -191,7 +211,7 @@ namespace FPE_ProcCmdLine {
         displayOption(static_cast<string>("ZIP ARCHIVE"), optionData.optionsMap[kArchiveOption]);
         displayOption(static_cast<string>("TASK"), optionData.taskFunc.name);
         displayOption(static_cast<string>("LOG FILE"), optionData.optionsMap[kLogOption]);
-        displayOption((getOption<int>(optionData, kKillCountOption) > 0),"KILL COUNT = ["+optionData.optionsMap[kKillCountOption]+"]");
+        displayOption(getOption<int>(optionData, kKillCountOption) > 0,"KILL COUNT = ["+optionData.optionsMap[kKillCountOption]+"]");
         displayOption(getOption<bool>(optionData,kQuietOption), "QUIET MODE");
         displayOption(getOption<bool>(optionData,kDeleteOption), "DELETE SOURCE FILE");
         displayOption(getOption<bool>(optionData,kSingleOption),"SINGLE THREAD");
@@ -273,13 +293,17 @@ namespace FPE_ProcCmdLine {
                 }
             }
 
+            // Check that any specified integer options are valid
+
+            checkOptionInt({kTaskOption, kKillCountOption, kMaxDepthOption }, configVarMap);
+        
             // Task option validation. Parameters  valid to the task being
             // run are checked for and if not present an exception is thrown to
             // produce a relevant error message.Any extra options not required 
             // for a task are just ignored.
 
             if (configVarMap.count(kTaskOption)) {
-                optionData.taskFunc = getTaskDetails(configVarMap[kTaskOption].as<int>());
+                optionData.taskFunc = getTaskDetails(stoi(configVarMap[kTaskOption].as<string>()));
                 if (optionData.taskFunc.name == "") {
                     throw po::error("Invalid Task Number.");
                 } else if (optionData.taskFunc.name == kVideoConversionStr) {
@@ -290,26 +314,6 @@ namespace FPE_ProcCmdLine {
                     checkOptionPresent({kArchiveOption}, configVarMap);
                 } else if (optionData.taskFunc.name == kEmailFileStr) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kRecipientOption, kMailBoxOption}, configVarMap);
-                }
-            }
-
-            // Check killcount is a valid int
-
-            if (configVarMap.count(kKillCountOption)) {
-                try {
-                    stoi(configVarMap[kKillCountOption].as<string>());
-                } catch (const std::exception& e) {
-                    throw po::error("killcount is not a valid integer.");
-                }
-            }
-   
-           // Check maxdepth is a valid int
-
-            if (configVarMap.count(kMaxDepthOption)) {
-                try {
-                    stoi(configVarMap[kMaxDepthOption].as<string>());
-                } catch (const std::exception& e) {
-                    throw po::error("maxdepth is not a valid integer.");
                 }
             }
   
