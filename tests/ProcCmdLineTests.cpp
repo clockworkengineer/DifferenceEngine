@@ -248,7 +248,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
     ASSERT_STREQ("Run Command" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ("", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
     ASSERT_STREQ("echo %1% -------> %2%", argData.optionsMap[kCommandOption].c_str());
     ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
     EXPECT_FALSE(getOption<bool>(argData, kQuietOption));
@@ -284,7 +284,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
     ASSERT_STREQ("Run Command" , argData.taskFunc.name.c_str());
     EXPECT_EQ(-1, getOption<int>(argData, kMaxDepthOption));
     ASSERT_STREQ("/home/pi/watchstuff/watch/", argData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ("", argData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ("/home/pi/watchstuff/destination/", argData.optionsMap[kDestinationOption].c_str());
     ASSERT_STREQ("echo %1% -------> %2%", argData.optionsMap[kCommandOption].c_str());
     ASSERT_STREQ("", argData.optionsMap[kExtensionOption].c_str());
     EXPECT_FALSE(getOption<bool>(argData, kQuietOption));

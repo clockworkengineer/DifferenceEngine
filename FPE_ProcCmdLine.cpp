@@ -162,40 +162,12 @@ namespace FPE_ProcCmdLine {
     }
 
     //
-    // Process program option data and display run options. Note: Any
-    // options not needed for task are set to empty.
+    // Process program option data and display run options. All options specified 
+    // are displayed even though they may be ignored for the task (this is the 
+    // simplest solution rather displaying dependant upon task).
     //
 
     static void processOptionData(FPEOptions& optionData) {
-
-        // Do not require destination for tasks
-
-        if ((optionData.taskFunc.name == kEmailFileStr) ||
-                (optionData.taskFunc.name == kZipFileStr) ||
-                (optionData.taskFunc.name == kRunCommandStr)) {
-            optionData.optionsMap[kDestinationOption]="";
-        }
-
-        // Only have ZIP archive if ZIP archive task
-
-        if (optionData.taskFunc.name != kZipFileStr) {
-            optionData.optionsMap[kArchiveOption]="";
-        }
-
-        // Only have shell command if run command task
-
-        if (optionData.taskFunc.name != kRunCommandStr) {
-            optionData.optionsMap[kCommandOption]="";
-        }
-
-        // Only mail server details if email file task
-
-        if (optionData.taskFunc.name != kEmailFileStr) {
-            optionData.optionsMap[kServerOption]="";
-            optionData.optionsMap[kUserOption]="";
-            optionData.optionsMap[kPasswordOption]="";
-            optionData.optionsMap[kMailBoxOption]="";
-        }
         
         // Make watch/destination paths absolute
 
