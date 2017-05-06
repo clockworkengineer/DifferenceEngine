@@ -124,8 +124,7 @@ namespace FPE_ProcCmdLine {
     //
     // If an option is not a valid int throw an exception.For the moment just try to convert to an
     // integer with stoi() (throws an error if the conversion fails). Note stoi() will convert up and to
-    // the first non-numeric character so a string like "89ttt" wil be converted to 89. For the moment this
-    // suffices.
+    // the first non-numeric character so a string like "89ttt" wil be converted to 89. 
     //
     static void checkOptionInt(const vector<string>& options, const po::variables_map& configVarMap) {
 
@@ -179,14 +178,15 @@ namespace FPE_ProcCmdLine {
         // Display options
 
         displayOption(static_cast<string>("CONFIG FILE"), optionData.optionsMap[kConfigOption]);
+        displayOption(static_cast<string>("TASK"), optionData.taskFunc.name);
         displayOption(static_cast<string>("WATCH FOLDER"), optionData.optionsMap[kWatchOption]);
         displayOption(static_cast<string>("DESTINATION FOLDER"), optionData.optionsMap[kDestinationOption]);
         displayOption(static_cast<string>("SHELL COMMAND"), optionData.optionsMap[kCommandOption]);
         displayOption(static_cast<string>("SERVER URL"), optionData.optionsMap[kServerOption]);
         displayOption(static_cast<string>("MAILBOX"), optionData.optionsMap[kMailBoxOption]);
         displayOption(static_cast<string>("ZIP ARCHIVE"), optionData.optionsMap[kArchiveOption]);
-        displayOption(static_cast<string>("TASK"), optionData.taskFunc.name);
         displayOption(static_cast<string>("LOG FILE"), optionData.optionsMap[kLogOption]);
+        displayOption(static_cast<string>("EXTENSION"), optionData.optionsMap[kExtensionOption]);
         displayOption(getOption<int>(optionData, kKillCountOption) > 0,"KILL COUNT = ["+optionData.optionsMap[kKillCountOption]+"]");
         displayOption(getOption<bool>(optionData,kQuietOption), "QUIET MODE");
         displayOption(getOption<bool>(optionData,kDeleteOption), "DELETE SOURCE FILE");
@@ -307,6 +307,10 @@ namespace FPE_ProcCmdLine {
                 }
             }
   
+            //
+            // Set any boolean flags
+            //
+            
             // Delete source file
 
             if (configVarMap.count(kDeleteOption)) {
