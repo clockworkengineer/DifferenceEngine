@@ -6,7 +6,7 @@
  *
  * Created on October 24, 2016, 2:34 PM
  * 
- * Description: Google unit tests for FPE*  task action functions.
+ * Description: Google unit tests for FPE task action functions.
  *
  * Copyright 2016.
  *
