@@ -126,6 +126,7 @@ namespace FPE_ProcCmdLine {
     // integer with stoi() (throws an error if the conversion fails). Note stoi() will convert up and to
     // the first non-numeric character so a string like "89ttt" wil be converted to 89. 
     //
+    
     static void checkOptionInt(const vector<string>& options, const po::variables_map& configVarMap) {
 
         for (auto opt : options) {
@@ -170,9 +171,9 @@ namespace FPE_ProcCmdLine {
         
         // Make watch/destination paths absolute
 
-        optionData.optionsMap[kWatchOption] = fs::absolute(optionData.optionsMap[kWatchOption]).string();
+        optionData.optionsMap[kWatchOption] = fs::absolute(optionData.optionsMap[kWatchOption]).lexically_normal().string();
         if (!optionData.optionsMap[kDestinationOption].empty()) {
-            optionData.optionsMap[kDestinationOption] = fs::absolute(optionData.optionsMap[kDestinationOption]).string();
+            optionData.optionsMap[kDestinationOption] = fs::absolute(optionData.optionsMap[kDestinationOption]).lexically_normal().string();
         }
         
         // Display options
@@ -195,13 +196,13 @@ namespace FPE_ProcCmdLine {
         // Create watch folder for task if necessary 
 
         if (!fs::exists(optionData.optionsMap[kWatchOption])) {
-            fs::create_directory(optionData.optionsMap[kWatchOption]);
+            fs::create_directories(optionData.optionsMap[kWatchOption]);
         }
 
         // Create destination folder for task if necessary 
 
         if (!optionData.optionsMap[kDestinationOption].empty() && !fs::exists(optionData.optionsMap[kDestinationOption])) {
-            fs::create_directory(optionData.optionsMap[kDestinationOption]);
+            fs::create_directories(optionData.optionsMap[kDestinationOption]);
         }
 
     }
@@ -279,7 +280,7 @@ namespace FPE_ProcCmdLine {
                         throw po::error("Error opening config file.");
                     }
                 } else {
-                    throw po::error("Specified config file does not exist.");
+                    throw po::error("Specified config file [" + configVarMap[kConfigOption].as<string>() + "] does not exist.");
                 }
             }
 

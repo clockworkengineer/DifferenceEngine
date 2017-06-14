@@ -136,7 +136,7 @@ namespace FPE_ActionFuncs {
                 exit(1);
             }
 
-        } else { /* for the parent:      */
+        } else { // for the parent:
 
             while (wait(&status) != pid) { /* wait for completion  */
                 continue;
