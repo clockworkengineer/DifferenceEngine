@@ -176,7 +176,7 @@ namespace FPE {
 
             // Display BOOST version
 
-            CLogger::coutstr({"*** BOOST = [",
+            CLogger::coutstr({"*** boost version = [",
                 to_string(BOOST_VERSION / 100000)+"."+
                 to_string(BOOST_VERSION / 100 % 1000)+"."+
                 to_string(BOOST_VERSION % 100)+"] ***"});

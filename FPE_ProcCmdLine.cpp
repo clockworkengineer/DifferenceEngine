@@ -178,20 +178,20 @@ namespace FPE_ProcCmdLine {
         
         // Display options
 
-        displayOption(static_cast<string>("CONFIG FILE"), optionData.optionsMap[kConfigOption]);
-        displayOption(static_cast<string>("TASK"), optionData.taskFunc.name);
-        displayOption(static_cast<string>("WATCH FOLDER"), optionData.optionsMap[kWatchOption]);
-        displayOption(static_cast<string>("DESTINATION FOLDER"), optionData.optionsMap[kDestinationOption]);
-        displayOption(static_cast<string>("SHELL COMMAND"), optionData.optionsMap[kCommandOption]);
-        displayOption(static_cast<string>("SERVER URL"), optionData.optionsMap[kServerOption]);
-        displayOption(static_cast<string>("MAILBOX"), optionData.optionsMap[kMailBoxOption]);
-        displayOption(static_cast<string>("ZIP ARCHIVE"), optionData.optionsMap[kArchiveOption]);
-        displayOption(static_cast<string>("LOG FILE"), optionData.optionsMap[kLogOption]);
-        displayOption(static_cast<string>("EXTENSION"), optionData.optionsMap[kExtensionOption]);
-        displayOption(getOption<int>(optionData, kKillCountOption) > 0,"KILL COUNT = ["+optionData.optionsMap[kKillCountOption]+"]");
-        displayOption(getOption<bool>(optionData,kQuietOption), "QUIET MODE");
-        displayOption(getOption<bool>(optionData,kDeleteOption), "DELETE SOURCE FILE");
-        displayOption(getOption<bool>(optionData,kSingleOption),"SINGLE THREAD");
+        displayOption(static_cast<string>(kConfigOption), optionData.optionsMap[kConfigOption]);
+        displayOption(static_cast<string>(kTaskOption), optionData.taskFunc.name);
+        displayOption(static_cast<string>(kWatchOption), optionData.optionsMap[kWatchOption]);
+        displayOption(static_cast<string>(kDestinationOption), optionData.optionsMap[kDestinationOption]);
+        displayOption(static_cast<string>(kCommandOption), optionData.optionsMap[kCommandOption]);
+        displayOption(static_cast<string>(kServerOption), optionData.optionsMap[kServerOption]);
+        displayOption(static_cast<string>(kMailBoxOption), optionData.optionsMap[kMailBoxOption]);
+        displayOption(static_cast<string>(kArchiveOption), optionData.optionsMap[kArchiveOption]);
+        displayOption(static_cast<string>(kLogOption), optionData.optionsMap[kLogOption]);
+        displayOption(static_cast<string>(kExtensionOption), optionData.optionsMap[kExtensionOption]);
+        displayOption(static_cast<string>(kKillCountOption), optionData.optionsMap[kKillCountOption]);
+        displayOption(getOption<bool>(optionData,kQuietOption), kQuietOption);
+        displayOption(getOption<bool>(optionData,kDeleteOption), kDeleteOption);
+        displayOption(getOption<bool>(optionData,kSingleOption),kSingleOption);
      
         // Create watch folder for task if necessary 
 
