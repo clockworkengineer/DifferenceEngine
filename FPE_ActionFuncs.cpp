@@ -39,7 +39,10 @@
 // C++ STL definitions
 //
 
+#include <iostream>
 #include <system_error>
+#include <algorithm>    // copy
+#include <iterator>     // ostream_operator
 
 //
 // Program components.
@@ -67,11 +70,22 @@
 #include <sys/wait.h>
 
 //
-// Boost file system and format libraries definitions
+// Boost file system, format and tokenizer library definitions
 //
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/tokenizer.hpp>
+
+//
+// MongoDB C++ Driver
+//
+
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/json.hpp>
+
+#include <mongocxx/client.hpp>
+#include <mongocxx/instance.hpp>
 
 namespace fs = boost::filesystem;
 
@@ -80,9 +94,9 @@ namespace FPE_ActionFuncs {
     // =======
     // IMPORTS
     // =======
-    
+
     using namespace std;
-    
+
     using namespace FPE;
 
     using namespace Antik::IMAP;
@@ -98,15 +112,16 @@ namespace FPE_ActionFuncs {
     //
     // Task Action Functions
     //
-    
-    static const vector<TaskActionFunc> taskList {
+
+    static const vector<TaskActionFunc> taskList{
         { kTaskCopyFileStr, copyFile},
-        { kVideoConversionStr, videoConversion},
-        { kEmailFileStr, emailFile},
-        { kZipFileStr, zipFile},
-        { kRunCommandStr, runCommand}
-    };
-   
+        { kTaskVideoConversionStr, videoConversion},
+        { kTaskEmailFileStr, emailFile},
+        { kTaskZipFileStr, zipFile},
+        { kTaskRunCommandStr, runCommand},
+        { kTaskImportCSVFileStr, importCSVFile}
+};
+
     // ===============
     // LOCAL FUNCTIONS
     // ===============
@@ -123,7 +138,7 @@ namespace FPE_ActionFuncs {
 
         if ((pid = fork()) < 0) { /* fork a child process           */
 
-            throw system_error(error_code(errno, system_category()), "ERROR: forking child process failed:");
+            throw system_error(error_code(errno, system_category()), "Error: forking child process failed:");
 
         } else if (pid == 0) { /* for the child process: */
 
@@ -149,7 +164,7 @@ namespace FPE_ActionFuncs {
         }
 
         return (exitStatus);
-        
+
     }
 
     //
@@ -205,7 +220,7 @@ namespace FPE_ActionFuncs {
     //
     // Action function initialization / closedown.
     //
-    
+
     bool actionFuncInit() {
 
         CSMTP::init();
@@ -218,16 +233,27 @@ namespace FPE_ActionFuncs {
         CIMAP::closedown();
 
     }
-    
+
     //
     //  Get task details from taskList table
     //
-    
-    TaskActionFunc getTaskDetails (int taskNumber) {
-        if((taskNumber >= 0) && (taskNumber < taskList.size())) {
+
+    TaskActionFunc getTaskDetails(int taskNumber) {
+        if ((taskNumber >= 0) && (taskNumber < taskList.size())) {
             return (taskList[taskNumber]);
         }
-        return(TaskActionFunc());
+        return (TaskActionFunc());
+    }
+ 
+    vector<string> getCSVTokens (const std::string& csvLineStr) {
+        
+        boost::tokenizer< boost::escaped_list_separator<char> >  csvTokenizer(csvLineStr);
+        vector<string> csvTokens;
+            
+        csvTokens.assign(csvTokenizer.begin(), csvTokenizer.end());
+        
+        return(csvTokens);
+            
     }
     
     //
@@ -270,7 +296,7 @@ namespace FPE_ActionFuncs {
             bSuccess = true;
             funcData->coutstr({"Command success."});
             if (!funcData->optionsMap[kDeleteOption].empty()) {
-                funcData->coutstr({"DELETING SOURCE [", sourceFile.string(), "]"});
+                funcData->coutstr({"Deleting Source [", sourceFile.string(), "]"});
                 fs::remove(sourceFile);
             }
         } else {
@@ -319,7 +345,7 @@ namespace FPE_ActionFuncs {
             bSuccess = true;
             funcData->coutstr({"File conversion success."});
             if (!funcData->optionsMap[kDeleteOption].empty()) {
-                funcData->coutstr({"DELETING SOURCE [", sourceFile.string(), "]"});
+                funcData->coutstr({"Deleting Source [", sourceFile.string(), "]"});
                 fs::remove(sourceFile);
             }
 
@@ -359,9 +385,9 @@ namespace FPE_ActionFuncs {
 
         if (!fs::exists(destinationFile.parent_path())) {
             if (fs::create_directories(destinationFile.parent_path())) {
-                funcData->coutstr({"CREATED :", destinationFile.parent_path().string()});
+                funcData->coutstr({"Created :", destinationFile.parent_path().string()});
             } else {
-                funcData->cerrstr({"CREATED FAILED FOR :", destinationFile.parent_path().string()});
+                funcData->cerrstr({"Created failed for :", destinationFile.parent_path().string()});
             }
         }
 
@@ -372,12 +398,12 @@ namespace FPE_ActionFuncs {
             fs::copy_file(sourceFile, destinationFile, fs::copy_option::none);
             bSuccess = true;
             if (!funcData->optionsMap[kDeleteOption].empty()) {
-                funcData->coutstr({"DELETING SOURCE [", sourceFile.string(), "]"});
+                funcData->coutstr({"Deleting Source [", sourceFile.string(), "]"});
                 fs::remove(sourceFile);
             }
 
         } else {
-            funcData->coutstr({"DESTINATION ALREADY EXISTS : ", destinationFile.string()});
+            funcData->coutstr({"Destination already exists : ", destinationFile.string()});
         }
 
         return (bSuccess);
@@ -426,7 +452,7 @@ namespace FPE_ActionFuncs {
                 string mailMessageStr;
                 string commandLineStr;
 
-                commandLineStr = "APPEND " + funcData->optionsMap[kMailBoxOption] + " (\\Seen) {";
+                commandLineStr = "Append " + funcData->optionsMap[kMailBoxOption] + " (\\Seen) {";
                 mailMessageStr = smtp.getMailMessage();
                 commandLineStr += to_string(mailMessageStr.length() - 2) + "}" + mailMessageStr;
 
@@ -484,9 +510,9 @@ namespace FPE_ActionFuncs {
 
         if (!fs::exists(zipFilePath.parent_path())) {
             if (fs::create_directories(zipFilePath.parent_path())) {
-                funcData->coutstr({"CREATED :", zipFilePath.parent_path().string()});
+                funcData->coutstr({"Created :", zipFilePath.parent_path().string()});
             } else {
-                funcData->cerrstr({"CREATED FAILED FOR :", zipFilePath.parent_path().string()});
+                funcData->cerrstr({"Created failed for :", zipFilePath.parent_path().string()});
             }
         }
 
@@ -495,7 +521,7 @@ namespace FPE_ActionFuncs {
         CZIP zipFile(zipFilePath.string());
 
         if (!fs::exists(zipFilePath)) {
-            funcData->coutstr({"CREATING ARCHIVE ", zipFilePath.string()});
+            funcData->coutstr({"Creating archive ", zipFilePath.string()});
             zipFile.create();
         }
 
@@ -504,11 +530,64 @@ namespace FPE_ActionFuncs {
         zipFile.open();
 
         if (bSuccess = zipFile.add(sourceFile.string(), sourceFile.filename().string())) {
-            funcData->coutstr({"APPENDED [", sourceFile.filename().string(), "] TO ARCHIVE [", zipFilePath.string(), "]"});
+            funcData->coutstr({"Appended [", sourceFile.filename().string(), "] to archive [", zipFilePath.string(), "]"});
         }
 
         zipFile.close();
 
+        return (bSuccess);
+
+    }
+
+    //
+    // Import CSV File to MongoDB
+    //
+
+    bool importCSVFile(const string &filenamePathStr, const shared_ptr<void> fnData) {
+
+        // ASSERT for any invalid options.
+
+        assert(fnData != nullptr);
+        assert(filenamePathStr.length() != 0);
+
+        ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
+        bool bSuccess = false;
+
+        // Form source file path
+
+        fs::path sourceFile(filenamePathStr);
+
+        ifstream csvFileStream(sourceFile.string());
+        if (!csvFileStream.is_open()) {
+            funcData->coutstr({"Error opening file ", sourceFile.string()});
+            return (false);
+        }
+
+        funcData->coutstr({"Importing CSV file [", sourceFile.filename().string(), "] To MongoDB."});
+
+        mongocxx::instance driverInstance{};
+        mongocxx::client mongoConnection{mongocxx::uri{}};  
+        auto csvCollection = mongoConnection[funcData->optionsMap[kDatabaseOption]][funcData->optionsMap[kCollectionOption]];          
+        vector<string> fieldNames;
+        string csvLineStr;
+        
+        getline(csvFileStream, csvLineStr);
+        if (csvLineStr.back()=='\r')csvLineStr.pop_back();
+        
+        fieldNames = getCSVTokens(csvLineStr);
+
+        while (getline(csvFileStream, csvLineStr)) {
+            vector< string > fieldValues;
+            bsoncxx::builder::stream::document document{};
+            if (csvLineStr.back()=='\r')csvLineStr.pop_back();
+            fieldValues = getCSVTokens(csvLineStr);
+            int i=0;
+            for (auto& field : fieldValues) {
+               document << fieldNames[i++]<< field;
+            }
+            csvCollection.insert_one(document.view());
+        }
+        
         return (bSuccess);
 
     }

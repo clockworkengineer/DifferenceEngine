@@ -44,11 +44,12 @@ namespace FPE_ActionFuncs {
     // Task Action Function Names
     //
     
-    constexpr const char *kTaskCopyFileStr      {"Copy File"};
-    constexpr const char *kVideoConversionStr   {"Video Conversion"};
-    constexpr const char *kEmailFileStr         {"Email Attachment"};
-    constexpr const char *kZipFileStr           {"ZIP Archive"};
-    constexpr const char *kRunCommandStr        {"Run Command"};
+    constexpr const char *kTaskCopyFileStr          {"Copy File"};
+    constexpr const char *kTaskVideoConversionStr   {"Video Conversion"};
+    constexpr const char *kTaskEmailFileStr         {"Email Attachment"};
+    constexpr const char *kTaskZipFileStr           {"ZIP Archive"};
+    constexpr const char *kTaskRunCommandStr        {"Run Command"};
+    constexpr const char *kTaskImportCSVFileStr     {"Import CSV File"};
 
     //
     // Task Action Function Table
@@ -96,6 +97,7 @@ namespace FPE_ActionFuncs {
     bool runCommand(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
     bool emailFile(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
     bool zipFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData);
+    bool importCSVFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData);
 
 } // namespace FPE_ActionFuncs
 

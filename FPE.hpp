@@ -36,6 +36,8 @@ namespace FPE {
     constexpr const char *kRecipientOption{"recipient"};
     constexpr const char *kMailBoxOption{"mailbox"};
     constexpr const char *kArchiveOption{"archive"};
+    constexpr const char *kDatabaseOption{"database"};
+    constexpr const char *kCollectionOption{"collection"};
     constexpr const char *kListOption{"list"};
               
     //

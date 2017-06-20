@@ -86,7 +86,7 @@ namespace FPE_ProcCmdLine {
 
         commonOptions.add_options()
                 ("watch,w", po::value<string>(&optionData.optionsMap[kWatchOption])->required(), "Watch folder")
-                ("destination,d", po::value<string>(&optionData.optionsMap[kDestinationOption])->required(), "Destination folder")
+                ("destination,d", po::value<string>(&optionData.optionsMap[kDestinationOption]), "Destination folder")
                 ("task,t", po::value<string>(&optionData.optionsMap[kTaskOption])->required(), "Task number")
                 ("command", po::value<string>(&optionData.optionsMap[kCommandOption]), "Shell command to run")
                 ("maxdepth", po::value<string>(&optionData.optionsMap[kMaxDepthOption])->default_value("-1"), "Maximum watch depth")
@@ -96,12 +96,14 @@ namespace FPE_ProcCmdLine {
                 ("log,l", po::value<string>(&optionData.optionsMap[kLogOption]), "Log file")
                 ("single,s", "Run task in main thread")
                 ("killcount,k", po::value<string>(&optionData.optionsMap[kKillCountOption])->default_value("0"), "Files to process before closedown")
-                ("server,s", po::value<string>(&optionData.optionsMap[kServerOption]), "SMTP server URL and port")
+                ("server,s", po::value<string>(&optionData.optionsMap[kServerOption]), "SMTP/IMAP/MongoDB server URL and port")
                 ("user,u", po::value<string>(&optionData.optionsMap[kUserOption]), "Account username")
                 ("password,p", po::value<string>(&optionData.optionsMap[kPasswordOption]), "Account username password")
                 ("recipient,r", po::value<string>(&optionData.optionsMap[kRecipientOption]), "Recipients(s) for email with attached file")
                 ("mailbox,m", po::value<string>(&optionData.optionsMap[kMailBoxOption]), "IMAP Mailbox name for drop box")
                 ("archive,a", po::value<string>(&optionData.optionsMap[kArchiveOption]), "ZIP destination archive")
+                ("database,d", po::value<string>(&optionData.optionsMap[kDatabaseOption]), "Datbase name")
+                ("collection,c", po::value<string>(&optionData.optionsMap[kCollectionOption]), "Collection/Table name")
                 ("list", "Display a list of supported tasks.");
                 
 
@@ -189,6 +191,8 @@ namespace FPE_ProcCmdLine {
         displayOption(static_cast<string>(kLogOption), optionData.optionsMap[kLogOption]);
         displayOption(static_cast<string>(kExtensionOption), optionData.optionsMap[kExtensionOption]);
         displayOption(static_cast<string>(kKillCountOption), optionData.optionsMap[kKillCountOption]);
+        displayOption(static_cast<string>(kDatabaseOption), optionData.optionsMap[kDatabaseOption]);
+        displayOption(static_cast<string>(kCollectionOption), optionData.optionsMap[kCollectionOption]);
         displayOption(getOption<bool>(optionData,kQuietOption), kQuietOption);
         displayOption(getOption<bool>(optionData,kDeleteOption), kDeleteOption);
         displayOption(getOption<bool>(optionData,kSingleOption),kSingleOption);
@@ -297,14 +301,18 @@ namespace FPE_ProcCmdLine {
                 optionData.taskFunc = getTaskDetails(stoi(configVarMap[kTaskOption].as<string>()));
                 if (optionData.taskFunc.name == "") {
                     throw po::error("Invalid Task Number.");
-                } else if (optionData.taskFunc.name == kVideoConversionStr) {
+                } else if (optionData.taskFunc.name == kTaskCopyFileStr) {
+                   checkOptionPresent({kDestinationOption}, configVarMap);
+                } else if (optionData.taskFunc.name == kTaskVideoConversionStr) {
                     optionData.optionsMap[kCommandOption] = kHandbrakeCommandStr;
-                } else if (optionData.taskFunc.name == kRunCommandStr) {
+                } else if (optionData.taskFunc.name == kTaskRunCommandStr) {
                     checkOptionPresent({kCommandOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kZipFileStr) {
+                } else if (optionData.taskFunc.name == kTaskZipFileStr) {
                     checkOptionPresent({kArchiveOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kEmailFileStr) {
+                } else if (optionData.taskFunc.name == kTaskEmailFileStr) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kRecipientOption, kMailBoxOption}, configVarMap);
+                } else if (optionData.taskFunc.name == kTaskImportCSVFileStr) {
+                    checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kDatabaseOption, kCollectionOption}, configVarMap);
                 }
             }
   
