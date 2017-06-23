@@ -54,7 +54,7 @@
 #include "CRedirect.hpp"
 
 //
-// Boost file system library definitions
+// Boost file system library
 //
 
 #include <boost/filesystem.hpp>

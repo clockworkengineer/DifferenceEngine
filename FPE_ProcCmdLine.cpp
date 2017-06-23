@@ -28,7 +28,7 @@
 // =============
 
 //
-// C++ STL definitions
+// C++ STL
 //
 
 #include <iostream>

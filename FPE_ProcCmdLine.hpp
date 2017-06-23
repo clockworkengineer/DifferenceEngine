@@ -13,7 +13,7 @@
 #define FPE_PROCCMDLINE_HPP
 
 //
-// C++ STL definitions
+// C++ STL
 //
 
 #include <string>

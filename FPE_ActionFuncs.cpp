@@ -36,7 +36,7 @@
 // =============
 
 //
-// C++ STL definitions
+// C++ STL
 //
 
 #include <iostream>
@@ -64,13 +64,13 @@
 
 //
 //
-// Process wait definitions
+// Process wait
 //
 
 #include <sys/wait.h>
 
 //
-// Boost file system, format and tokenizer library definitions
+// Boost file system, format and tokenizer library
 //
 
 #include <boost/filesystem.hpp>
@@ -566,7 +566,7 @@ namespace FPE_ActionFuncs {
         funcData->coutstr({"Importing CSV file [", sourceFile.filename().string(), "] To MongoDB."});
 
         mongocxx::instance driverInstance{};
-        mongocxx::client mongoConnection{mongocxx::uri{}};  
+        mongocxx::client mongoConnection{mongocxx::uri{funcData->optionsMap[kServerOption]}};  
         auto csvCollection = mongoConnection[funcData->optionsMap[kDatabaseOption]][funcData->optionsMap[kCollectionOption]];          
         vector<string> fieldNames;
         string csvLineStr;
