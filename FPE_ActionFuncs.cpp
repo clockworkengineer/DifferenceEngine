@@ -465,7 +465,7 @@ namespace FPE_ActionFuncs {
 
                 CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(commandLineStr));
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
-                    funcData->cerrstr({commandResponse->errorMessageStr});
+                    funcData->cerrstr({commandResponse->errorMessage});
                 } else {
                     funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->optionsMap[kMailBoxOption] + "]"});
                     bSuccess = true;
