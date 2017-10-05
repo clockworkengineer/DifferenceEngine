@@ -44,12 +44,12 @@ namespace FPE_ActionFuncs {
     // Task Action Function Names
     //
     
-    constexpr const char *kTaskCopyFileStr          {"Copy File"};
-    constexpr const char *kTaskVideoConversionStr   {"Video Conversion"};
-    constexpr const char *kTaskEmailFileStr         {"Email Attachment"};
-    constexpr const char *kTaskZipFileStr           {"ZIP Archive"};
-    constexpr const char *kTaskRunCommandStr        {"Run Command"};
-    constexpr const char *kTaskImportCSVFileStr     {"Import CSV File"};
+    constexpr const char *kTaskCopyFile          {"Copy File"};
+    constexpr const char *kTaskVideoConversion   {"Video Conversion"};
+    constexpr const char *kTaskEmailFile         {"Email Attachment"};
+    constexpr const char *kTaskZipFile           {"ZIP Archive"};
+    constexpr const char *kTaskRunCommand        {"Run Command"};
+    constexpr const char *kTaskImportCSVFile     {"Import CSV File"};
 
     //
     // Task Action Function Table
@@ -86,18 +86,18 @@ namespace FPE_ActionFuncs {
     //  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto
     //
     //  TaskActionFcn sampleLambda = [] (auto filenamePath, auto fnData) 
-    //  -> bool {std::cout << "[" << filenamePath+filenameStr << "]" << std::endl; return true; };
+    //  -> bool {std::cout << "[" << filenamePath+filename << "]" << std::endl; return true; };
     
     //
     // Action function prototypes
     //
     
-    bool videoConversion(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
-    bool copyFile(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
-    bool runCommand(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
-    bool emailFile(const std::string& filenamePathStr, const std::shared_ptr<void> fnData);
-    bool zipFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData);
-    bool importCSVFile(const std::string &filenamePathStr, const std::shared_ptr<void> fnData);
+    bool videoConversion(const std::string& filenamePath, const std::shared_ptr<void> fnData);
+    bool copyFile(const std::string& filenamePath, const std::shared_ptr<void> fnData);
+    bool runCommand(const std::string& filenamePath, const std::shared_ptr<void> fnData);
+    bool emailFile(const std::string& filenamePath, const std::shared_ptr<void> fnData);
+    bool zipFile(const std::string &filenamePath, const std::shared_ptr<void> fnData);
+    bool importCSVFile(const std::string &filenamePath, const std::shared_ptr<void> fnData);
 
 } // namespace FPE_ActionFuncs
 

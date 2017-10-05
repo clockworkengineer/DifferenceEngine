@@ -45,7 +45,7 @@ namespace FPE_ProcCmdLine {
     // Handbrake command
     //
     
-    constexpr const char *kHandbrakeCommandStr = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
+    constexpr const char *kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
      
     // Get command line options
 
@@ -56,13 +56,13 @@ namespace FPE_ProcCmdLine {
     //
     
     template <typename T>
-    T getOption(const FPEOptions& optionData, const std::string& optionStr) {
+    T getOption(const FPEOptions& optionData, const std::string& option) {
 
         T value;
         
-        auto entry = optionData.optionsMap.find(optionStr);
+        auto entry = optionData.optionsMap.find(option);
         if (entry != optionData.optionsMap.end()) {
-            std::istringstream optionStingStream {entry->second};
+            std::istringstream optionStingeam {entry->second};
             optionStingStream >> value;
             return (value);
         } else {
