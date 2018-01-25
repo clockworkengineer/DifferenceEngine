@@ -301,17 +301,17 @@ namespace FPE_ProcCmdLine {
                 optionData.taskFunc = getTaskDetails(stoi(configVarMap[kTaskOption].as<string>()));
                 if (optionData.taskFunc.name == "") {
                     throw po::error("Invalid Task Number.");
-                } else if (optionData.taskFunc.name == kTaskCopyFileStr) {
+                } else if (optionData.taskFunc.name == kTaskCopyFile) {
                    checkOptionPresent({kDestinationOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskVideoConversionStr) {
-                    optionData.optionsMap[kCommandOption] = kHandbrakeCommandStr;
-                } else if (optionData.taskFunc.name == kTaskRunCommandStr) {
+                } else if (optionData.taskFunc.name == kTaskVideoConversion) {
+                    optionData.optionsMap[kCommandOption] = kHandbrakeCommand;
+                } else if (optionData.taskFunc.name == kTaskRunCommand) {
                     checkOptionPresent({kCommandOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskZipFileStr) {
+                } else if (optionData.taskFunc.name == kTaskZipFile) {
                     checkOptionPresent({kArchiveOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskEmailFileStr) {
+                } else if (optionData.taskFunc.name == kTaskEmailFile) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kRecipientOption, kMailBoxOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskImportCSVFileStr) {
+                } else if (optionData.taskFunc.name == kTaskImportCSVFile) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kDatabaseOption, kCollectionOption}, configVarMap);
                 }
             }

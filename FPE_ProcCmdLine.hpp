@@ -62,7 +62,7 @@ namespace FPE_ProcCmdLine {
         
         auto entry = optionData.optionsMap.find(option);
         if (entry != optionData.optionsMap.end()) {
-            std::istringstream optionStingeam {entry->second};
+            std::istringstream optionStingStream {entry->second};
             optionStingStream >> value;
             return (value);
         } else {
