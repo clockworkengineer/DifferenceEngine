@@ -79,13 +79,16 @@
 
 //
 // MongoDB C++ Driver
+// Note: C++ Driver not easy to install so add define
 //
 
+#ifdef MONGO_DRIVER_INSTALLED
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
 
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
+#endif // MONGO_DRIVER_INSTALLED
 
 namespace fs = boost::filesystem;
 
@@ -221,13 +224,13 @@ namespace FPE_ActionFuncs {
     // Action function initialization / closedown.
     //
 
-    bool actionFuncInit() {
+    void actionFuncInit() {
 
         CSMTP::init();
         CIMAP::init();
     }
 
-    bool actionFuncCloseDown() {
+    void actionFuncCloseDown() {
 
         CSMTP::closedown();
         CIMAP::closedown();
@@ -529,7 +532,8 @@ namespace FPE_ActionFuncs {
 
         zipFile.open();
 
-        if (bSuccess = zipFile.add(sourceFile.string(), sourceFile.filename().string())) {
+        bSuccess = zipFile.add(sourceFile.string(), sourceFile.filename().string());
+        if (bSuccess) {
             funcData->coutstr({"Appended [", sourceFile.filename().string(), "] to archive [", zipFilePath.string(), "]"});
         }
 
@@ -554,7 +558,9 @@ namespace FPE_ActionFuncs {
         bool bSuccess = false;
 
         // Form source file path
-
+        
+#ifdef MONGO_DRIVER_INSTALLED
+        
         fs::path sourceFile(filenamePathStr);
 
         ifstream csvFileStream(sourceFile.string());
@@ -587,6 +593,7 @@ namespace FPE_ActionFuncs {
             }
             csvCollection.insert_one(document.view());
         }
+#endif // MONGO_DRIVER_INSTALLED
         
         return (bSuccess);
 

@@ -117,11 +117,11 @@ namespace FPE {
 
         ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
 
-        // Set task options ( kill count and all output to locally defined  coutstr/cerrstr.
+        // Set task options ( kill count and all output to locally defined  coutstr/cerrstr).
 
         shared_ptr<CTask::TaskOptions> options;
 
-        options.reset(new CTask::TaskOptions{getOption<int>(optionData, kKillCountOption), funcData->coutstr, funcData->cerrstr});
+        options.reset(new CTask::TaskOptions{getOption<int>(optionData, kKillCountOption)});
 
         // Create task object
 

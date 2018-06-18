@@ -102,7 +102,7 @@ namespace FPE_ProcCmdLine {
                 ("recipient,r", po::value<string>(&optionData.optionsMap[kRecipientOption]), "Recipients(s) for email with attached file")
                 ("mailbox,m", po::value<string>(&optionData.optionsMap[kMailBoxOption]), "IMAP Mailbox name for drop box")
                 ("archive,a", po::value<string>(&optionData.optionsMap[kArchiveOption]), "ZIP destination archive")
-                ("database,d", po::value<string>(&optionData.optionsMap[kDatabaseOption]), "Datbase name")
+                ("database,b", po::value<string>(&optionData.optionsMap[kDatabaseOption]), "Database name")
                 ("collection,c", po::value<string>(&optionData.optionsMap[kCollectionOption]), "Collection/Table name")
                 ("list", "Display a list of supported tasks.");
                 

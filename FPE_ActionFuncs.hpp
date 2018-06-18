@@ -74,8 +74,8 @@ namespace FPE_ActionFuncs {
     // Action function initialization / closedown.
     //
     
-    bool actionFuncInit(void);
-    bool actionFuncCloseDown(void);
+    void actionFuncInit(void);
+    void actionFuncCloseDown(void);
 
     //
     //  Get task details from taskList table
