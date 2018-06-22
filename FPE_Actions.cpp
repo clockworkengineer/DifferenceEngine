@@ -1,6 +1,6 @@
 #include "HOST.hpp"
 /*
- * File:   FPE_ActionFuncs.cpp
+ * File:   FPE_Actions.cpp
  *
  * Author: Robert Tizzard
  * 
@@ -11,9 +11,9 @@
  */
 
 //
-// Module: FPE_ActionFuncs
+// Module: FPE_Actions
 //
-// Description: The task action functions used by the FPE and their support functions.
+// Description: The task actions used by the FPE and their support functions.
 // 
 // Currently five actions are provided.
 //
@@ -26,7 +26,7 @@
 // Dependencies:
 // 
 // C11++              : Use of C11++ features.
-// Antikythera Classes: CTask, CSMTP, CIMAP, CIMAPParse, CZIP, CMIME
+// Antik Classes      : CTask, CSMTP, CIMAP, CIMAPParse, CZIP, CMIME
 // Linux              : Target platform
 // Boost              : File system.
 //
@@ -49,7 +49,7 @@
 //
 
 #include "FPE.hpp"
-#include "FPE_ActionFuncs.hpp"
+#include "FPE_Actions.hpp"
 
 //
 // Antikythera Classes
@@ -92,7 +92,7 @@
 
 namespace fs = boost::filesystem;
 
-namespace FPE_ActionFuncs {
+namespace FPE_Actions {
 
     // =======
     // IMPORTS

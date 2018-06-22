@@ -45,7 +45,7 @@
 
 #include "FPE.hpp"
 #include "FPE_ProcCmdLine.hpp"
-#include "FPE_ActionFuncs.hpp"
+#include "FPE_Actions.hpp"
 
 //
 // Antikythera Classes
@@ -75,7 +75,7 @@ namespace FPE {
     using namespace Antik::Util;
 
     using namespace FPE_ProcCmdLine;
-    using namespace FPE_ActionFuncs;
+    using namespace FPE_Actions;
 
     // ===============
     // LOCAL FUNCTIONS
@@ -101,19 +101,14 @@ namespace FPE {
 
     static void createTaskAndRun(FPEOptions& optionData) {
 
-        // Set task options ( kill count and all output to locally defined  coutstr/cerrstr).
-
-        shared_ptr<CTask::TaskOptions> options;
-
-        options.reset(new CTask::TaskOptions{getOption<int>(optionData, kKillCountOption)});
-
         optionData.action->setActionData(optionData.optionsMap);
         
         // Create task object
 
         CTask task(optionData.optionsMap[kWatchOption], 
                    optionData.action, 
-                   getOption<int>(optionData, kMaxDepthOption), options);
+                   getOption<int>(optionData, kMaxDepthOption),
+                   getOption<int>(optionData, kKillCountOption));
 
         // Create task object thread and start to watch else use FPE thread.
 
@@ -143,10 +138,6 @@ namespace FPE {
 
         try {
 
-            // Date and Time stamp output
-
-            CLogger::setDateTimeStamped(true);
-
             // cout to logfile if option specified.
 
             CRedirect logFile{cout};
@@ -157,14 +148,14 @@ namespace FPE {
 
             // Display BOOST version
 
-            CLogger::coutstr({"*** boost version = [",
-                to_string(BOOST_VERSION / 100000)+"."+
-                to_string(BOOST_VERSION / 100 % 1000)+"."+
-                to_string(BOOST_VERSION % 100)+"] ***"});
+            std::cout << "*** boost version = [" << 
+                to_string(BOOST_VERSION / 100000) << "." <<
+                to_string(BOOST_VERSION / 100 % 1000) <<"." <<
+                to_string(BOOST_VERSION % 100) << "] ***" << std::endl;
 
             // FPE up and running
 
-            CLogger::coutstr({"FPE Running..."});
+            std::cout << "FPE Running..." << std::endl;
 
             // Output to log file ( CRedirect(cout) is the simplest solution). 
             // Once the try is exited CRedirect object will be destroyed and 
@@ -172,7 +163,7 @@ namespace FPE {
 
             if (!optionData.optionsMap[kLogOption].empty()) {
                 logFile.change(optionData.optionsMap[kLogOption], ios_base::out | ios_base::app);
-                CLogger::coutstr({string(100, '=')});
+                std::cout << string(100, '=') << std::endl;
             }
 
             // Create task object
@@ -191,7 +182,7 @@ namespace FPE {
             exitWithError(string("Standard exception occured: [") + e.what() + "]");
         }
 
-        CLogger::coutstr({"FPE Exiting."});
+        std::cout << "FPE Exiting." << std::endl;
 
 
     }

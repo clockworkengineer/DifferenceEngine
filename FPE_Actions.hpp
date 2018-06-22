@@ -1,5 +1,5 @@
 /*
- * File:   FPE_ActionFuncs.hpp
+ * File:   FPE_Actions.hpp
  * 
  * Author: Robert Tizzard
  *
@@ -31,7 +31,7 @@
 // NAMESPACE
 // =========
 
-namespace FPE_ActionFuncs {
+namespace FPE_Actions {
     
     // =======
     // IMPORTS
@@ -51,14 +51,6 @@ namespace FPE_ActionFuncs {
     constexpr const char *kTaskRunCommand        {"Run Command"};
     constexpr const char *kTaskImportCSVFile     {"Import CSV File"};
     
-    //
-    // Create task action object
-    //
-    
-    struct ActFnData {
-        std::unordered_map<std::string, std::string> optionsMap;    // Option map
-    };
-
     //
     //  Get task details from taskList table
     //
