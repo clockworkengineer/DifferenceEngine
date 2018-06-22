@@ -50,18 +50,9 @@ namespace FPE_ActionFuncs {
     constexpr const char *kTaskZipFile           {"ZIP Archive"};
     constexpr const char *kTaskRunCommand        {"Run Command"};
     constexpr const char *kTaskImportCSVFile     {"Import CSV File"};
-
-    //
-    // Task Action Function Table
-    //
-    
-    struct TaskActionFunc {
-        std::string name;               // Task Name
-        CTask::TaskActionFcn actFcn;    // Action Function Pointer
-    };
     
     //
-    // Action function data
+    // Create task action object
     //
     
     struct ActFnData {
@@ -71,34 +62,70 @@ namespace FPE_ActionFuncs {
     };
 
     //
-    // Action function initialization / closedown.
-    //
-    
-    void actionFuncInit(void);
-    void actionFuncCloseDown(void);
-
-    //
     //  Get task details from taskList table
     //
 
-    TaskActionFunc getTaskDetails(int taskNumber);
-     
-    //  Example lambda to use as action function. Note pre-C++11 you need to put full type in instead of auto
-    //
-    //  TaskActionFcn sampleLambda = [] (auto filenamePath, auto fnData) 
-    //  -> bool {std::cout << "[" << filenamePath+filename << "]" << std::endl; return true; };
+    std::shared_ptr<CTask::Action> createTaskAction(int taskNumber);
     
     //
-    // Action function prototypes
+    // Action classes
     //
     
-    bool videoConversion(const std::string& filenamePath, const std::shared_ptr<void> fnData);
-    bool copyFile(const std::string& filenamePath, const std::shared_ptr<void> fnData);
-    bool runCommand(const std::string& filenamePath, const std::shared_ptr<void> fnData);
-    bool emailFile(const std::string& filenamePath, const std::shared_ptr<void> fnData);
-    bool zipFile(const std::string &filenamePath, const std::shared_ptr<void> fnData);
-    bool importCSVFile(const std::string &filenamePath, const std::shared_ptr<void> fnData);
+    class ActionCopyFile : public CTask::Action {
+    public:
+        ActionCopyFile(const std::string &taskName) : Action(taskName) {}
+        virtual void init(void) { };
+        virtual void term(void) { };
+        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual ~ActionCopyFile() {} ;
+    };
 
+    class ActionVideoConversion : public CTask::Action {
+    public:
+        ActionVideoConversion(const std::string &taskName) : Action(taskName) {}
+        virtual void init(void) { };
+        virtual void term(void) { };
+        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual ~ActionVideoConversion() {} ;
+    };
+    
+  class ActionEmailFile : public CTask::Action {
+    public:
+        ActionEmailFile(const std::string &taskName) : Action(taskName) {}
+        virtual void init(void);
+        virtual void term(void);
+        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual ~ActionEmailFile() {} ;
+    };
+    
+  class ActionZIPFile : public CTask::Action {
+    public:
+        ActionZIPFile(const std::string &taskName) : Action(taskName) {}
+        virtual void init(void);
+        virtual void term(void);
+        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual ~ActionZIPFile() {} ;
+    };
+    
+  class ActionRunCommand : public CTask::Action {
+    public:
+        ActionRunCommand(const std::string &taskName) : Action(taskName) {}
+        virtual void init(void);
+        virtual void term(void);
+        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual ~ActionRunCommand() {} ;
+    };
+    
+  class ActionImportCSVFile : public CTask::Action {
+    public:
+        ActionImportCSVFile(const std::string &taskName) : Action(taskName) {}
+        virtual void init(void);
+        virtual void term(void);
+        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual ~ActionImportCSVFile() {} ;
+    };
+
+      
 } // namespace FPE_ActionFuncs
 
 #endif /* FPE_ACTIONFUNCS_HPP */

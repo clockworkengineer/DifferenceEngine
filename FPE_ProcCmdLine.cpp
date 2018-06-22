@@ -181,7 +181,7 @@ namespace FPE_ProcCmdLine {
         // Display options
 
         displayOption(static_cast<string>(kConfigOption), optionData.optionsMap[kConfigOption]);
-        displayOption(static_cast<string>(kTaskOption), optionData.taskFunc.name);
+        displayOption(static_cast<string>(kTaskOption), optionData.action->name);
         displayOption(static_cast<string>(kWatchOption), optionData.optionsMap[kWatchOption]);
         displayOption(static_cast<string>(kDestinationOption), optionData.optionsMap[kDestinationOption]);
         displayOption(static_cast<string>(kCommandOption), optionData.optionsMap[kCommandOption]);
@@ -264,11 +264,11 @@ namespace FPE_ProcCmdLine {
             if (configVarMap.count("list")) {
                 cout << "File Processing Engine Application Tasks\n\n";
                 int taskNo=0;
-                FPE_ActionFuncs::TaskActionFunc taskFunc;
-                taskFunc = getTaskDetails(taskNo);
-                while (!taskFunc.name.empty()){
-                    cout << taskNo << "\t" << taskFunc.name << "\n";
-                    taskFunc = getTaskDetails(++taskNo);
+                std::shared_ptr<CTask::Action> taskFunc;
+                taskFunc = createTaskAction(taskNo);
+                while (!taskFunc->name.empty()){
+                    cout << taskNo << "\t" << taskFunc->name << "\n";
+                    taskFunc = createTaskAction(++taskNo);
                 }
                 exit(EXIT_SUCCESS);
             }
@@ -298,20 +298,20 @@ namespace FPE_ProcCmdLine {
             // for a task are just ignored.
 
             if (configVarMap.count(kTaskOption)) {
-                optionData.taskFunc = getTaskDetails(stoi(configVarMap[kTaskOption].as<string>()));
-                if (optionData.taskFunc.name == "") {
+                optionData.action = createTaskAction(stoi(configVarMap[kTaskOption].as<string>()));
+                if (optionData.action->name == "") {
                     throw po::error("Invalid Task Number.");
-                } else if (optionData.taskFunc.name == kTaskCopyFile) {
+                } else if (optionData.action->name == kTaskCopyFile) {
                    checkOptionPresent({kDestinationOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskVideoConversion) {
+                } else if (optionData.action->name == kTaskVideoConversion) {
                     optionData.optionsMap[kCommandOption] = kHandbrakeCommand;
-                } else if (optionData.taskFunc.name == kTaskRunCommand) {
+                } else if (optionData.action->name == kTaskRunCommand) {
                     checkOptionPresent({kCommandOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskZipFile) {
+                } else if (optionData.action->name == kTaskZipFile) {
                     checkOptionPresent({kArchiveOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskEmailFile) {
+                } else if (optionData.action->name == kTaskEmailFile) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kRecipientOption, kMailBoxOption}, configVarMap);
-                } else if (optionData.taskFunc.name == kTaskImportCSVFile) {
+                } else if (optionData.action->name == kTaskImportCSVFile) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kDatabaseOption, kCollectionOption}, configVarMap);
                 }
             }

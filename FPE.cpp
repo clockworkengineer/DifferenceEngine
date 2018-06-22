@@ -89,7 +89,6 @@ namespace FPE {
 
         // Closedown action functions, display error and exit.
 
-        actionFuncCloseDown();
         CLogger::cerrstr({errmsgStr});
         exit(EXIT_FAILURE);
 
@@ -104,8 +103,8 @@ namespace FPE {
 
         // ASSERT if task name length == 0 , action function pointer == nullptr
 
-        assert(optionData.taskFunc.name.length() != 0);
-        assert(optionData.taskFunc.actFcn != nullptr);
+        assert(optionData.action->name.length() != 0);
+        assert(optionData.action != nullptr);
 
         // Create function data (wrap in void shared pointer for passing to task).
 
@@ -125,9 +124,9 @@ namespace FPE {
 
         // Create task object
 
-        CTask task(optionData.taskFunc.name, 
+        CTask task(optionData.action->name, 
                    optionData.optionsMap[kWatchOption], 
-                   optionData.taskFunc.actFcn, 
+                   optionData.action, 
                    fnData, getOption<int>(optionData, kKillCountOption), options);
 
         // Create task object thread and start to watch else use FPE thread.
@@ -161,10 +160,6 @@ namespace FPE {
             // Date and Time stamp output
 
             CLogger::setDateTimeStamped(true);
-
-            // Action function initialization.
-
-            actionFuncInit();
 
             // cout to logfile if option specified.
 
@@ -211,10 +206,6 @@ namespace FPE {
         }
 
         CLogger::coutstr({"FPE Exiting."});
-
-        // Closedown action functions
-
-        actionFuncCloseDown();
 
 
     }

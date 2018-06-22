@@ -112,19 +112,6 @@ namespace FPE_ActionFuncs {
     // LOCAL VARIABLES
     // ===============
 
-    //
-    // Task Action Functions
-    //
-
-    static const vector<TaskActionFunc> taskList{
-        { kTaskCopyFile, copyFile},
-        { kTaskVideoConversion, videoConversion},
-        { kTaskEmailFile, emailFile},
-        { kTaskZipFile, zipFile},
-        { kTaskRunCommand, runCommand},
-        { kTaskImportCSVFile, importCSVFile}
-};
-
     // ===============
     // LOCAL FUNCTIONS
     // ===============
@@ -215,67 +202,56 @@ namespace FPE_ActionFuncs {
         return (exitStatus);
 
     }
-
     // ================
     // PUBLIC FUNCTIONS
     // ================
 
     //
-    // Action function initialization / closedown.
+    //  Create task action object
     //
 
-    void actionFuncInit() {
+    std::shared_ptr<CTask::Action> createTaskAction(int taskNumber) {
 
-        CSMTP::init();
-        CIMAP::init();
-    }
-
-    void actionFuncCloseDown() {
-
-        CSMTP::closedown();
-        CIMAP::closedown();
-
-    }
-
-    //
-    //  Get task details from taskList table
-    //
-
-    TaskActionFunc getTaskDetails(int taskNumber) {
-        if ((taskNumber >= 0) && (taskNumber < taskList.size())) {
-            return (taskList[taskNumber]);
+        switch (taskNumber) {
+            case 0:
+                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskCopyFile)));
+                break;
+            case 1:
+                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskVideoConversion)));
+                break;
+            case 2:
+                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskEmailFile)));
+                break;
+            case 3:
+                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskZipFile)));
+                break;
+            case 4:
+                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskRunCommand)));
+                break;
+             case 5:
+                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskImportCSVFile)));
+                break;      
         }
-        return (TaskActionFunc());
+
     }
- 
-    vector<string> getCSVTokens (const std::string& csvLineStr) {
-        
-        boost::tokenizer< boost::escaped_list_separator<char> >  csvTokenizer(csvLineStr);
-        vector<string> csvTokens;
-            
-        csvTokens.assign(csvTokenizer.begin(), csvTokenizer.end());
-        
-        return(csvTokens);
-            
-    }
-    
+
     //
     // Run a specified command on the file (%1% source, %2% destination)
     //
 
-    bool runCommand(const string &filenamePathStr, const shared_ptr<void>fnData) {
+    bool ActionRunCommand::process(const string &file, const shared_ptr<void>fnData) {
 
         // ASSERT for any invalid options.
 
         assert(fnData != nullptr);
-        assert(filenamePathStr.length() != 0);
+        assert(file.length() != 0);
 
         ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
         bool bSuccess = false;
 
         // Form source and destination file paths
 
-        fs::path sourceFile(filenamePathStr);
+        fs::path sourceFile(file);
         fs::path destinationFile(funcData->optionsMap[kDestinationOption] + sourceFile.filename().string());
 
         // Create correct command for whether source and destination specified or just source or none
@@ -292,41 +268,25 @@ namespace FPE_ActionFuncs {
             commandStr = funcData->optionsMap[kCommandOption];
         }
 
-        funcData->coutstr({commandStr});
-
-        auto result = 0;
-        if ((result = runShellCommand(commandStr)) == 0) {
-            bSuccess = true;
-            funcData->coutstr({"Command success."});
-            if (!funcData->optionsMap[kDeleteOption].empty()) {
-                funcData->coutstr({"Deleting Source [", sourceFile.string(), "]"});
-                fs::remove(sourceFile);
-            }
-        } else {
-            funcData->cerrstr({"Command error: ", to_string(result)});
-        }
-
-        return (bSuccess);
-
     }
 
     //
     // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
     //
 
-    bool videoConversion(const string& filenamePathStr, const shared_ptr<void> fnData) {
+    bool ActionVideoConversion::process(const string& file, const shared_ptr<void> fnData) {
 
         // ASSERT for any invalid options.
 
         assert(fnData != nullptr);
-        assert(filenamePathStr.length() != 0);
+        assert(file.length() != 0);
 
         ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
         bool bSuccess = false;
 
         // Form source and destination file paths
 
-        fs::path sourceFile(filenamePathStr);
+        fs::path sourceFile(file);
         fs::path destinationFile(funcData->optionsMap[kDestinationOption]);
 
         destinationFile /= sourceFile.stem().string();
@@ -365,24 +325,24 @@ namespace FPE_ActionFuncs {
     // keeping the sources directory structure.
     //
 
-    bool copyFile(const string &filenamePathStr, const shared_ptr<void> fnData) {
+    bool ActionCopyFile::process(const string &file, const shared_ptr<void> fnData) {
 
         // ASSERT for any invalid options.
 
         assert(fnData != nullptr);
-        assert(filenamePathStr.length() != 0);
+        assert(file.length() != 0);
 
         ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
         bool bSuccess = false;
 
         // Form source and destination file paths
 
-        fs::path sourceFile(filenamePathStr);
+        fs::path sourceFile(file);
 
         // Destination file path += ("filename path" - "watch folder path")
 
         fs::path destinationFile(funcData->optionsMap[kDestinationOption] +
-                filenamePathStr.substr((funcData->optionsMap[kWatchOption]).length()));
+                file.substr((funcData->optionsMap[kWatchOption]).length()));
 
         // Construct full destination path if needed
 
@@ -417,12 +377,22 @@ namespace FPE_ActionFuncs {
     // Email file action function.
     //
 
-    bool emailFile(const string &filenamePathStr, const shared_ptr<void> fnData) {
+    void ActionEmailFile::init(void) {
+        CSMTP::init();
+        CIMAP::init();
+    };
+
+    void ActionEmailFile::term(void) {
+        CSMTP::closedown();
+        CIMAP::closedown();
+    };
+
+    bool ActionEmailFile::process(const string &file, const shared_ptr<void> fnData) {
 
         // ASSERT for any invalid options.
 
         assert(fnData != nullptr);
-        assert(filenamePathStr.length() != 0);
+        assert(file.length() != 0);
 
         ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
         bool bSuccess = false;
@@ -431,7 +401,7 @@ namespace FPE_ActionFuncs {
 
         // Form source file path
 
-        fs::path sourceFile(filenamePathStr);
+        fs::path sourceFile(file);
 
         try {
 
@@ -441,12 +411,12 @@ namespace FPE_ActionFuncs {
             smtp.setToAddress("<" + funcData->optionsMap[kRecipientOption] + ">");
 
             smtp.setMailSubject("FPE Attached File");
-            smtp.addFileAttachment(filenamePathStr, CMIME::getFileMIMEType(filenamePathStr), "base64");
+            smtp.addFileAttachment(file, CMIME::getFileMIMEType(file), "base64");
 
             if (funcData->optionsMap[kServerOption].find(string("smtp")) == 0) {
 
                 smtp.postMail();
-                funcData->coutstr({"Emailing file [", filenamePathStr, "] ", "to [", funcData->optionsMap[kRecipientOption], "]"});
+                funcData->coutstr({"Emailing file [", file, "] ", "to [", funcData->optionsMap[kRecipientOption], "]"});
                 bSuccess = true;
 
             } else if (funcData->optionsMap[kServerOption].find(string("imap")) == 0) {
@@ -470,7 +440,7 @@ namespace FPE_ActionFuncs {
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
                     funcData->cerrstr({commandResponse->errorMessage});
                 } else {
-                    funcData->coutstr({"Added file [", filenamePathStr, "] ", "to [" + funcData->optionsMap[kMailBoxOption] + "]"});
+                    funcData->coutstr({"Added file [", file, "] ", "to [" + funcData->optionsMap[kMailBoxOption] + "]"});
                     bSuccess = true;
                 }
 
@@ -494,19 +464,19 @@ namespace FPE_ActionFuncs {
     // Add file to ZIP archive.
     //
 
-    bool zipFile(const string &filenamePathStr, const shared_ptr<void> fnData) {
+    bool ActionZIPFile::process(const string &file, const shared_ptr<void> fnData) {
 
         // ASSERT for any invalid options.
 
         assert(fnData != nullptr);
-        assert(filenamePathStr.length() != 0);
+        assert(file.length() != 0);
 
         ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
         bool bSuccess = false;
 
         // Form source and zips file paths
 
-        fs::path sourceFile(filenamePathStr);
+        fs::path sourceFile(file);
         fs::path zipFilePath(funcData->optionsMap[kArchiveOption]);
 
         // Create path for ZIP archive if needed.
@@ -547,21 +517,21 @@ namespace FPE_ActionFuncs {
     // Import CSV File to MongoDB
     //
 
-    bool importCSVFile(const string &filenamePathStr, const shared_ptr<void> fnData) {
+    bool ActionImportCSVFile::process(const string &file, const shared_ptr<void> fnData) {
 
         // ASSERT for any invalid options.
 
         assert(fnData != nullptr);
-        assert(filenamePathStr.length() != 0);
+        assert(file.length() != 0);
 
         ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
         bool bSuccess = false;
 
         // Form source file path
-        
+
 #ifdef MONGO_DRIVER_INSTALLED
-        
-        fs::path sourceFile(filenamePathStr);
+
+        fs::path sourceFile(file);
 
         ifstream csvFileStream(sourceFile.string());
         if (!csvFileStream.is_open()) {
@@ -572,29 +542,29 @@ namespace FPE_ActionFuncs {
         funcData->coutstr({"Importing CSV file [", sourceFile.filename().string(), "] To MongoDB."});
 
         mongocxx::instance driverInstance{};
-        mongocxx::client mongoConnection{mongocxx::uri{funcData->optionsMap[kServerOption]}};  
-        auto csvCollection = mongoConnection[funcData->optionsMap[kDatabaseOption]][funcData->optionsMap[kCollectionOption]];          
+        mongocxx::client mongoConnection{mongocxx::uri{funcData->optionsMap[kServerOption]}};
+        auto csvCollection = mongoConnection[funcData->optionsMap[kDatabaseOption]][funcData->optionsMap[kCollectionOption]];
         vector<string> fieldNames;
         string csvLineStr;
-        
+
         getline(csvFileStream, csvLineStr);
-        if (csvLineStr.back()=='\r')csvLineStr.pop_back();
-        
+        if (csvLineStr.back() == '\r')csvLineStr.pop_back();
+
         fieldNames = getCSVTokens(csvLineStr);
 
         while (getline(csvFileStream, csvLineStr)) {
             vector< string > fieldValues;
             bsoncxx::builder::stream::document document{};
-            if (csvLineStr.back()=='\r')csvLineStr.pop_back();
+            if (csvLineStr.back() == '\r')csvLineStr.pop_back();
             fieldValues = getCSVTokens(csvLineStr);
-            int i=0;
+            int i = 0;
             for (auto& field : fieldValues) {
-               document << fieldNames[i++]<< field;
+                document << fieldNames[i++] << field;
             }
             csvCollection.insert_one(document.view());
         }
 #endif // MONGO_DRIVER_INSTALLED
-        
+
         return (bSuccess);
 
     }

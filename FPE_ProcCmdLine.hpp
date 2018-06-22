@@ -18,6 +18,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <memory>
 
 //
 // Program components.
@@ -37,7 +38,7 @@ namespace FPE_ProcCmdLine {
     //
 
     struct FPEOptions {
-        FPE_ActionFuncs::TaskActionFunc taskFunc;                // Task action function details
+        std::shared_ptr<Antik::File::CTask::Action> action;      // Task action function details
         std::unordered_map<std::string, std::string> optionsMap; // Options map
      };
 
