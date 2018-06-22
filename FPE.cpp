@@ -101,33 +101,19 @@ namespace FPE {
 
     static void createTaskAndRun(FPEOptions& optionData) {
 
-        // ASSERT if task name length == 0 , action function pointer == nullptr
-
-        assert(optionData.action->name.length() != 0);
-        assert(optionData.action != nullptr);
-
-        // Create function data (wrap in void shared pointer for passing to task).
-
-        shared_ptr<void> fnData(new ActFnData{optionData.optionsMap,
-            (getOption<bool>(optionData,kQuietOption) ? CLogger::noOp : CLogger::coutstr),
-            (getOption<bool>(optionData,kQuietOption) ? CLogger::noOp : CLogger::cerrstr) });
-
-        // Use function data to access set coutstr/cerrstr
-
-        ActFnData *funcData = static_cast<ActFnData *> (fnData.get());
-
         // Set task options ( kill count and all output to locally defined  coutstr/cerrstr).
 
         shared_ptr<CTask::TaskOptions> options;
 
         options.reset(new CTask::TaskOptions{getOption<int>(optionData, kKillCountOption)});
 
+        optionData.action->setActionData(optionData.optionsMap);
+        
         // Create task object
 
-        CTask task(optionData.action->name, 
-                   optionData.optionsMap[kWatchOption], 
+        CTask task(optionData.optionsMap[kWatchOption], 
                    optionData.action, 
-                   fnData, getOption<int>(optionData, kKillCountOption), options);
+                   getOption<int>(optionData, kMaxDepthOption), options);
 
         // Create task object thread and start to watch else use FPE thread.
 

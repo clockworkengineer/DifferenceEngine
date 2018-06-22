@@ -57,8 +57,6 @@ namespace FPE_ActionFuncs {
     
     struct ActFnData {
         std::unordered_map<std::string, std::string> optionsMap;    // Option map
-        CLogger::LogStringsFn coutstr;      // coutstr output
-        CLogger::LogStringsFn cerrstr;      // cerrstr output
     };
 
     //
@@ -76,7 +74,7 @@ namespace FPE_ActionFuncs {
         ActionCopyFile(const std::string &taskName) : Action(taskName) {}
         virtual void init(void) { };
         virtual void term(void) { };
-        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual bool process(const std::string &file);
         virtual ~ActionCopyFile() {} ;
     };
 
@@ -85,7 +83,7 @@ namespace FPE_ActionFuncs {
         ActionVideoConversion(const std::string &taskName) : Action(taskName) {}
         virtual void init(void) { };
         virtual void term(void) { };
-        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual bool process(const std::string &file);
         virtual ~ActionVideoConversion() {} ;
     };
     
@@ -94,7 +92,7 @@ namespace FPE_ActionFuncs {
         ActionEmailFile(const std::string &taskName) : Action(taskName) {}
         virtual void init(void);
         virtual void term(void);
-        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual bool process(const std::string &file);
         virtual ~ActionEmailFile() {} ;
     };
     
@@ -103,7 +101,7 @@ namespace FPE_ActionFuncs {
         ActionZIPFile(const std::string &taskName) : Action(taskName) {}
         virtual void init(void);
         virtual void term(void);
-        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual bool process(const std::string &file);
         virtual ~ActionZIPFile() {} ;
     };
     
@@ -112,7 +110,7 @@ namespace FPE_ActionFuncs {
         ActionRunCommand(const std::string &taskName) : Action(taskName) {}
         virtual void init(void);
         virtual void term(void);
-        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual bool process(const std::string &file);
         virtual ~ActionRunCommand() {} ;
     };
     
@@ -121,7 +119,7 @@ namespace FPE_ActionFuncs {
         ActionImportCSVFile(const std::string &taskName) : Action(taskName) {}
         virtual void init(void);
         virtual void term(void);
-        virtual bool process(const std::string &file, const std::shared_ptr<void> fnData);
+        virtual bool process(const std::string &file);
         virtual ~ActionImportCSVFile() {} ;
     };
 
