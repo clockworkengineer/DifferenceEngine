@@ -72,6 +72,7 @@ namespace FPE {
     using namespace std;
 
     using namespace Antik::File;
+    using namespace Antik::Util;
 
     using namespace FPE_ProcCmdLine;
     using namespace FPE_Actions;

@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <sstream>
 
 //
 // Program components.
@@ -41,12 +42,6 @@ namespace FPE_ProcCmdLine {
         std::shared_ptr<FPE_Actions::TaskAction> action;      // Task action function details
         std::unordered_map<std::string, std::string> optionsMap; // Options map
      };
-
-    //
-    // Handbrake command
-    //
-    
-    constexpr const char *kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
      
     // Get command line options
 

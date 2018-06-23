@@ -288,21 +288,7 @@ namespace FPE_ProcCmdLine {
 
             if (configVarMap.count(kTaskOption)) {
                 optionData.action = createTaskAction(stoi(configVarMap[kTaskOption].as<string>()));
-                if (optionData.action->getName() == "") {
-                    throw po::error("Invalid Task Number.");
-                } else if (optionData.action->getName() == kTaskCopyFile) {
-                   checkOptionPresent({kDestinationOption}, configVarMap);
-                } else if (optionData.action->getName() == kTaskVideoConversion) {
-                    optionData.optionsMap[kCommandOption] = kHandbrakeCommand;
-                } else if (optionData.action->getName() == kTaskRunCommand) {
-                    checkOptionPresent({kCommandOption}, configVarMap);
-                } else if (optionData.action->getName() == kTaskZipFile) {
-                    checkOptionPresent({kArchiveOption}, configVarMap);
-                } else if (optionData.action->getName() == kTaskEmailFile) {
-                    checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kRecipientOption, kMailBoxOption}, configVarMap);
-                } else if (optionData.action->getName() == kTaskImportCSVFile) {
-                    checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kDatabaseOption, kCollectionOption}, configVarMap);
-                }
+                checkOptionPresent(optionData.action->getParameters(), configVarMap);
             }
   
             //

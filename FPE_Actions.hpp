@@ -25,7 +25,6 @@
 //
 
 #include "CTask.hpp"
-#include "CLogger.hpp"
 
 // =========
 // NAMESPACE
@@ -37,19 +36,8 @@ namespace FPE_Actions {
     // IMPORTS
     // =======
 
-    using namespace Antik::Util;
+    using namespace FPE;
     using namespace Antik::File;
-
-    //
-    // Task Action Function Names
-    //
-    
-    constexpr const char *kTaskCopyFile          {"Copy File"};
-    constexpr const char *kTaskVideoConversion   {"Video Conversion"};
-    constexpr const char *kTaskEmailFile         {"Email Attachment"};
-    constexpr const char *kTaskZipFile           {"ZIP Archive"};
-    constexpr const char *kTaskRunCommand        {"Run Command"};
-    constexpr const char *kTaskImportCSVFile     {"Import CSV File"};
 
     //
     // TaskAction class
@@ -66,12 +54,14 @@ namespace FPE_Actions {
         // Data used by action is a map of string, string.
 
         void setActionData(std::unordered_map<std::string, std::string> &actionData) {
-            m_actionData = actionData;
+            m_actionData.insert(actionData.begin(),actionData.end());
         }
 
         std::string getName() const {
             return (name);
         }
+        
+        virtual std::vector<std::string> getParameters() {}
 
         virtual ~TaskAction() {
             
@@ -93,61 +83,79 @@ namespace FPE_Actions {
     // Action classes
     //
     
-    class ActionCopyFile : public TaskAction {
+    class CopyFile : public TaskAction {
     public:
-        ActionCopyFile(const std::string &taskName) : TaskAction(taskName) {}
-        virtual void init(void) { };
-        virtual void term(void) { };
-        virtual bool process(const std::string &file);
-        virtual ~ActionCopyFile() {} ;
+        CopyFile() : TaskAction("Copy File") {}
+        void init(void) final  { };
+        void term(void) final { };
+        bool process(const std::string &file) final ;
+        std::vector<std::string> getParameters() final { 
+            return (std::vector<std::string>({kDestinationOption}));
+        }
+        ~CopyFile() {};
     };
 
-    class ActionVideoConversion : public TaskAction {
+    class VideoConversion : public TaskAction {
     public:
-        ActionVideoConversion(const std::string &taskName) : TaskAction(taskName) {}
-        virtual void init(void) { };
+        VideoConversion() : TaskAction("Video Conversion") {}
+        virtual void init(void) { m_actionData[kCommandOption] = kHandbrakeCommand; };
         virtual void term(void) { };
         virtual bool process(const std::string &file);
-        virtual ~ActionVideoConversion() {} ;
+        virtual std::vector<std::string> getParameters() { 
+            return (std::vector<std::string>({kDestinationOption}));
+        }
+        virtual ~VideoConversion() {};
     };
     
-  class ActionEmailFile : public TaskAction {
+  class EmailFile : public TaskAction {
     public:
-        ActionEmailFile(const std::string &taskName) : TaskAction(taskName) {}
-        virtual void init(void);
-        virtual void term(void);
-        virtual bool process(const std::string &file);
-        virtual ~ActionEmailFile() {} ;
+        EmailFile() : TaskAction("Email Attachment") {}
+        void init(void) final;
+        void term(void) final;
+        bool process(const std::string &file) final ;
+        std::vector<std::string> getParameters() final { 
+            return (std::vector<std::string>({kServerOption, kUserOption, 
+                    kPasswordOption, kRecipientOption, kMailBoxOption}));
+        }
+        ~EmailFile() {};
     };
     
-  class ActionZIPFile : public TaskAction {
+  class ZIPFile : public TaskAction {
     public:
-        ActionZIPFile(const std::string &taskName) : TaskAction(taskName) {}
-        virtual void init(void) { };
-        virtual void term(void) { };
-        virtual bool process(const std::string &file);
-        virtual ~ActionZIPFile() {} ;
+        ZIPFile() : TaskAction("ZIP Archive") {}
+        void init(void) final { };
+        void term(void) final { };
+        bool process(const std::string &file) final;
+        std::vector<std::string> getParameters() { 
+            return (std::vector<std::string>({kArchiveOption}));
+        }
+        ~ZIPFile() {};
     };
     
-  class ActionRunCommand : public TaskAction {
+  class RunCommand : public TaskAction {
     public:
-        ActionRunCommand(const std::string &taskName) : TaskAction(taskName) {}
-        virtual void init(void) { };
-        virtual void term(void) { };
-        virtual bool process(const std::string &file);
-        virtual ~ActionRunCommand() {} ;
+        RunCommand() : TaskAction("Run Command") {}
+        void init(void) final { };
+        void term(void) final { };
+        bool process(const std::string &file) final ;
+        std::vector<std::string> getParameters() { 
+            return (std::vector<std::string>({kCommandOption}));
+        }
+        ~RunCommand() {};
     };
     
-  class ActionImportCSVFile : public TaskAction {
+  class ImportCSVFile : public TaskAction {
     public:
-        ActionImportCSVFile(const std::string &taskName) : TaskAction(taskName) {}
-        virtual void init(void) { };
-        virtual void term(void) { };
-        virtual bool process(const std::string &file);
-        virtual ~ActionImportCSVFile() {} ;
+        ImportCSVFile() : TaskAction("Import CSV File") {}
+        void init(void) final  { };
+        void term(void) final { };
+        bool process(const std::string &file) final;
+        std::vector<std::string> getParameters() final { 
+            return (std::vector<std::string>({kServerOption, kUserOption, 
+                    kPasswordOption, kDatabaseOption, kCollectionOption}));
+        }
+        ~ImportCSVFile() {};
     };
 
 } // namespace FPE_Actions
-
 #endif /* FPE_ACTIONFUNCS_HPP */
-

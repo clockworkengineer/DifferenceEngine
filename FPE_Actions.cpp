@@ -213,22 +213,22 @@ namespace FPE_Actions {
 
         switch (taskNumber) {
             case 0:
-                return (std::shared_ptr<TaskAction> (new ActionCopyFile(kTaskCopyFile)));
+                return (std::shared_ptr<TaskAction> (new CopyFile()));
                 break;
             case 1:
-                return (std::shared_ptr<TaskAction> (new ActionVideoConversion(kTaskVideoConversion)));
+                return (std::shared_ptr<TaskAction> (new VideoConversion()));
                 break;
             case 2:
-                return (std::shared_ptr<TaskAction> (new ActionEmailFile(kTaskEmailFile)));
+                return (std::shared_ptr<TaskAction> (new EmailFile()));
                 break;
             case 3:
-                return (std::shared_ptr<TaskAction> (new ActionZIPFile(kTaskZipFile)));
+                return (std::shared_ptr<TaskAction> (new ZIPFile()));
                 break;
             case 4:
-                return (std::shared_ptr<TaskAction> (new ActionRunCommand(kTaskRunCommand)));
+                return (std::shared_ptr<TaskAction> (new RunCommand()));
                 break;
-             case 5:
-                return (std::shared_ptr<TaskAction> (new ActionImportCSVFile(kTaskImportCSVFile)));
+            case 5:
+                return (std::shared_ptr<TaskAction> (new ImportCSVFile()));
                 break;      
         }
 
@@ -238,7 +238,7 @@ namespace FPE_Actions {
     // Run a specified command on the file (%1% source, %2% destination)
     //
 
-    bool ActionRunCommand::process(const string &file) {
+    bool RunCommand::process(const string &file) {
 
         // ASSERT for any invalid options.
 
@@ -271,7 +271,7 @@ namespace FPE_Actions {
     // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
     //
 
-    bool ActionVideoConversion::process(const string& file) {
+    bool VideoConversion::process(const string& file) {
 
         // ASSERT for any invalid options.
 
@@ -320,7 +320,7 @@ namespace FPE_Actions {
     // keeping the sources directory structure.
     //
 
-    bool ActionCopyFile::process(const string &file) {
+    bool CopyFile::process(const string &file) {
 
         // ASSERT for any invalid options.
 
@@ -370,17 +370,17 @@ namespace FPE_Actions {
     // Email file action function.
     //
 
-    void ActionEmailFile::init(void) {
+    void EmailFile::init(void) {
         CSMTP::init();
         CIMAP::init();
     };
 
-    void ActionEmailFile::term(void) {
+    void EmailFile::term(void) {
         CSMTP::closedown();
         CIMAP::closedown();
     };
 
-    bool ActionEmailFile::process(const string &file) {
+    bool EmailFile::process(const string &file) {
 
         // ASSERT for any invalid options.
 
@@ -455,7 +455,7 @@ namespace FPE_Actions {
     // Add file to ZIP archive.
     //
 
-    bool ActionZIPFile::process(const string &file) {
+    bool ZIPFile::process(const string &file) {
 
         // ASSERT for any invalid options.
 
@@ -506,7 +506,7 @@ namespace FPE_Actions {
     // Import CSV File to MongoDB
     //
 
-    bool ActionImportCSVFile::process(const string &file) {
+    bool ImportCSVFile::process(const string &file) {
 
         // ASSERT for any invalid options.
 

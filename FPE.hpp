@@ -39,6 +39,12 @@ namespace FPE {
     constexpr const char *kDatabaseOption{"database"};
     constexpr const char *kCollectionOption{"collection"};
     constexpr const char *kListOption{"list"};
+
+    //
+    // Handbrake command
+    //
+    
+    constexpr const char *kHandbrakeCommand = "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
               
     //
     // File Processing Engine.
