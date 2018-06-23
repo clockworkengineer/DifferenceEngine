@@ -41,12 +41,6 @@
 #include "FPE_ProcCmdLine.hpp"
 
 //
-// Antikythera Classes
-//
-
-#include "CLogger.hpp"
-
-//
 // Boost  file system library & program options processing
 //
 
@@ -68,8 +62,6 @@ namespace FPE_ProcCmdLine {
 
     using namespace FPE;
     using namespace FPE_Actions;
-
-    using namespace Antik::Util;
 
     namespace po = boost::program_options;
     namespace fs = boost::filesystem;
@@ -149,7 +141,7 @@ namespace FPE_ProcCmdLine {
 
     static void displayOption(const string& nameStr, const string& valueStr) {
         if (!valueStr.empty()) {
-            CLogger::coutstr({"*** ", nameStr, " = [", valueStr, "] ***"});
+            cout << "*** "  << nameStr << " = [" << valueStr << "] ***" << endl;
         }
     }
     
@@ -159,7 +151,7 @@ namespace FPE_ProcCmdLine {
     
     static void displayOption(bool bOption, const string& descStr) {
         if (bOption) {
-            CLogger::coutstr({"*** ", descStr, " ***"});
+            cout << "*** " << descStr << " ***" << endl;
         }
     }
 
@@ -181,7 +173,7 @@ namespace FPE_ProcCmdLine {
         // Display options
 
         displayOption(static_cast<string>(kConfigOption), optionData.optionsMap[kConfigOption]);
-        displayOption(static_cast<string>(kTaskOption), optionData.action->name);
+        displayOption(static_cast<string>(kTaskOption), optionData.action->getName());
         displayOption(static_cast<string>(kWatchOption), optionData.optionsMap[kWatchOption]);
         displayOption(static_cast<string>(kDestinationOption), optionData.optionsMap[kDestinationOption]);
         displayOption(static_cast<string>(kCommandOption), optionData.optionsMap[kCommandOption]);
@@ -216,10 +208,7 @@ namespace FPE_ProcCmdLine {
     // ================
     
     //
-    // Read in and process command line options using boost. Note this is the only 
-    // component that uses cout and std:cerr directly and not the thread safe 
-    // coutstr/cerrstr but that is not necessary as still in single thread mode when
-    // reading and processing options.
+    // Read in and process command line options using boost.
     //
 
     FPEOptions fetchCommandLineOptionData(int argc, char** argv) {
@@ -264,10 +253,10 @@ namespace FPE_ProcCmdLine {
             if (configVarMap.count("list")) {
                 cout << "File Processing Engine Application Tasks\n\n";
                 int taskNo=0;
-                std::shared_ptr<CTask::Action> taskFunc;
+                std::shared_ptr<TaskAction> taskFunc;
                 taskFunc = createTaskAction(taskNo);
-                while (!taskFunc->name.empty()){
-                    cout << taskNo << "\t" << taskFunc->name << "\n";
+                while (!taskFunc->getName().empty()){
+                    cout << taskNo << "\t" << taskFunc->getName() << "\n";
                     taskFunc = createTaskAction(++taskNo);
                 }
                 exit(EXIT_SUCCESS);
@@ -299,19 +288,19 @@ namespace FPE_ProcCmdLine {
 
             if (configVarMap.count(kTaskOption)) {
                 optionData.action = createTaskAction(stoi(configVarMap[kTaskOption].as<string>()));
-                if (optionData.action->name == "") {
+                if (optionData.action->getName() == "") {
                     throw po::error("Invalid Task Number.");
-                } else if (optionData.action->name == kTaskCopyFile) {
+                } else if (optionData.action->getName() == kTaskCopyFile) {
                    checkOptionPresent({kDestinationOption}, configVarMap);
-                } else if (optionData.action->name == kTaskVideoConversion) {
+                } else if (optionData.action->getName() == kTaskVideoConversion) {
                     optionData.optionsMap[kCommandOption] = kHandbrakeCommand;
-                } else if (optionData.action->name == kTaskRunCommand) {
+                } else if (optionData.action->getName() == kTaskRunCommand) {
                     checkOptionPresent({kCommandOption}, configVarMap);
-                } else if (optionData.action->name == kTaskZipFile) {
+                } else if (optionData.action->getName() == kTaskZipFile) {
                     checkOptionPresent({kArchiveOption}, configVarMap);
-                } else if (optionData.action->name == kTaskEmailFile) {
+                } else if (optionData.action->getName() == kTaskEmailFile) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kRecipientOption, kMailBoxOption}, configVarMap);
-                } else if (optionData.action->name == kTaskImportCSVFile) {
+                } else if (optionData.action->getName() == kTaskImportCSVFile) {
                     checkOptionPresent({kServerOption, kUserOption, kPasswordOption, kDatabaseOption, kCollectionOption}, configVarMap);
                 }
             }

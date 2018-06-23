@@ -105,7 +105,6 @@ namespace FPE_Actions {
     using namespace Antik::IMAP;
     using namespace Antik::File;
     using namespace Antik::SMTP;
-    using namespace Antik::Util;
     using namespace Antik::ZIP;
 
     // ===============
@@ -210,26 +209,26 @@ namespace FPE_Actions {
     //  Create task action object
     //
 
-    std::shared_ptr<CTask::Action> createTaskAction(int taskNumber) {
+    std::shared_ptr<TaskAction> createTaskAction(int taskNumber) {
 
         switch (taskNumber) {
             case 0:
-                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskCopyFile)));
+                return (std::shared_ptr<TaskAction> (new ActionCopyFile(kTaskCopyFile)));
                 break;
             case 1:
-                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskVideoConversion)));
+                return (std::shared_ptr<TaskAction> (new ActionVideoConversion(kTaskVideoConversion)));
                 break;
             case 2:
-                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskEmailFile)));
+                return (std::shared_ptr<TaskAction> (new ActionEmailFile(kTaskEmailFile)));
                 break;
             case 3:
-                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskZipFile)));
+                return (std::shared_ptr<TaskAction> (new ActionZIPFile(kTaskZipFile)));
                 break;
             case 4:
-                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskRunCommand)));
+                return (std::shared_ptr<TaskAction> (new ActionRunCommand(kTaskRunCommand)));
                 break;
              case 5:
-                return (std::shared_ptr<CTask::Action> (new ActionCopyFile(kTaskImportCSVFile)));
+                return (std::shared_ptr<TaskAction> (new ActionImportCSVFile(kTaskImportCSVFile)));
                 break;      
         }
 
@@ -557,4 +556,4 @@ namespace FPE_Actions {
 
     }
 
-} // namespace FPE_ActionFuncs
+} // namespace FPE_Actions

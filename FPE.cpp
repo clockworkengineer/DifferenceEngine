@@ -72,7 +72,6 @@ namespace FPE {
     using namespace std;
 
     using namespace Antik::File;
-    using namespace Antik::Util;
 
     using namespace FPE_ProcCmdLine;
     using namespace FPE_Actions;
@@ -89,7 +88,7 @@ namespace FPE {
 
         // Closedown action functions, display error and exit.
 
-        CLogger::cerrstr({errmsgStr});
+        std::cerr << errmsgStr << std::endl;
         exit(EXIT_FAILURE);
 
     }
@@ -120,7 +119,7 @@ namespace FPE {
             task.monitor();
         }
 
-        // If an exception occurred rethrow (end of chain)
+        // If an exception occurred re-throw (end of chain)
 
         if (task.getThrownException()) {
             rethrow_exception(task.getThrownException());
@@ -175,11 +174,11 @@ namespace FPE {
         //    
 
         } catch (const boost::filesystem::filesystem_error & e) {
-            exitWithError(string("BOOST file system exception occured: [") + e.what() + "]");
+            exitWithError(e.what());
         } catch (const system_error &e) {
-            exitWithError(string("Caught a system_error exception: [") + e.what() + "]");
+            exitWithError(e.what());
         } catch (const exception & e) {
-            exitWithError(string("Standard exception occured: [") + e.what() + "]");
+            exitWithError(e.what());
         }
 
         std::cout << "FPE Exiting." << std::endl;

@@ -38,7 +38,7 @@ namespace FPE_ProcCmdLine {
     //
 
     struct FPEOptions {
-        std::shared_ptr<Antik::File::CTask::Action> action;      // Task action function details
+        std::shared_ptr<FPE_Actions::TaskAction> action;      // Task action function details
         std::unordered_map<std::string, std::string> optionsMap; // Options map
      };
 
