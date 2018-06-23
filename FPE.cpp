@@ -23,6 +23,7 @@
 // 3) Run shell command
 // 4) Email file as a attachment ( or add file to mailbox for IMAP server)
 // 5) File append to ZIP archive
+// 6) Import CSV file to MongoDB
 // 
 // All of this can be setup by using options  passed to the program from
 // command line (FPE --help for a full list).

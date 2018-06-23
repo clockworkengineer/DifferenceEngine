@@ -22,6 +22,7 @@
 // 3) Run shell 
 // 4) Email file as attachment (if the server is IMAP then mail message is appended to a mailbox)
 // 5) Append file to a ZIP archive
+// 6) Import CSV file to MongoDB
 // 
 // Dependencies:
 // 
@@ -229,8 +230,10 @@ namespace FPE_Actions {
                 break;
             case 5:
                 return (std::shared_ptr<TaskAction> (new ImportCSVFile()));
-                break;      
+                break;
         }
+        
+        return(nullptr);
 
     }
 

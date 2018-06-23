@@ -102,10 +102,10 @@ namespace FPE_ProcCmdLine {
     }
     
     //
-    // If a option is not present throw an exception.
+    // If a task option is not present throw an exception.
     //
 
-    static void checkOptionPresent(const vector<string>& options, const po::variables_map& configVarMap) {
+    static void checkTaskOptions(const vector<string>& options, const po::variables_map& configVarMap) {
 
         for (auto opt : options) {
             if (!configVarMap.count(opt) || configVarMap[opt].as<string>().empty()) {
@@ -118,10 +118,10 @@ namespace FPE_ProcCmdLine {
     //
     // If an option is not a valid int throw an exception.For the moment just try to convert to an
     // integer with stoi() (throws an error if the conversion fails). Note stoi() will convert up and to
-    // the first non-numeric character so a string like "89ttt" wil be converted to 89. 
+    // the first non-numeric character so a string like "89ttt" will be converted to 89. 
     //
     
-    static void checkOptionInt(const vector<string>& options, const po::variables_map& configVarMap) {
+    static void checkIntegerOptions(const vector<string>& options, const po::variables_map& configVarMap) {
 
         for (auto opt : options) {
             if (configVarMap.count(opt)) {
@@ -276,11 +276,11 @@ namespace FPE_ProcCmdLine {
                     throw po::error("Specified config file [" + configVarMap[kConfigOption].as<string>() + "] does not exist.");
                 }
             }
-
-            // Check that any specified integer options are valid
-
-            checkOptionInt({kTaskOption, kKillCountOption, kMaxDepthOption }, configVarMap);
-        
+            
+            // Check common integer options
+            
+            checkIntegerOptions({kTaskOption, kKillCountOption, kMaxDepthOption}, configVarMap);
+                 
             // Task option validation. Options  valid to the task being
             // run are checked for and if not present an exception is thrown to
             // produce a relevant error message.Any extra options not required 
@@ -288,7 +288,11 @@ namespace FPE_ProcCmdLine {
 
             if (configVarMap.count(kTaskOption)) {
                 optionData.action = createTaskAction(stoi(configVarMap[kTaskOption].as<string>()));
-                checkOptionPresent(optionData.action->getParameters(), configVarMap);
+                if (optionData.action) {
+                    checkTaskOptions(optionData.action->getParameters(), configVarMap);
+                } else {
+                    throw po::error("Error invalid task number.");                 
+                }
             }
   
             //
