@@ -30,10 +30,10 @@
 // 
 // Dependencies:
 // 
-// C11++              : Use of C11++ features.
-// Antikythera Classes: CTask, CSMTP, CIMAP, CIMAPParse, CZIP, CMIME, CLogger
-// Linux              : Target platform
-// Boost              : File system, program option.
+// C11++        : Use of C11++ features.
+// Antik Classes: CTask, CSMTP, CIMAP, CIMAPParse, CZIP, CMIME
+// Linux        : Target platform
+// Boost        : File system, program option.
 //
 
 // =============
@@ -49,7 +49,7 @@
 #include "FPE_Actions.hpp"
 
 //
-// Antikythera Classes
+// Antik Classes
 //
 
 #include "CRedirect.hpp"
@@ -142,17 +142,17 @@ namespace FPE {
             // cout to logfile if option specified.
 
             CRedirect logFile{cout};
-
-            // Get FPE command line options.
-
-            optionData = fetchCommandLineOptionData(argc, argv);
-
+            
             // Display BOOST version
 
             std::cout << "*** boost version = [" << 
                 to_string(BOOST_VERSION / 100000) << "." <<
                 to_string(BOOST_VERSION / 100 % 1000) <<"." <<
                 to_string(BOOST_VERSION % 100) << "] ***" << std::endl;
+            
+            // Get FPE command line options.
+
+            optionData = fetchCommandLineOptionData(argc, argv);
 
             // FPE up and running
 

@@ -207,7 +207,7 @@ namespace FPE_Actions {
     // ================
 
     //
-    //  Create task action object
+    // Task action factory
     //
 
     std::shared_ptr<TaskAction> createTaskAction(int taskNumber) {

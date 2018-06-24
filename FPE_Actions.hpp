@@ -19,9 +19,10 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 //
-// Antikythera Classes
+// Antik Classes
 //
 
 #include "CTask.hpp"
@@ -47,11 +48,10 @@ namespace FPE_Actions {
         
     public:
 
-        TaskAction(const std::string &taskName) : name{taskName}
-        {
-        }
-
-        // Data used by action is a map of string, string.
+        TaskAction(const std::string &taskName) : name{taskName} {}
+        virtual ~TaskAction() { };
+        
+        // Data used by action is a unordered_map<string, string>.
 
         void setActionData(std::unordered_map<std::string, std::string> &actionData) {
             m_actionData.insert(actionData.begin(),actionData.end());
@@ -62,10 +62,6 @@ namespace FPE_Actions {
         }
         
         virtual std::vector<std::string> getParameters() {}
-
-        virtual ~TaskAction() {
-            
-        };
 
     protected:
         std::string name; // Action name
@@ -80,7 +76,7 @@ namespace FPE_Actions {
     std::shared_ptr<TaskAction> createTaskAction(int taskNumber);
     
     //
-    // Action classes
+    // FPE Action classes
     //
     
     class CopyFile : public TaskAction {
@@ -98,13 +94,16 @@ namespace FPE_Actions {
     class VideoConversion : public TaskAction {
     public:
         VideoConversion() : TaskAction("Video Conversion") {}
-        virtual void init(void) { m_actionData[kCommandOption] = kHandbrakeCommand; };
+        virtual void init(void) { 
+            m_actionData[kCommandOption] = 
+               "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\""; 
+        };
         virtual void term(void) { };
         virtual bool process(const std::string &file);
         virtual std::vector<std::string> getParameters() { 
             return (std::vector<std::string>({kDestinationOption}));
         }
-        virtual ~VideoConversion() {};
+        ~VideoConversion() {};
     };
     
   class EmailFile : public TaskAction {

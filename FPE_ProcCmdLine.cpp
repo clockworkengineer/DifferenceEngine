@@ -17,10 +17,9 @@
 // 
 // Dependencies:
 // 
-// C11++              : Use of C11++ features.
-// Antikythera Classes: CLogger
-// Linux              : Target platform
-// Boost              : File system, program options.
+// C11++        : Use of C11++ features.
+// Linux        : Target platform
+// Boost        : File system, program options.
 //
 
 // =============
@@ -46,7 +45,6 @@
 
 #include "boost/program_options.hpp" 
 #include <boost/filesystem.hpp>
-
 
 // =========
 // NAMESPACE
