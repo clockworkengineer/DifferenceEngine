@@ -268,6 +268,18 @@ namespace FPE_Actions {
             commandStr = this->m_actionData[kCommandOption];
         }
 
+        auto result = 0;
+        if ((result = runShellCommand(commandStr)) == 0) {
+            bSuccess = true;
+            std::cout << "Command success." << std::endl;
+            if (!this->m_actionData[kDeleteOption].empty()) {
+                std::cout << "Deleting Source [" << sourceFile.string() << "]" << std::endl;
+                fs::remove(sourceFile);
+            }
+
+        } 
+
+        return (bSuccess);
     }
 
     //

@@ -164,8 +164,10 @@ namespace FPE_ProcCmdLine {
         // Make watch/destination paths absolute
 
         optionData.optionsMap[kWatchOption] = fs::absolute(optionData.optionsMap[kWatchOption]).lexically_normal().string();
+        if (optionData.optionsMap[kWatchOption].back() == '.') optionData.optionsMap[kWatchOption].pop_back();
         if (!optionData.optionsMap[kDestinationOption].empty()) {
             optionData.optionsMap[kDestinationOption] = fs::absolute(optionData.optionsMap[kDestinationOption]).lexically_normal().string();
+            if (optionData.optionsMap[kDestinationOption].back() == '.') optionData.optionsMap[kDestinationOption].pop_back();
         }
         
         // Display options

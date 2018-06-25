@@ -32,128 +32,183 @@
 // =========
 
 namespace FPE_Actions {
-    
-    // =======
-    // IMPORTS
-    // =======
-
-    using namespace FPE;
-    using namespace Antik::File;
 
     //
     // TaskAction class
     //
-    
-    class TaskAction : public CTask::IAction {
-        
+
+    class TaskAction : public Antik::File::CTask::IAction {
     public:
 
-        TaskAction(const std::string &taskName) : name{taskName} {}
-        virtual ~TaskAction() { };
-        
+        TaskAction(const std::string &taskName) : name{taskName}
+        {
+        }
+
+        virtual ~TaskAction() {
+        };
+
         // Data used by action is a unordered_map<string, string>.
 
         void setActionData(std::unordered_map<std::string, std::string> &actionData) {
-            m_actionData.insert(actionData.begin(),actionData.end());
+            m_actionData.insert(actionData.begin(), actionData.end());
         }
 
         std::string getName() const {
             return (name);
         }
-        
-        virtual std::vector<std::string> getParameters() {}
+
+        virtual std::vector<std::string> getParameters() = 0;
 
     protected:
         std::string name; // Action name
         std::unordered_map<std::string, std::string> m_actionData; // Map to store action data
 
     };
-           
+
     //
     //  Get task details from taskList table
     //
 
     std::shared_ptr<TaskAction> createTaskAction(int taskNumber);
-    
+
     //
     // FPE Action classes
     //
-    
+
     class CopyFile : public TaskAction {
     public:
-        CopyFile() : TaskAction("Copy File") {}
-        void init(void) final  { };
-        void term(void) final { };
-        bool process(const std::string &file) final ;
-        std::vector<std::string> getParameters() final { 
-            return (std::vector<std::string>({kDestinationOption}));
+
+        CopyFile() : TaskAction("Copy File") {
         }
-        ~CopyFile() {};
+
+        void init(void) final {
+        };
+
+        void term(void) final {
+        };
+        
+        bool process(const std::string &file) final;
+
+        std::vector<std::string> getParameters() final {
+            return (std::vector<std::string>({FPE::kDestinationOption}));
+        }
+
+        ~CopyFile() {
+        };
     };
 
     class VideoConversion : public TaskAction {
     public:
-        VideoConversion() : TaskAction("Video Conversion") {}
-        virtual void init(void) { 
-            m_actionData[kCommandOption] = 
-               "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\""; 
-        };
-        virtual void term(void) { };
-        virtual bool process(const std::string &file);
-        virtual std::vector<std::string> getParameters() { 
-            return (std::vector<std::string>({kDestinationOption}));
+
+        VideoConversion() : TaskAction("Video Conversion") {
         }
-        ~VideoConversion() {};
+
+        virtual void init(void) {
+            // Allows the override of built-in command
+            if (m_actionData.find(FPE::kCommandOption)==m_actionData.end()) {
+                m_actionData[FPE::kCommandOption] =
+                    "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
+            }
+        };
+
+        virtual void term(void) {
+        };
+        
+        virtual bool process(const std::string &file);
+
+        virtual std::vector<std::string> getParameters() {
+            return (std::vector<std::string>({FPE::kDestinationOption}));
+        }
+
+        ~VideoConversion() {
+        };
     };
-    
-  class EmailFile : public TaskAction {
+
+    class EmailFile : public TaskAction {
     public:
-        EmailFile() : TaskAction("Email Attachment") {}
+
+        EmailFile() : TaskAction("Email Attachment") {
+        }
+        
         void init(void) final;
         void term(void) final;
-        bool process(const std::string &file) final ;
-        std::vector<std::string> getParameters() final { 
-            return (std::vector<std::string>({kServerOption, kUserOption, 
-                    kPasswordOption, kRecipientOption, kMailBoxOption}));
-        }
-        ~EmailFile() {};
-    };
-    
-  class ZIPFile : public TaskAction {
-    public:
-        ZIPFile() : TaskAction("ZIP Archive") {}
-        void init(void) final { };
-        void term(void) final { };
+        
         bool process(const std::string &file) final;
-        std::vector<std::string> getParameters() { 
-            return (std::vector<std::string>({kArchiveOption}));
+
+        std::vector<std::string> getParameters() final {
+            return (std::vector<std::string>({FPE::kServerOption, FPE::kUserOption,
+                FPE::kPasswordOption, FPE::kRecipientOption, FPE::kMailBoxOption}));
         }
-        ~ZIPFile() {};
+
+        ~EmailFile() {
+        };
     };
-    
-  class RunCommand : public TaskAction {
+
+    class ZIPFile : public TaskAction {
     public:
-        RunCommand() : TaskAction("Run Command") {}
-        void init(void) final { };
-        void term(void) final { };
-        bool process(const std::string &file) final ;
-        std::vector<std::string> getParameters() { 
-            return (std::vector<std::string>({kCommandOption}));
+
+        ZIPFile() : TaskAction("ZIP Archive") {
         }
-        ~RunCommand() {};
-    };
-    
-  class ImportCSVFile : public TaskAction {
-    public:
-        ImportCSVFile() : TaskAction("Import CSV File") {}
-        void init(void) final  { };
-        void term(void) final { };
+
+        void init(void) final {
+        };
+
+        void term(void) final {
+        };
+        
         bool process(const std::string &file) final;
-        std::vector<std::string> getParameters() final { 
-            return (std::vector<std::string>({kServerOption, kUserOption, 
-                    kPasswordOption, kDatabaseOption, kCollectionOption}));
+
+        std::vector<std::string> getParameters() {
+            return (std::vector<std::string>({FPE::kArchiveOption}));
         }
-        ~ImportCSVFile() {};
+
+        ~ZIPFile() {
+        };
+    };
+
+    class RunCommand : public TaskAction {
+    public:
+
+        RunCommand() : TaskAction("Run Command") {
+        }
+
+        void init(void) final {
+        };
+
+        void term(void) final {
+        };
+        
+        bool process(const std::string &file) final;
+
+        std::vector<std::string> getParameters() {
+            return (std::vector<std::string>({FPE::kCommandOption}));
+        }
+
+        ~RunCommand() {
+        };
+    };
+
+    class ImportCSVFile : public TaskAction {
+    public:
+
+        ImportCSVFile() : TaskAction("Import CSV File") {
+        }
+
+        void init(void) final {
+        };
+
+        void term(void) final {
+        };
+        
+        bool process(const std::string &file) final;
+
+        std::vector<std::string> getParameters() final {
+            return (std::vector<std::string>({FPE::kServerOption, FPE::kUserOption,
+                FPE::kPasswordOption, FPE::kDatabaseOption, FPE::kCollectionOption}));
+        }
+
+        ~ImportCSVFile() {
+        };
     };
 
 } // namespace FPE_Actions
