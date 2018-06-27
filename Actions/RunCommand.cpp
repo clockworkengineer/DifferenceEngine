@@ -52,7 +52,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
-namespace FPE_Actions {
+namespace FPE_TaskActions {
 
     // =======
     // IMPORTS

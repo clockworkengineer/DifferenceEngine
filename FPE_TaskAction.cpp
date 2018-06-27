@@ -1,6 +1,6 @@
 #include "HOST.hpp"
 /*
- * File:   FPE_Actions.cpp
+ * File:   FPE_TaskAction.cpp
  *
  * Author: Robert Tizzard
  * 
@@ -11,7 +11,7 @@
  */
 
 //
-// Module: FPE_Actions
+// Module: FPE_TaskAction
 //
 // Description: Generate FPE Task object for task number passed in
 // 
@@ -33,7 +33,7 @@
 #include "FPE.hpp"
 #include "FPE_Actions.hpp"
 
-namespace FPE_Actions {
+namespace FPE_TaskActions {
 
     // =======
     // IMPORTS
@@ -59,7 +59,7 @@ namespace FPE_Actions {
     // Task action factory
     //
 
-    shared_ptr<TaskAction> createTaskAction(int taskNumber) {
+    shared_ptr<TaskAction> TaskAction::create(int taskNumber) {
 
         switch (taskNumber) {
             case 0:
@@ -86,4 +86,4 @@ namespace FPE_Actions {
 
     }
 
-} // namespace FPE_Actions
+} // namespace FPE_TaskAction

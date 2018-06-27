@@ -59,7 +59,7 @@ namespace FPE_ProcCmdLine {
     using namespace std;
 
     using namespace FPE;
-    using namespace FPE_Actions;
+    using namespace FPE_TaskActions;
 
     namespace po = boost::program_options;
     namespace fs = boost::filesystem;
@@ -254,10 +254,10 @@ namespace FPE_ProcCmdLine {
                 cout << "File Processing Engine Application Tasks\n\n";
                 int taskNo=0;
                 shared_ptr<TaskAction> taskFunc;
-                taskFunc = createTaskAction(taskNo);
+                taskFunc = TaskAction::create(taskNo);
                 while (!taskFunc->getName().empty()){
                     cout << taskNo << "\t" << taskFunc->getName() << "\n";
-                    taskFunc = createTaskAction(++taskNo);
+                    taskFunc =  TaskAction::create(++taskNo);
                 }
                 exit(EXIT_SUCCESS);
             }
@@ -287,7 +287,7 @@ namespace FPE_ProcCmdLine {
             // for a task are just ignored.
 
             if (configVarMap.count(kTaskOption)) {
-                optionData.action = createTaskAction(stoi(configVarMap[kTaskOption].as<string>()));
+                optionData.action = TaskAction::create(stoi(configVarMap[kTaskOption].as<string>()));
                 if (optionData.action) {
                     checkTaskOptions(optionData.action->getParameters(), configVarMap);
                 } else {

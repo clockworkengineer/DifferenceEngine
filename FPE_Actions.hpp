@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef FPE_ACTIONFUNCS_HPP
-#define FPE_ACTIONFUNCS_HPP
+#ifndef FPE_ACTIONS_HPP
+#define FPE_ACTIONS_HPP
 
 //
 // C++ STL
@@ -26,50 +26,13 @@
 //
 
 #include "CTask.hpp"
+#include "FPE_TaskAction.hpp"
 
 // =========
 // NAMESPACE
 // =========
 
-namespace FPE_Actions {
-
-    //
-    // TaskAction class
-    //
-
-    class TaskAction : public Antik::File::CTask::IAction {
-    public:
-
-        TaskAction(const std::string &taskName) : name{taskName}
-        {
-        }
-
-        virtual ~TaskAction() {
-        };
-
-        // Data used by action is a unordered_map<string, string>.
-
-        void setActionData(std::unordered_map<std::string, std::string> &actionData) {
-            m_actionData.insert(actionData.begin(), actionData.end());
-        }
-
-        std::string getName() const {
-            return (name);
-        }
-
-        virtual std::vector<std::string> getParameters() = 0;
-
-    protected:
-        std::string name; // Action name
-        std::unordered_map<std::string, std::string> m_actionData; // Map to store action data
-
-    };
-
-    //
-    //  Get task details from taskList table
-    //
-
-    std::shared_ptr<TaskAction> createTaskAction(int taskNumber);
+namespace FPE_TaskActions {
 
     //
     // FPE Action classes
@@ -212,4 +175,6 @@ namespace FPE_Actions {
     };
 
 } // namespace FPE_Actions
-#endif /* FPE_ACTIONFUNCS_HPP */
+#endif /* FPE_ACTIONS_HPP */
+
+

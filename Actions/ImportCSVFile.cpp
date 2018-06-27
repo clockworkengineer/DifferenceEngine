@@ -60,7 +60,7 @@
 #include <mongocxx/instance.hpp>
 #endif // MONGO_DRIVER_INSTALLED
 
-namespace FPE_Actions {
+namespace FPE_TaskActions {
 
     // =======
     // IMPORTS

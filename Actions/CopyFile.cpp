@@ -46,7 +46,7 @@
 
 #include <boost/filesystem.hpp>
 
-namespace FPE_Actions {
+namespace FPE_TaskActions {
 
     // =======
     // IMPORTS
