@@ -13,7 +13,7 @@
 //
 // Module: RunCommand
 //
-// Description:
+// Description Take passed in file and run shell a shell command on it.
 // 
 // Dependencies:
 // 
@@ -196,9 +196,9 @@ namespace FPE_Actions {
         auto result = 0;
         if ((result = runShellCommand(command)) == 0) {
             bSuccess = true;
-            std::cout << "Command success." << std::endl;
+            cout << "Command success." << endl;
             if (!this->m_actionData[kDeleteOption].empty()) {
-                std::cout << "Deleting Source [" << sourceFile.string() << "]" << std::endl;
+                cout << "Deleting Source [" << sourceFile.string() << "]" << endl;
                 fs::remove(sourceFile);
             }
 

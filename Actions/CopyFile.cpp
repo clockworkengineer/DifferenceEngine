@@ -95,25 +95,25 @@ namespace FPE_Actions {
 
         if (!fs::exists(destinationFile.parent_path())) {
             if (fs::create_directories(destinationFile.parent_path())) {
-                 std::cout << "Created :" << destinationFile.parent_path().string() << std::endl;
+                 cout << "Created :" << destinationFile.parent_path().string() << endl;
             } else {
-                 std::cerr << "Created failed for :" << destinationFile.parent_path().string() << std::endl;
+                 cerr << "Created failed for :" << destinationFile.parent_path().string() << endl;
             }
         }
 
         // Currently only copy file if it doesn't already exist.
 
         if (!fs::exists(destinationFile)) {
-            std::cout << "COPY FROM [" << sourceFile.string() << "] TO [" << destinationFile.string() << "]" << std::endl;
+            cout << "COPY FROM [" << sourceFile.string() << "] TO [" << destinationFile.string() << "]" << endl;
             fs::copy_file(sourceFile, destinationFile, fs::copy_option::none);
             bSuccess = true;
             if (!this->m_actionData[kDeleteOption].empty()) {
-                 std::cout << "Deleting Source ["+sourceFile.string()+"]" << std::endl;
+                 cout << "Deleting Source ["+sourceFile.string()+"]" << endl;
                 fs::remove(sourceFile);
             }
 
         } else {
-             std::cout << "Destination already exists : " << destinationFile.string() << std::endl;
+             cout << "Destination already exists : " << destinationFile.string() << endl;
         }
 
         return (bSuccess);

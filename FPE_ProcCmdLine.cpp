@@ -125,7 +125,7 @@ namespace FPE_ProcCmdLine {
             if (configVarMap.count(opt)) {
                 try {
                     stoi(configVarMap[opt].as<string>());
-                } catch (const std::exception& e) {
+                } catch (const exception& e) {
                     throw po::error(opt + " is not a valid integer.");
                 }
             }
@@ -253,7 +253,7 @@ namespace FPE_ProcCmdLine {
             if (configVarMap.count("list")) {
                 cout << "File Processing Engine Application Tasks\n\n";
                 int taskNo=0;
-                std::shared_ptr<TaskAction> taskFunc;
+                shared_ptr<TaskAction> taskFunc;
                 taskFunc = createTaskAction(taskNo);
                 while (!taskFunc->getName().empty()){
                     cout << taskNo << "\t" << taskFunc->getName() << "\n";

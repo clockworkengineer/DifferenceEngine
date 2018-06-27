@@ -13,7 +13,7 @@
 //
 // Module: FPE_Actions
 //
-// Description:
+// Description: Generate FPE Task object for task number passed in
 // 
 // Dependencies:
 // 
@@ -59,32 +59,31 @@ namespace FPE_Actions {
     // Task action factory
     //
 
-    std::shared_ptr<TaskAction> createTaskAction(int taskNumber) {
+    shared_ptr<TaskAction> createTaskAction(int taskNumber) {
 
         switch (taskNumber) {
             case 0:
-                return (std::shared_ptr<TaskAction> (new CopyFile()));
+                return (shared_ptr<TaskAction> (new CopyFile()));
                 break;
             case 1:
-                return (std::shared_ptr<TaskAction> (new VideoConversion()));
+                return (shared_ptr<TaskAction> (new VideoConversion()));
                 break;
             case 2:
-                return (std::shared_ptr<TaskAction> (new EmailFile()));
+                return (shared_ptr<TaskAction> (new EmailFile()));
                 break;
             case 3:
-                return (std::shared_ptr<TaskAction> (new ZIPFile()));
+                return (shared_ptr<TaskAction> (new ZIPFile()));
                 break;
             case 4:
-                return (std::shared_ptr<TaskAction> (new RunCommand()));
+                return (shared_ptr<TaskAction> (new RunCommand()));
                 break;
             case 5:
-                return (std::shared_ptr<TaskAction> (new ImportCSVFile()));
+                return (shared_ptr<TaskAction> (new ImportCSVFile()));
                 break;
         }
         
         return(nullptr);
 
     }
-
 
 } // namespace FPE_Actions

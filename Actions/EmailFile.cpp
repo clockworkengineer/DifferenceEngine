@@ -13,7 +13,8 @@
 //
 // Module: EmailFile
 //
-// Description:
+// Description: Take passed in file  attach it to an email and send to recipient
+// (SMTP) or append it to an email box (IMAP).
 // 
 // Dependencies:
 // 
@@ -124,7 +125,7 @@ namespace FPE_Actions {
             if (this->m_actionData[kServerOption].find(string("smtp")) == 0) {
 
                 smtp.postMail();
-                std::cout << "Emailing file [" << file << "] to [" << this->m_actionData[kRecipientOption] << "]" << std::endl;
+                cout << "Emailing file [" << file << "] to [" << this->m_actionData[kRecipientOption] << "]" << endl;
                 bSuccess = true;
 
             } else if (this->m_actionData[kServerOption].find(string("imap")) == 0) {
@@ -146,9 +147,9 @@ namespace FPE_Actions {
 
                 CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(commandLine));
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
-                    std::cout << commandResponse->errorMessage << std::endl;
+                    cout << commandResponse->errorMessage << endl;
                 } else {
-                    std::cout << "Added file [" << file << "] to [" << this->m_actionData[kMailBoxOption]  << "]" << std::endl;
+                    cout << "Added file [" << file << "] to [" << this->m_actionData[kMailBoxOption]  << "]" << endl;
                     bSuccess = true;
                 }
 
@@ -157,11 +158,11 @@ namespace FPE_Actions {
             }
 
         } catch (const CSMTP::Exception &e) {
-            std::cerr << e.what() << std::endl;
+            cerr << e.what() << endl;
         } catch (const CIMAP::Exception &e) {
-            std::cerr << e.what() << std::endl;
+            cerr << e.what() << endl;
         } catch (const exception & e) {
-             std::cerr << "Standard exception occured: [" << e.what() << "]" << std::endl;
+             cerr << "Standard exception occured: [" << e.what() << "]" << endl;
         }
 
         return (bSuccess);

@@ -31,9 +31,9 @@
 // Dependencies:
 // 
 // C11++        : Use of C11++ features.
-// Antik Classes: CTask, CSMTP, CIMAP, CIMAPParse, CZIP, CMIME
+// Antik Classes: CTask, CRedirect
 // Linux        : Target platform
-// Boost        : File system, program option.
+// Boost        : File system.
 //
 
 // =============
@@ -90,7 +90,7 @@ namespace FPE {
 
         // Closedown action functions, display error and exit.
 
-        std::cerr << errmsg << std::endl;
+        cerr << errmsg << endl;
         exit(EXIT_FAILURE);
 
     }
@@ -145,10 +145,10 @@ namespace FPE {
             
             // Display BOOST version
 
-            std::cout << "*** boost version = [" << 
+            cout << "*** boost version = [" << 
                 to_string(BOOST_VERSION / 100000) << "." <<
                 to_string(BOOST_VERSION / 100 % 1000) <<"." <<
-                to_string(BOOST_VERSION % 100) << "] ***" << std::endl;
+                to_string(BOOST_VERSION % 100) << "] ***" << endl;
             
             // Get FPE command line options.
 
@@ -156,7 +156,7 @@ namespace FPE {
 
             // FPE up and running
 
-            std::cout << "FPE Running..." << std::endl;
+            cout << "FPE Running..." << endl;
 
             // Output to log file ( CRedirect(cout) is the simplest solution). 
             // Once the try is exited CRedirect object will be destroyed and 
@@ -164,7 +164,7 @@ namespace FPE {
 
             if (!optionData.optionsMap[kLogOption].empty()) {
                 logFile.change(optionData.optionsMap[kLogOption], ios_base::out | ios_base::app);
-                std::cout << string(100, '=') << std::endl;
+                cout << string(100, '=') << endl;
             }
 
             // Create task object
@@ -183,7 +183,7 @@ namespace FPE {
             exitWithError(e.what());
         }
 
-        std::cout << "FPE Exiting." << std::endl;
+        cout << "FPE Exiting." << endl;
 
 
     }

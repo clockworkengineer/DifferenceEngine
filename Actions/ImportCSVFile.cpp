@@ -13,7 +13,7 @@
 //
 // Module: ImportCSVFile
 //
-// Description: 
+// Description: Take passed in CSV and import it into a MongoDB.
 //
 // Dependencies:
 // 
@@ -72,7 +72,6 @@ namespace FPE_Actions {
 
     namespace fs = boost::filesystem;
 
-
     // ===============
     // LOCAL VARIABLES
     // ===============
@@ -106,11 +105,11 @@ namespace FPE_Actions {
 
         ifstream csvFileStream(sourceFile.string());
         if (!csvFileStream.is_open()) {
-            std::cout << "Error opening file " << sourceFile.string() << std::endl;
+            cout << "Error opening file " << sourceFile.string() << endl;
             return (false);
         }
 
-        std::cout << "Importing CSV file [" << sourceFile.filename().string() << "] To MongoDB." << std::endl;
+        cout << "Importing CSV file [" << sourceFile.filename().string() << "] To MongoDB." << endl;
 
         mongocxx::instance driverInstance{};
         mongocxx::client mongoConnection{mongocxx::uri{this->m_actionData[kServerOption]}};

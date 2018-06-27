@@ -13,7 +13,7 @@
 //
 // Module: ZipFile
 //
-// Description:
+// Description: Take passed in file and add it to a ZIP archive.
 // 
 // Dependencies:
 // 
@@ -100,9 +100,9 @@ namespace FPE_Actions {
 
         if (!fs::exists(zipFilePath.parent_path())) {
             if (fs::create_directories(zipFilePath.parent_path())) {
-                 std::cout << "Created : "<< zipFilePath.parent_path().string() << std::endl;
+                 cout << "Created : "<< zipFilePath.parent_path().string() << endl;
             } else {
-                 std::cerr << "Created failed for :" << zipFilePath.parent_path().string() << std::endl;
+                 cerr << "Created failed for :" << zipFilePath.parent_path().string() << endl;
             }
         }
 
@@ -111,7 +111,7 @@ namespace FPE_Actions {
         CZIP zipFile(zipFilePath.string());
 
         if (!fs::exists(zipFilePath)) {
-            std::cout << "Creating archive " << zipFilePath.string() << std::endl;
+            cout << "Creating archive " << zipFilePath.string() << endl;
             zipFile.create();
         }
 
@@ -121,7 +121,7 @@ namespace FPE_Actions {
 
         bSuccess = zipFile.add(sourceFile.string(), sourceFile.filename().string());
         if (bSuccess) {
-             std::cout << "Appended [" << sourceFile.filename().string() << "] to archive [" << zipFilePath.string() << "]" << std::endl;
+             cout << "Appended [" << sourceFile.filename().string() << "] to archive [" << zipFilePath.string() << "]" << endl;
         }
 
         zipFile.close();

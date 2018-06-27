@@ -13,7 +13,8 @@
 //
 // Module: VideoConversion
 //
-// Description:
+// Description: Take passed in file and convert it to a new video format 
+// (default MPEG4) using handbrake.
 //
 // Dependencies:
 // 
@@ -192,19 +193,19 @@ namespace FPE_Actions {
 
         string command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
 
-        std::cout << "Converting file [" << sourceFile.string() << "] To [" << destinationFile.string() << "]" << std::endl;
+        cout << "Converting file [" << sourceFile.string() << "] To [" << destinationFile.string() << "]" << endl;
 
         auto result = 0;
         if ((result = runShellCommand(command)) == 0) {
             bSuccess = true;
-            std::cout << "File conversion success." << std::endl;
+            cout << "File conversion success." << endl;
             if (!this->m_actionData[kDeleteOption].empty()) {
-                std::cout << "Deleting Source [" << sourceFile.string() << "]" << std::endl;
+                cout << "Deleting Source [" << sourceFile.string() << "]" << endl;
                 fs::remove(sourceFile);
             }
 
         } else {
-             std::cout << "File conversion error: " << to_string(result) << std::endl;
+             cout << "File conversion error: " << to_string(result) << endl;
         }
 
         return (bSuccess);
