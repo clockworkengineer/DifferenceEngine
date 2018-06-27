@@ -162,23 +162,23 @@ namespace FPE_Actions {
     // All heap memory cleaned up when function returns due to unique_pointers.
     //
 
-    static int runShellCommand(const string& shellCommandStr) {
+    static int runShellCommand(const string& shellCommand) {
 
         int exitStatus = 0;
         int argc = 0;
 
         vector<char *> argvs;
         unique_ptr<char*> argv;
-        unique_ptr<char> commandStr{ new char[shellCommandStr.length() + 1]};
+        unique_ptr<char> command{ new char[shellCommand.length() + 1]};
 
         // Take a 'C' string copy
 
-        shellCommandStr.copy(commandStr.get(), shellCommandStr.length());
-        commandStr.get()[shellCommandStr.length()] = 0; // null terminate
+        shellCommand.copy(command.get(), shellCommand.length());
+        command.get()[shellCommand.length()] = 0; // null terminate
 
         // Loop through command splitting into substrings for argv
 
-        char *p2 = strtok(commandStr.get(), " ");
+        char *p2 = strtok(command.get(), " ");
 
         while (p2) {
             argvs.push_back(p2);
@@ -259,17 +259,17 @@ namespace FPE_Actions {
         bool srcFound = (this->m_actionData[kCommandOption].find("%1%") != string::npos);
         bool dstFound = (this->m_actionData[kCommandOption].find("%2%") != string::npos);
 
-        string commandStr;
+        string command;
         if (srcFound && dstFound) {
-            commandStr = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
+            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
         } else if (srcFound) {
-            commandStr = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string()).str();
+            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string()).str();
         } else {
-            commandStr = this->m_actionData[kCommandOption];
+            command = this->m_actionData[kCommandOption];
         }
 
         auto result = 0;
-        if ((result = runShellCommand(commandStr)) == 0) {
+        if ((result = runShellCommand(command)) == 0) {
             bSuccess = true;
             std::cout << "Command success." << std::endl;
             if (!this->m_actionData[kDeleteOption].empty()) {
@@ -309,12 +309,12 @@ namespace FPE_Actions {
 
         // Convert file
 
-        string commandStr = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
+        string command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
 
         std::cout << "Converting file [" << sourceFile.string() << "] To [" << destinationFile.string() << "]" << std::endl;
 
         auto result = 0;
-        if ((result = runShellCommand(commandStr)) == 0) {
+        if ((result = runShellCommand(command)) == 0) {
             bSuccess = true;
             std::cout << "File conversion success." << std::endl;
             if (!this->m_actionData[kDeleteOption].empty()) {
@@ -428,21 +428,21 @@ namespace FPE_Actions {
             } else if (this->m_actionData[kServerOption].find(string("imap")) == 0) {
 
                 CIMAP imap;
-                string mailMessageStr;
-                string commandLineStr;
+                string mailMessage;
+                string commandLine;
 
-                commandLineStr = "Append " + this->m_actionData[kMailBoxOption] + " (\\Seen) {";
-                mailMessageStr = smtp.getMailMessage();
-                commandLineStr += to_string(mailMessageStr.length() - 2) + "}" + mailMessageStr;
+                commandLine = "Append " + this->m_actionData[kMailBoxOption] + " (\\Seen) {";
+                mailMessage = smtp.getMailMessage();
+                commandLine += to_string(mailMessage.length() - 2) + "}" + mailMessage;
 
                 imap.setServer(this->m_actionData[kServerOption]);
                 imap.setUserAndPassword(this->m_actionData[kUserOption], this->m_actionData[kPasswordOption]);
 
                 imap.connect();
 
-                string commandResponseStr(imap.sendCommand(commandLineStr));
+                string response(imap.sendCommand(commandLine));
 
-                CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(commandLineStr));
+                CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(commandLine));
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
                     std::cout << commandResponse->errorMessage << std::endl;
                 } else {
@@ -547,18 +547,18 @@ namespace FPE_Actions {
         mongocxx::client mongoConnection{mongocxx::uri{this->m_actionData[kServerOption]}};
         auto csvCollection = mongoConnection[this->m_actionData[kDatabaseOption]][this->m_actionData[kCollectionOption]];
         vector<string> fieldNames;
-        string csvLineStr;
+        string csvLine;
 
-        getline(csvFileStream, csvLineStr);
-        if (csvLineStr.back() == '\r')csvLineStr.pop_back();
+        getline(csvFileStream, csvLine);
+        if (csvLine.back() == '\r')csvLine.pop_back();
 
-        fieldNames = getCSVTokens(csvLineStr);
+        fieldNames = getCSVTokens(csvLine);
 
-        while (getline(csvFileStream, csvLineStr)) {
+        while (getline(csvFileStream, csvLine)) {
             vector< string > fieldValues;
             bsoncxx::builder::stream::document document{};
-            if (csvLineStr.back() == '\r')csvLineStr.pop_back();
-            fieldValues = getCSVTokens(csvLineStr);
+            if (csvLine.back() == '\r')csvLine.pop_back();
+            fieldValues = getCSVTokens(csvLine);
             int i = 0;
             for (auto& field : fieldValues) {
                 document << fieldNames[i++] << field;

@@ -137,9 +137,9 @@ namespace FPE_ProcCmdLine {
     // Display option name and its string value
     //
 
-    static void displayOption(const string& nameStr, const string& valueStr) {
-        if (!valueStr.empty()) {
-            cout << "*** "  << nameStr << " = [" << valueStr << "] ***" << endl;
+    static void displayOption(const char* name, const string& value) {
+        if (!value.empty()) {
+            cout << "*** "  << name << " = [" << value << "] ***" << endl;
         }
     }
     
@@ -147,9 +147,9 @@ namespace FPE_ProcCmdLine {
     // Display description string if boolean option true
     //
     
-    static void displayOption(bool bOption, const string& descStr) {
+    static void displayOption(bool bOption, const string& desc) {
         if (bOption) {
-            cout << "*** " << descStr << " ***" << endl;
+            cout << "*** " << desc << " ***" << endl;
         }
     }
 
@@ -172,19 +172,19 @@ namespace FPE_ProcCmdLine {
         
         // Display options
 
-        displayOption(static_cast<string>(kConfigOption), optionData.optionsMap[kConfigOption]);
-        displayOption(static_cast<string>(kTaskOption), optionData.action->getName());
-        displayOption(static_cast<string>(kWatchOption), optionData.optionsMap[kWatchOption]);
-        displayOption(static_cast<string>(kDestinationOption), optionData.optionsMap[kDestinationOption]);
-        displayOption(static_cast<string>(kCommandOption), optionData.optionsMap[kCommandOption]);
-        displayOption(static_cast<string>(kServerOption), optionData.optionsMap[kServerOption]);
-        displayOption(static_cast<string>(kMailBoxOption), optionData.optionsMap[kMailBoxOption]);
-        displayOption(static_cast<string>(kArchiveOption), optionData.optionsMap[kArchiveOption]);
-        displayOption(static_cast<string>(kLogOption), optionData.optionsMap[kLogOption]);
-        displayOption(static_cast<string>(kExtensionOption), optionData.optionsMap[kExtensionOption]);
-        displayOption(static_cast<string>(kKillCountOption), optionData.optionsMap[kKillCountOption]);
-        displayOption(static_cast<string>(kDatabaseOption), optionData.optionsMap[kDatabaseOption]);
-        displayOption(static_cast<string>(kCollectionOption), optionData.optionsMap[kCollectionOption]);
+        displayOption(kConfigOption, optionData.optionsMap[kConfigOption]);
+        displayOption(kTaskOption, optionData.action->getName());
+        displayOption(kWatchOption, optionData.optionsMap[kWatchOption]);
+        displayOption(kDestinationOption, optionData.optionsMap[kDestinationOption]);
+        displayOption(kCommandOption, optionData.optionsMap[kCommandOption]);
+        displayOption(kServerOption, optionData.optionsMap[kServerOption]);
+        displayOption(kMailBoxOption, optionData.optionsMap[kMailBoxOption]);
+        displayOption(kArchiveOption, optionData.optionsMap[kArchiveOption]);
+        displayOption(kLogOption, optionData.optionsMap[kLogOption]);
+        displayOption(kExtensionOption, optionData.optionsMap[kExtensionOption]);
+        displayOption(kKillCountOption, optionData.optionsMap[kKillCountOption]);
+        displayOption(kDatabaseOption, optionData.optionsMap[kDatabaseOption]);
+        displayOption(kCollectionOption, optionData.optionsMap[kCollectionOption]);
         displayOption(getOption<bool>(optionData,kQuietOption), kQuietOption);
         displayOption(getOption<bool>(optionData,kDeleteOption), kDeleteOption);
         displayOption(getOption<bool>(optionData,kSingleOption),kSingleOption);

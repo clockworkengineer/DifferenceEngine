@@ -86,11 +86,11 @@ namespace FPE {
     // Exit with error message/status
     //
 
-    static void exitWithError(const string& errmsgStr) {
+    static void exitWithError(const string& errmsg) {
 
         // Closedown action functions, display error and exit.
 
-        std::cerr << errmsgStr << std::endl;
+        std::cerr << errmsg << std::endl;
         exit(EXIT_FAILURE);
 
     }
