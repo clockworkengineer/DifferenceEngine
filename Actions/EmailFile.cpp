@@ -145,7 +145,7 @@ namespace FPE_TaskActions {
 
                 string response(imap.sendCommand(commandLine));
 
-                CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(commandLine));
+                CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(response));
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
                     cout << commandResponse->errorMessage << endl;
                 } else {

@@ -72,28 +72,28 @@ namespace FPE_ProcCmdLine {
     // Add options common to both command line and config file
     //
 
-    static void addCommonOptions(po::options_description& commonOptions, FPEOptions& optionData) {
+    static void addCommonOptions(po::options_description& commonOptions, FPEOptions& options) {
 
         commonOptions.add_options()
-                ("watch,w", po::value<string>(&optionData.optionsMap[kWatchOption])->required(), "Watch folder")
-                ("destination,d", po::value<string>(&optionData.optionsMap[kDestinationOption]), "Destination folder")
-                ("task,t", po::value<string>(&optionData.optionsMap[kTaskOption])->required(), "Task number")
-                ("command", po::value<string>(&optionData.optionsMap[kCommandOption]), "Shell command to run")
-                ("maxdepth", po::value<string>(&optionData.optionsMap[kMaxDepthOption])->default_value("-1"), "Maximum watch depth")
-                ("extension,e", po::value<string>(&optionData.optionsMap[kExtensionOption]), "Override destination file extension")
+                ("watch,w", po::value<string>(&options.map[kWatchOption])->required(), "Watch folder")
+                ("destination,d", po::value<string>(&options.map[kDestinationOption]), "Destination folder")
+                ("task,t", po::value<string>(&options.map[kTaskOption])->required(), "Task number")
+                ("command", po::value<string>(&options.map[kCommandOption]), "Shell command to run")
+                ("maxdepth", po::value<string>(&options.map[kMaxDepthOption])->default_value("-1"), "Maximum watch depth")
+                ("extension,e", po::value<string>(&options.map[kExtensionOption]), "Override destination file extension")
                 ("quiet,q", "Quiet mode (no trace output)")
                 ("delete", "Delete source file")
-                ("log,l", po::value<string>(&optionData.optionsMap[kLogOption]), "Log file")
+                ("log,l", po::value<string>(&options.map[kLogOption]), "Log file")
                 ("single,s", "Run task in main thread")
-                ("killcount,k", po::value<string>(&optionData.optionsMap[kKillCountOption])->default_value("0"), "Files to process before closedown")
-                ("server,s", po::value<string>(&optionData.optionsMap[kServerOption]), "SMTP/IMAP/MongoDB server URL and port")
-                ("user,u", po::value<string>(&optionData.optionsMap[kUserOption]), "Account username")
-                ("password,p", po::value<string>(&optionData.optionsMap[kPasswordOption]), "Account username password")
-                ("recipient,r", po::value<string>(&optionData.optionsMap[kRecipientOption]), "Recipients(s) for email with attached file")
-                ("mailbox,m", po::value<string>(&optionData.optionsMap[kMailBoxOption]), "IMAP Mailbox name for drop box")
-                ("archive,a", po::value<string>(&optionData.optionsMap[kArchiveOption]), "ZIP destination archive")
-                ("database,b", po::value<string>(&optionData.optionsMap[kDatabaseOption]), "Database name")
-                ("collection,c", po::value<string>(&optionData.optionsMap[kCollectionOption]), "Collection/Table name")
+                ("killcount,k", po::value<string>(&options.map[kKillCountOption])->default_value("0"), "Files to process before closedown")
+                ("server,s", po::value<string>(&options.map[kServerOption]), "SMTP/IMAP/MongoDB server URL and port")
+                ("user,u", po::value<string>(&options.map[kUserOption]), "Account username")
+                ("password,p", po::value<string>(&options.map[kPasswordOption]), "Account username password")
+                ("recipient,r", po::value<string>(&options.map[kRecipientOption]), "Recipients(s) for email with attached file")
+                ("mailbox,m", po::value<string>(&options.map[kMailBoxOption]), "IMAP Mailbox name for drop box")
+                ("archive,a", po::value<string>(&options.map[kArchiveOption]), "ZIP destination archive")
+                ("database,b", po::value<string>(&options.map[kDatabaseOption]), "Database name")
+                ("collection,c", po::value<string>(&options.map[kCollectionOption]), "Collection/Table name")
                 ("list", "Display a list of supported tasks.");
                 
 
@@ -132,26 +132,6 @@ namespace FPE_ProcCmdLine {
         }
 
     }
-     
-    //
-    // Display option name and its string value
-    //
-
-    static void displayOption(const char* name, const string& value) {
-        if (!value.empty()) {
-            cout << "*** "  << name << " = [" << value << "] ***" << endl;
-        }
-    }
-    
-    //
-    // Display description string if boolean option true
-    //
-    
-    static void displayOption(bool bOption, const string& desc) {
-        if (bOption) {
-            cout << "*** " << desc << " ***" << endl;
-        }
-    }
 
     //
     // Process program option data and display run options. All options specified 
@@ -159,46 +139,35 @@ namespace FPE_ProcCmdLine {
     // simplest solution rather displaying dependant upon task).
     //
 
-    static void processOptionData(FPEOptions& optionData) {
+    static void processOptions(FPEOptions& options) {
         
         // Make watch/destination paths absolute
 
-        optionData.optionsMap[kWatchOption] = fs::absolute(optionData.optionsMap[kWatchOption]).lexically_normal().string();
-        if (optionData.optionsMap[kWatchOption].back() == '.') optionData.optionsMap[kWatchOption].pop_back();
-        if (!optionData.optionsMap[kDestinationOption].empty()) {
-            optionData.optionsMap[kDestinationOption] = fs::absolute(optionData.optionsMap[kDestinationOption]).lexically_normal().string();
-            if (optionData.optionsMap[kDestinationOption].back() == '.') optionData.optionsMap[kDestinationOption].pop_back();
+        options.map[kWatchOption] = fs::absolute(options.map[kWatchOption]).lexically_normal().string();
+        if (options.map[kWatchOption].back() == '.') options.map[kWatchOption].pop_back();
+        if (!options.map[kDestinationOption].empty()) {
+            options.map[kDestinationOption] = fs::absolute(options.map[kDestinationOption]).lexically_normal().string();
+            if (options.map[kDestinationOption].back() == '.') options.map[kDestinationOption].pop_back();
         }
         
         // Display options
 
-        displayOption(kConfigOption, optionData.optionsMap[kConfigOption]);
-        displayOption(kTaskOption, optionData.action->getName());
-        displayOption(kWatchOption, optionData.optionsMap[kWatchOption]);
-        displayOption(kDestinationOption, optionData.optionsMap[kDestinationOption]);
-        displayOption(kCommandOption, optionData.optionsMap[kCommandOption]);
-        displayOption(kServerOption, optionData.optionsMap[kServerOption]);
-        displayOption(kMailBoxOption, optionData.optionsMap[kMailBoxOption]);
-        displayOption(kArchiveOption, optionData.optionsMap[kArchiveOption]);
-        displayOption(kLogOption, optionData.optionsMap[kLogOption]);
-        displayOption(kExtensionOption, optionData.optionsMap[kExtensionOption]);
-        displayOption(kKillCountOption, optionData.optionsMap[kKillCountOption]);
-        displayOption(kDatabaseOption, optionData.optionsMap[kDatabaseOption]);
-        displayOption(kCollectionOption, optionData.optionsMap[kCollectionOption]);
-        displayOption(getOption<bool>(optionData,kQuietOption), kQuietOption);
-        displayOption(getOption<bool>(optionData,kDeleteOption), kDeleteOption);
-        displayOption(getOption<bool>(optionData,kSingleOption),kSingleOption);
-     
+        for (auto &option : options.map) {
+            if (!option.second.empty()) {
+                cout << "*** " << option.first << " = [" << option.second << "] ***" << endl;
+            }
+        }
+  
         // Create watch folder for task if necessary 
 
-        if (!fs::exists(optionData.optionsMap[kWatchOption])) {
-            fs::create_directories(optionData.optionsMap[kWatchOption]);
+        if (!fs::exists(options.map[kWatchOption])) {
+            fs::create_directories(options.map[kWatchOption]);
         }
 
         // Create destination folder for task if necessary 
 
-        if (!optionData.optionsMap[kDestinationOption].empty() && !fs::exists(optionData.optionsMap[kDestinationOption])) {
-            fs::create_directories(optionData.optionsMap[kDestinationOption]);
+        if (!options.map[kDestinationOption].empty() && !fs::exists(options.map[kDestinationOption])) {
+            fs::create_directories(options.map[kDestinationOption]);
         }
 
     }
@@ -211,9 +180,16 @@ namespace FPE_ProcCmdLine {
     // Read in and process command line options using boost.
     //
 
-    FPEOptions fetchCommandLineOptionData(int argc, char** argv) {
+    FPEOptions fetchCommandLineOptions(int argc, char** argv) {
 
-        FPEOptions optionData{};
+        FPEOptions options{};
+        
+        // Set bost version 
+        
+        options.map["boost-version"] = 
+                to_string(BOOST_VERSION / 100000)+"."+
+                to_string(BOOST_VERSION / 100 % 1000)+"."+
+                to_string(BOOST_VERSION % 100);
 
         // Define and parse the program options
 
@@ -223,15 +199,15 @@ namespace FPE_ProcCmdLine {
 
         commandLine.add_options()
                 ("help", "Display help message")
-                (kConfigOption, po::value<string>(&optionData.optionsMap[kConfigOption]), "Configuration file name");
+                (kConfigOption, po::value<string>(&options.map[kConfigOption]), "Configuration file name");
 
-        addCommonOptions(commandLine, optionData);
+        addCommonOptions(commandLine, options);
 
         // Config file options
 
         po::options_description configFile("Configuration File Options");
 
-        addCommonOptions(configFile, optionData);
+        addCommonOptions(configFile, options);
 
         po::variables_map configVarMap;
 
@@ -287,9 +263,9 @@ namespace FPE_ProcCmdLine {
             // for a task are just ignored.
 
             if (configVarMap.count(kTaskOption)) {
-                optionData.action = TaskAction::create(stoi(configVarMap[kTaskOption].as<string>()));
-                if (optionData.action) {
-                    checkTaskOptions(optionData.action->getParameters(), configVarMap);
+                options.action = TaskAction::create(stoi(configVarMap[kTaskOption].as<string>()));
+                if (options.action) {
+                    checkTaskOptions(options.action->getParameters(), configVarMap);
                 } else {
                     throw po::error("Error invalid task number.");                 
                 }
@@ -302,19 +278,19 @@ namespace FPE_ProcCmdLine {
             // Delete source file
 
             if (configVarMap.count(kDeleteOption)) {
-                optionData.optionsMap[kDeleteOption] = "1";  // true
+                options.map[kDeleteOption] = "1";  // true
             }
 
             // No trace output
 
             if (configVarMap.count(kQuietOption)) {
-                optionData.optionsMap[kQuietOption] = "1"; // true
+                options.map[kQuietOption] = "1"; // true
             }
 
             // Use main thread for task.
 
             if (configVarMap.count(kSingleOption)) {
-                optionData.optionsMap[kSingleOption] = "1"; // true
+                options.map[kSingleOption] = "1"; // true
             }
 
             po::notify(configVarMap);
@@ -326,9 +302,9 @@ namespace FPE_ProcCmdLine {
 
         // Process program option data
 
-        processOptionData(optionData);
+        processOptions(options);
 
-        return (optionData);
+        return (options);
 
     }
 

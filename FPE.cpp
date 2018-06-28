@@ -100,20 +100,20 @@ namespace FPE {
     // Create task and run in thread.
     //
 
-    static void createTaskAndRun(FPEOptions& optionData) {
+    static void createTaskAndLaunch(FPEOptions& options) {
 
-        optionData.action->setActionData(optionData.optionsMap);
+        options.action->setActionData(options.map);
         
         // Create task object
 
-        CTask task(optionData.optionsMap[kWatchOption], 
-                   optionData.action, 
-                   getOption<int>(optionData, kMaxDepthOption),
-                   getOption<int>(optionData, kKillCountOption));
+        CTask task(options.map[kWatchOption], 
+                   options.action, 
+                   getOption<int>(options, kMaxDepthOption),
+                   getOption<int>(options, kKillCountOption));
 
         // Create task object thread and start to watch else use FPE thread.
 
-        if (getOption<bool>(optionData,kSingleOption)) {
+        if (getOption<bool>(options,kSingleOption)) {
             unique_ptr<thread> taskThread;
             taskThread.reset(new thread(&CTask::monitor, &task));
             taskThread->join();
@@ -135,7 +135,7 @@ namespace FPE {
 
     void FileProcessingEngine(int argc, char** argv) {
 
-        FPEOptions optionData; // Command line options  
+        FPEOptions options; // Command line options  
 
         try {
 
@@ -143,16 +143,9 @@ namespace FPE {
 
             CRedirect logFile{cout};
             
-            // Display BOOST version
-
-            cout << "*** boost version = [" << 
-                to_string(BOOST_VERSION / 100000) << "." <<
-                to_string(BOOST_VERSION / 100 % 1000) <<"." <<
-                to_string(BOOST_VERSION % 100) << "] ***" << endl;
-            
             // Get FPE command line options.
 
-            optionData = fetchCommandLineOptionData(argc, argv);
+            options = fetchCommandLineOptions(argc, argv);
 
             // FPE up and running
 
@@ -162,14 +155,14 @@ namespace FPE {
             // Once the try is exited CRedirect object will be destroyed and 
             // cout restored.
 
-            if (!optionData.optionsMap[kLogOption].empty()) {
-                logFile.change(optionData.optionsMap[kLogOption], ios_base::out | ios_base::app);
+            if (!options.map[kLogOption].empty()) {
+                logFile.change(options.map[kLogOption], ios_base::out | ios_base::app);
                 cout << string(100, '=') << endl;
             }
 
             // Create task object
 
-            createTaskAndRun(optionData);
+            createTaskAndLaunch(options);
 
         //
         // Catch any errors

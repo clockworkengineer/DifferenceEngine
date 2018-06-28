@@ -130,7 +130,7 @@ TEST_F(ProcCmdLineTests, NoOptions) {
 
     char *argv[] = {(char *) "fpe", nullptr};
 
-    EXPECT_EXIT(optionData = fetchCommandLineOptionData(this->argvLen(argv), argv),
+    EXPECT_EXIT(optionData = fetchCommandLineOptions(this->argvLen(argv), argv),
             ::testing::ExitedWithCode(1), "FPE Error: the option '--task' is required but missing");
 
 }
@@ -154,7 +154,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_FALSE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -164,16 +164,16 @@ TEST_F(ProcCmdLineTests, TaskCopyFileNoDelete) {
     ASSERT_STREQ("Copy File", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kCommandOption].c_str());
 
 
 }
@@ -198,7 +198,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_TRUE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -208,16 +208,16 @@ TEST_F(ProcCmdLineTests, TaskCopyFileDelete) {
     ASSERT_STREQ("Copy File", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kCommandOption].c_str());
 
 
 }
@@ -241,7 +241,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_FALSE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -251,16 +251,16 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNoDelete) {
     ASSERT_STREQ("Video Conversion", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
+    ASSERT_STREQ("", optionData.map[kCommandOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
 
 
 
@@ -286,7 +286,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_TRUE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -296,16 +296,16 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionDelete) {
     ASSERT_STREQ("Video Conversion", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kCommandOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kCommandOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
 
 
 }
@@ -331,7 +331,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_FALSE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -341,16 +341,16 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandNoDelete) {
     ASSERT_STREQ("Run Command", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
-    ASSERT_STREQ("echo %1% -------> %2%", optionData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
+    ASSERT_STREQ("echo %1% -------> %2%", optionData.map[kCommandOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
 
 }
 
@@ -376,7 +376,7 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_TRUE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -386,16 +386,16 @@ TEST_F(ProcCmdLineTests, TaskRunCommandCommandDelete) {
     ASSERT_STREQ("Run Command", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
-    ASSERT_STREQ("echo %1% -------> %2%", optionData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
+    ASSERT_STREQ("echo %1% -------> %2%", optionData.map[kCommandOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
 
 }
 
@@ -420,7 +420,7 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_FALSE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -430,16 +430,16 @@ TEST_F(ProcCmdLineTests, TaskCopyFileMaxDepth3) {
     ASSERT_STREQ("Copy File", optionData.action->getName().c_str());
     EXPECT_EQ(3, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kCommandOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kCommandOption].c_str());
 
 
 }
@@ -463,7 +463,7 @@ TEST_F(ProcCmdLineTests, InvalidTaskNumber) {
         nullptr
     };
 
-    EXPECT_EXIT(optionData = fetchCommandLineOptionData(this->argvLen(argv), argv),
+    EXPECT_EXIT(optionData = fetchCommandLineOptions(this->argvLen(argv), argv),
             ::testing::ExitedWithCode(1), "FPE Error: Error invalid task number.");
 
 }
@@ -487,7 +487,7 @@ TEST_F(ProcCmdLineTests, MultipleTasksSpecified) {
         nullptr
     };
 
-    EXPECT_EXIT(optionData = fetchCommandLineOptionData(this->argvLen(argv), argv),
+    EXPECT_EXIT(optionData = fetchCommandLineOptions(this->argvLen(argv), argv),
             ::testing::ExitedWithCode(1), "FPE Error: task is not a valid integer.");
 
 }
@@ -513,7 +513,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_FALSE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -523,16 +523,16 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionNewExtension) {
     ASSERT_STREQ("Video Conversion", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kCommandOption].c_str());
-    ASSERT_STREQ(".mkv", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kCommandOption].c_str());
+    ASSERT_STREQ(".mkv", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
 
 }
 
@@ -556,7 +556,7 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
         nullptr
     };
 
-    optionData = fetchCommandLineOptionData(this->argvLen(argv), argv);
+    optionData = fetchCommandLineOptions(this->argvLen(argv), argv);
 
     EXPECT_FALSE(getOption<bool>(optionData, kDeleteOption));
     EXPECT_FALSE(getOption<bool>(optionData, kListOption));
@@ -566,16 +566,16 @@ TEST_F(ProcCmdLineTests, TaskVideoFileConversionQuiet) {
     ASSERT_STREQ("Video Conversion", optionData.action->getName().c_str());
     EXPECT_EQ(-1, getOption<int>(optionData, kMaxDepthOption));
     EXPECT_EQ(0, getOption<int>(optionData, kKillCountOption));
-    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.optionsMap[kWatchOption].c_str());
-    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.optionsMap[kDestinationOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kWatchFolder.c_str(), optionData.map[kWatchOption].c_str());
+    ASSERT_STREQ(ProcCmdLineTests::kDestinationFolder.c_str(), optionData.map[kDestinationOption].c_str());
 
-    ASSERT_STREQ("", optionData.optionsMap[kCommandOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kExtensionOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kServerOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kUserOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kPasswordOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kRecipientOption].c_str());
-    ASSERT_STREQ("", optionData.optionsMap[kLogOption].c_str());
+    ASSERT_STREQ("", optionData.map[kCommandOption].c_str());
+    ASSERT_STREQ("", optionData.map[kExtensionOption].c_str());
+    ASSERT_STREQ("", optionData.map[kServerOption].c_str());
+    ASSERT_STREQ("", optionData.map[kUserOption].c_str());
+    ASSERT_STREQ("", optionData.map[kPasswordOption].c_str());
+    ASSERT_STREQ("", optionData.map[kRecipientOption].c_str());
+    ASSERT_STREQ("", optionData.map[kLogOption].c_str());
 
 }
 

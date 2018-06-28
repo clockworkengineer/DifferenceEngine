@@ -39,25 +39,25 @@ namespace FPE_ProcCmdLine {
     //
 
     struct FPEOptions {
-        std::shared_ptr<FPE_TaskActions::TaskAction> action;         // Task action function details
-        std::unordered_map<std::string, std::string> optionsMap; // Options map
+        std::shared_ptr<FPE_TaskActions::TaskAction> action;   // Task action function details
+        std::unordered_map<std::string, std::string> map;      // Options map
      };
      
     // Get command line options
 
-    FPEOptions fetchCommandLineOptionData(int argc, char** argv);
+    FPEOptions fetchCommandLineOptions(int argc, char** argv);
 
     //
     //  Get option map value and return as type T
     //
     
     template <typename T>
-    T getOption(const FPEOptions& optionData, const std::string& option) {
+    T getOption(const FPEOptions& options, const std::string& option) {
 
         T value;
         
-        auto entry = optionData.optionsMap.find(option);
-        if (entry != optionData.optionsMap.end()) {
+        auto entry = options.map.find(option);
+        if (entry != options.map.end()) {
             std::istringstream optionStingStream {entry->second};
             optionStingStream >> value;
             return (value);
