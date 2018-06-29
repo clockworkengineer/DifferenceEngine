@@ -63,7 +63,7 @@ namespace FPE_TaskActions {
     using namespace std;
 
     using namespace FPE;
-    
+
     using namespace Antik::ZIP;
     using namespace Antik::File;
 
@@ -91,40 +91,46 @@ namespace FPE_TaskActions {
 
         bool bSuccess = false;
 
-        // Form source and zips file paths
+        try {
 
-        CPath sourceFile(file);
-        CPath zipFilePath(this->m_actionData[kArchiveOption]);
+            // Form source and zips file paths
 
-        // Create path for ZIP archive if needed.
+            CPath sourceFile(file);
+            CPath zipFilePath(this->m_actionData[kArchiveOption]);
 
-        if (!CFile::exists(zipFilePath.parentPath())) {
-            if (CFile::createDirectory(zipFilePath.parentPath())) {
-                 cout << "Created : "<< zipFilePath.parentPath().toString() << endl;
-            } else {
-                 cerr << "Created failed for :" << zipFilePath.parentPath().toString() << endl;
+            // Create path for ZIP archive if needed.
+
+            if (!CFile::exists(zipFilePath.parentPath())) {
+                if (CFile::createDirectory(zipFilePath.parentPath())) {
+                    cout << "Created : " << zipFilePath.parentPath().toString() << endl;
+                } else {
+                    cerr << "Created failed for :" << zipFilePath.parentPath().toString() << endl;
+                }
             }
+
+            // Create archive if doesn't exist
+
+            CZIP zipFile(zipFilePath.toString());
+
+            if (!CFile::exists(zipFilePath)) {
+                cout << "Creating archive " << zipFilePath.toString() << endl;
+                zipFile.create();
+            }
+
+            // Append file to archive
+
+            zipFile.open();
+
+            bSuccess = zipFile.add(sourceFile.toString(), sourceFile.fileName());
+            if (bSuccess) {
+                cout << "Appended [" << sourceFile.fileName() << "] to archive [" << zipFilePath.toString() << "]" << endl;
+            }
+
+            zipFile.close();
+
+        } catch (const exception & e) {
+           cerr << this->getName() << " Error: " << e.what() << endl;
         }
-
-        // Create archive if doesn't exist
-
-        CZIP zipFile(zipFilePath.toString());
-
-        if (!CFile::exists(zipFilePath)) {
-            cout << "Creating archive " << zipFilePath.toString() << endl;
-            zipFile.create();
-        }
-
-        // Append file to archive
-
-        zipFile.open();
-
-        bSuccess = zipFile.add(sourceFile.toString(), sourceFile.fileName());
-        if (bSuccess) {
-             cout << "Appended [" << sourceFile.fileName() << "] to archive [" << zipFilePath.toString() << "]" << endl;
-        }
-
-        zipFile.close();
 
         return (bSuccess);
 

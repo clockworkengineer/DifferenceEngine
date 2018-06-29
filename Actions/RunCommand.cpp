@@ -179,35 +179,41 @@ namespace FPE_TaskActions {
 
         bool bSuccess = false;
 
-        // Form source and destination file paths
+        try {
 
-        CPath sourceFile(file);
-        CPath destinationFile(this->m_actionData[kDestinationOption] + sourceFile.fileName());
+            // Form source and destination file paths
 
-        // Create correct command for whether source and destination specified or just source or none
+            CPath sourceFile(file);
+            CPath destinationFile(this->m_actionData[kDestinationOption] + sourceFile.fileName());
 
-        bool srcFound = (this->m_actionData[kCommandOption].find("%1%") != string::npos);
-        bool dstFound = (this->m_actionData[kCommandOption].find("%2%") != string::npos);
+            // Create correct command for whether source and destination specified or just source or none
 
-        string command;
-        if (srcFound && dstFound) {
-            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
-        } else if (srcFound) {
-            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString()).str();
-        } else {
-            command = this->m_actionData[kCommandOption];
-        }
+            bool srcFound = (this->m_actionData[kCommandOption].find("%1%") != string::npos);
+            bool dstFound = (this->m_actionData[kCommandOption].find("%2%") != string::npos);
 
-        auto result = 0;
-        if ((result = runShellCommand(command)) == 0) {
-            bSuccess = true;
-            cout << "Command success." << endl;
-            if (!this->m_actionData[kDeleteOption].empty()) {
-                cout << "Deleting Source [" << sourceFile.toString() << "]" << endl;
-                CFile::remove(sourceFile);
+            string command;
+            if (srcFound && dstFound) {
+                command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
+            } else if (srcFound) {
+                command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString()).str();
+            } else {
+                command = this->m_actionData[kCommandOption];
             }
 
-        } 
+            auto result = 0;
+            if ((result = runShellCommand(command)) == 0) {
+                bSuccess = true;
+                cout << "Command success." << endl;
+                if (!this->m_actionData[kDeleteOption].empty()) {
+                    cout << "Deleting Source [" << sourceFile.toString() << "]" << endl;
+                    CFile::remove(sourceFile);
+                }
+
+            }
+
+        } catch (const exception & e) {
+            cerr << this->getName() << " Error: " << e.what() << endl;
+        }
 
         return (bSuccess);
     }

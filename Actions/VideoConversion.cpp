@@ -182,36 +182,42 @@ namespace FPE_TaskActions {
 
         bool bSuccess = false;
 
-        // Form source and destination file paths
+        try {
 
-        CPath sourceFile(file);
-        CPath destinationFile(this->m_actionData[kDestinationOption]);
+            // Form source and destination file paths
 
-        destinationFile.join(sourceFile.baseName());
+            CPath sourceFile(file);
+            CPath destinationFile(this->m_actionData[kDestinationOption]);
 
-        if (this->m_actionData["extension"].length() > 0) {
-            destinationFile.replaceExtension(this->m_actionData["extension"]);
-        } else {
-            destinationFile.replaceExtension(".mp4");
-        }
+            destinationFile.join(sourceFile.baseName());
 
-        // Convert file
-
-        string command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
-
-        cout << "Converting file [" << sourceFile.toString() << "] To [" << destinationFile.toString() << "]" << endl;
-
-        auto result = 0;
-        if ((result = runShellCommand(command)) == 0) {
-            bSuccess = true;
-            cout << "File conversion success." << endl;
-            if (!this->m_actionData[kDeleteOption].empty()) {
-                cout << "Deleting Source [" << sourceFile.toString() << "]" << endl;
-                CFile::remove(sourceFile);
+            if (this->m_actionData["extension"].length() > 0) {
+                destinationFile.replaceExtension(this->m_actionData["extension"]);
+            } else {
+                destinationFile.replaceExtension(".mp4");
             }
 
-        } else {
-             cout << "File conversion error: " << to_string(result) << endl;
+            // Convert file
+
+            string command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
+
+            cout << "Converting file [" << sourceFile.toString() << "] To [" << destinationFile.toString() << "]" << endl;
+
+            auto result = 0;
+            if ((result = runShellCommand(command)) == 0) {
+                bSuccess = true;
+                cout << "File conversion success." << endl;
+                if (!this->m_actionData[kDeleteOption].empty()) {
+                    cout << "Deleting Source [" << sourceFile.toString() << "]" << endl;
+                    CFile::remove(sourceFile);
+                }
+
+            } else {
+                cout << "File conversion error: " << to_string(result) << endl;
+            }
+
+        } catch (const exception & e) {
+           cerr << this->getName() << " Error: " << e.what() << endl;
         }
 
         return (bSuccess);

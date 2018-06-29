@@ -58,7 +58,7 @@
 // Note: C++ Driver not easy to install so add define
 //
 
-#ifdef MONGO_DRIVER_INSTALLED
+#if defined(MONGO_DRIVER_INSTALLED)
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
 
@@ -75,9 +75,9 @@ namespace FPE_TaskActions {
     using namespace std;
 
     using namespace FPE;
-    
+
     using namespace Antik::File;
-    
+
     // ===============
     // LOCAL VARIABLES
     // ===============
@@ -86,7 +86,7 @@ namespace FPE_TaskActions {
     // LOCAL FUNCTIONS
     // ===============
 
- 
+
     // ================
     // PUBLIC FUNCTIONS
     // ================
@@ -105,39 +105,45 @@ namespace FPE_TaskActions {
 
         // Form source file path
 
-#ifdef MONGO_DRIVER_INSTALLED
+#if defined(MONGO_DRIVER_INSTALLED)
 
-        CPath sourceFile(file);
+        try {
 
-        ifstream csvFileStream(sourceFile.string());
-        if (!csvFileStream.is_open()) {
-            cout << "Error opening file " << sourceFile.string() << endl;
-            return (false);
-        }
+            CPath sourceFile(file);
 
-        cout << "Importing CSV file [" << sourceFile.filename().string() << "] To MongoDB." << endl;
-
-        mongocxx::instance driverInstance{};
-        mongocxx::client mongoConnection{mongocxx::uri{this->m_actionData[kServerOption]}};
-        auto csvCollection = mongoConnection[this->m_actionData[kDatabaseOption]][this->m_actionData[kCollectionOption]];
-        vector<string> fieldNames;
-        string csvLine;
-
-        getline(csvFileStream, csvLine);
-        if (csvLine.back() == '\r')csvLine.pop_back();
-
-        fieldNames = getCSVTokens(csvLine);
-
-        while (getline(csvFileStream, csvLine)) {
-            vector< string > fieldValues;
-            bsoncxx::builder::stream::document document{};
-            if (csvLine.back() == '\r')csvLine.pop_back();
-            fieldValues = getCSVTokens(csvLine);
-            int i = 0;
-            for (auto& field : fieldValues) {
-                document << fieldNames[i++] << field;
+            ifstream csvFileStream(sourceFile.string());
+            if (!csvFileStream.is_open()) {
+                cout << "Error opening file " << sourceFile.string() << endl;
+                return (false);
             }
-            csvCollection.insert_one(document.view());
+
+            cout << "Importing CSV file [" << sourceFile.filename().string() << "] To MongoDB." << endl;
+
+            mongocxx::instance driverInstance{};
+            mongocxx::client mongoConnection{mongocxx::uri{this->m_actionData[kServerOption]}};
+            auto csvCollection = mongoConnection[this->m_actionData[kDatabaseOption]][this->m_actionData[kCollectionOption]];
+            vector<string> fieldNames;
+            string csvLine;
+
+            getline(csvFileStream, csvLine);
+            if (csvLine.back() == '\r')csvLine.pop_back();
+
+            fieldNames = getCSVTokens(csvLine);
+
+            while (getline(csvFileStream, csvLine)) {
+                vector< string > fieldValues;
+                bsoncxx::builder::stream::document document{};
+                if (csvLine.back() == '\r')csvLine.pop_back();
+                fieldValues = getCSVTokens(csvLine);
+                int i = 0;
+                for (auto& field : fieldValues) {
+                    document << fieldNames[i++] << field;
+                }
+                csvCollection.insert_one(document.view());
+            }
+
+        } catch (const exception & e) {
+            cerr << this->getName() << " Error: " << e.what() << endl;
         }
 #endif // MONGO_DRIVER_INSTALLED
 

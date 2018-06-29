@@ -56,7 +56,7 @@ namespace FPE_TaskActions {
     using namespace std;
 
     using namespace FPE;
-    
+
     using namespace Antik::File;
 
     // ===============
@@ -83,42 +83,48 @@ namespace FPE_TaskActions {
 
         bool bSuccess = false;
 
-        // Form source and destination file paths
+        try {
 
-        CPath sourceFile(file);
+            // Form source and destination file paths
 
-        // Destination file path += ("filename path" - "watch folder path")
+            CPath sourceFile(file);
 
-        CPath destinationFile(this->m_actionData[kDestinationOption] +
-                file.substr((this->m_actionData[kWatchOption]).length()));
+            // Destination file path += ("filename path" - "watch folder path")
 
-        // Construct full destination path if needed
+            CPath destinationFile(this->m_actionData[kDestinationOption] +
+                    file.substr((this->m_actionData[kWatchOption]).length()));
 
-        if (!CFile::exists(destinationFile.parentPath())) {
-            if (CFile::createDirectory(destinationFile.parentPath())) {
-                 cout << "Created :" << destinationFile.parentPath().toString() << endl;
+            // Construct full destination path if needed
+
+            if (!CFile::exists(destinationFile.parentPath())) {
+                if (CFile::createDirectory(destinationFile.parentPath())) {
+                    cout << "Created :" << destinationFile.parentPath().toString() << endl;
+                } else {
+                    cerr << "Created failed for :" << destinationFile.toString() << endl;
+                }
+            }
+
+            // Currently only copy file if it doesn't already exist.
+
+            if (!CFile::exists(destinationFile)) {
+                cout << "COPY FROM [" << sourceFile.toString() << "] TO [" << destinationFile.toString() << "]" << endl;
+                CFile::copy(sourceFile, destinationFile);
+                bSuccess = true;
+                if (!this->m_actionData[kDeleteOption].empty()) {
+                    cout << "Deleting Source [" + sourceFile.toString() + "]" << endl;
+                    CFile::remove(sourceFile);
+                }
+
             } else {
-                 cerr << "Created failed for :" << destinationFile.toString() << endl;
-            }
-        }
-
-        // Currently only copy file if it doesn't already exist.
-
-        if (!CFile::exists(destinationFile)) {
-            cout << "COPY FROM [" << sourceFile.toString() << "] TO [" << destinationFile.toString() << "]" << endl;
-            CFile::copy(sourceFile, destinationFile);
-            bSuccess = true;
-            if (!this->m_actionData[kDeleteOption].empty()) {
-                cout << "Deleting Source ["+sourceFile.toString()+"]" << endl;
-                CFile::remove(sourceFile);
+                cout << "Destination already exists : " << destinationFile.toString() << endl;
             }
 
-        } else {
-             cout << "Destination already exists : " << destinationFile.toString() << endl;
+        } catch (const CFile::Exception& e) {
+            cerr << this->getName() << " Error: " << e.what() << endl;
         }
 
         return (bSuccess);
 
     }
-    
+
 } // namespace FPE_Actions

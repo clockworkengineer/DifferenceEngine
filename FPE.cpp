@@ -31,7 +31,7 @@
 // Dependencies:
 // 
 // C11++        : Use of C11++ features.
-// Antik Classes: CTask, CRedirect
+// Antik Classes: CTask, CRedirect, CFile, CPath.
 // Linux        : Target platform
 // Boost        : File system.
 //
@@ -53,12 +53,8 @@
 //
 
 #include "CRedirect.hpp"
-
-//
-// Boost file system library
-//
-
-#include <boost/filesystem.hpp>
+#include "CFile.hpp"
+#include "CPath.hpp"
 
 // =========
 // NAMESPACE
@@ -168,7 +164,7 @@ namespace FPE {
         // Catch any errors
         //    
 
-        } catch (const boost::filesystem::filesystem_error & e) {
+        } catch (const CFile::Exception &e) {
             exitWithError(e.what());
         } catch (const system_error &e) {
             exitWithError(e.what());

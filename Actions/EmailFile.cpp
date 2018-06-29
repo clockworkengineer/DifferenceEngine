@@ -65,7 +65,7 @@ namespace FPE_TaskActions {
     using namespace Antik::IMAP;
     using namespace Antik::File;
     using namespace Antik::SMTP;
-    
+
     // ===============
     // LOCAL VARIABLES
     // ===============
@@ -143,7 +143,7 @@ namespace FPE_TaskActions {
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
                     cout << commandResponse->errorMessage << endl;
                 } else {
-                    cout << "Added file [" << file << "] to [" << this->m_actionData[kMailBoxOption]  << "]" << endl;
+                    cout << "Added file [" << file << "] to [" << this->m_actionData[kMailBoxOption] << "]" << endl;
                     bSuccess = true;
                 }
 
@@ -152,11 +152,11 @@ namespace FPE_TaskActions {
             }
 
         } catch (const CSMTP::Exception &e) {
-            cerr << e.what() << endl;
+            cerr << this->getName() << " Error: " << e.what() << endl;
         } catch (const CIMAP::Exception &e) {
-            cerr << e.what() << endl;
+            cerr << this->getName() << " Error: " << e.what() << endl;
         } catch (const exception & e) {
-             cerr << "Standard exception occured: [" << e.what() << "]" << endl;
+            cerr << this->getName() << " Error: " << e.what() << endl;
         }
 
         return (bSuccess);
