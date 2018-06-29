@@ -18,8 +18,8 @@
 // Dependencies:
 // 
 // C11++              : Use of C11++ features.
-// Antik Classes      : CZIP
-// Linux              : Target platform
+// Antik Classes      : CZIP, CFile, CPath.
+// Linux              : Target platform.
 // Boost              : File system.
 //
 
@@ -45,12 +45,13 @@
 //
 
 #include "CZIP.hpp"
+#include "CFile.hpp"
+#include "CPath.hpp"
 
 //
-// Boost file system, format library
+// Boost format library
 //
 
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 namespace FPE_TaskActions {
@@ -64,8 +65,7 @@ namespace FPE_TaskActions {
     using namespace FPE;
     
     using namespace Antik::ZIP;
-    
-    namespace fs = boost::filesystem;
+    using namespace Antik::File;
 
     // ===============
     // LOCAL VARIABLES
@@ -93,25 +93,25 @@ namespace FPE_TaskActions {
 
         // Form source and zips file paths
 
-        fs::path sourceFile(file);
-        fs::path zipFilePath(this->m_actionData[kArchiveOption]);
+        CPath sourceFile(file);
+        CPath zipFilePath(this->m_actionData[kArchiveOption]);
 
         // Create path for ZIP archive if needed.
 
-        if (!fs::exists(zipFilePath.parent_path())) {
-            if (fs::create_directories(zipFilePath.parent_path())) {
-                 cout << "Created : "<< zipFilePath.parent_path().string() << endl;
+        if (!CFile::exists(zipFilePath.parentPath())) {
+            if (CFile::createDirectory(zipFilePath.parentPath())) {
+                 cout << "Created : "<< zipFilePath.parentPath().toString() << endl;
             } else {
-                 cerr << "Created failed for :" << zipFilePath.parent_path().string() << endl;
+                 cerr << "Created failed for :" << zipFilePath.parentPath().toString() << endl;
             }
         }
 
         // Create archive if doesn't exist
 
-        CZIP zipFile(zipFilePath.string());
+        CZIP zipFile(zipFilePath.toString());
 
-        if (!fs::exists(zipFilePath)) {
-            cout << "Creating archive " << zipFilePath.string() << endl;
+        if (!CFile::exists(zipFilePath)) {
+            cout << "Creating archive " << zipFilePath.toString() << endl;
             zipFile.create();
         }
 
@@ -119,9 +119,9 @@ namespace FPE_TaskActions {
 
         zipFile.open();
 
-        bSuccess = zipFile.add(sourceFile.string(), sourceFile.filename().string());
+        bSuccess = zipFile.add(sourceFile.toString(), sourceFile.fileName());
         if (bSuccess) {
-             cout << "Appended [" << sourceFile.filename().string() << "] to archive [" << zipFilePath.string() << "]" << endl;
+             cout << "Appended [" << sourceFile.fileName() << "] to archive [" << zipFilePath.toString() << "]" << endl;
         }
 
         zipFile.close();

@@ -18,8 +18,8 @@
 // Dependencies:
 // 
 // C11++              : Use of C11++ features.
-// Linux              : Target platform
-// Boost              : File system.
+// Antik Classes      : CFile, CPath.
+// Linux              : Target platform.
 //
 
 // =============
@@ -40,10 +40,16 @@
 #include "FPE_Actions.hpp"
 
 //
-// Boost file system, format and tokenizer library
+// Antik Classes
 //
 
-#include <boost/filesystem.hpp>
+#include "CFile.hpp"
+#include "CPath.hpp"
+
+//
+// Boost format and tokenizer library
+//
+
 #include <boost/format.hpp>
 #include <boost/tokenizer.hpp>
 
@@ -69,9 +75,9 @@ namespace FPE_TaskActions {
     using namespace std;
 
     using namespace FPE;
-
-    namespace fs = boost::filesystem;
-
+    
+    using namespace Antik::File;
+    
     // ===============
     // LOCAL VARIABLES
     // ===============
@@ -101,7 +107,7 @@ namespace FPE_TaskActions {
 
 #ifdef MONGO_DRIVER_INSTALLED
 
-        fs::path sourceFile(file);
+        CPath sourceFile(file);
 
         ifstream csvFileStream(sourceFile.string());
         if (!csvFileStream.is_open()) {

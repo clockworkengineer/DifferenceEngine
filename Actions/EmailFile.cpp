@@ -19,9 +19,8 @@
 // Dependencies:
 // 
 // C11++              : Use of C11++ features.
-// Antik Classes      : CSMTP, CIMAP, CIMAPParse, CMIME
+// Antik Classes      : CSMTP, CIMAP, CIMAPParse, CMIME, CFile, CPath
 // Linux              : Target platform
-// Boost              : File system.
 //
 
 // =============
@@ -49,12 +48,9 @@
 #include "CIMAP.hpp"
 #include "CIMAPParse.hpp"
 #include "CMIME.hpp"
+#include "CFile.hpp"
+#include "CPath.hpp"
 
-//
-// Boost file system
-//
-
-#include <boost/filesystem.hpp>
 
 namespace FPE_TaskActions {
 
@@ -70,8 +66,6 @@ namespace FPE_TaskActions {
     using namespace Antik::File;
     using namespace Antik::SMTP;
     
-    namespace fs = boost::filesystem;
-
     // ===============
     // LOCAL VARIABLES
     // ===============
@@ -110,7 +104,7 @@ namespace FPE_TaskActions {
 
         // Form source file path
 
-        fs::path sourceFile(file);
+        CPath sourceFile(file);
 
         try {
 

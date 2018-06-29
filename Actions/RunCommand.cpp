@@ -18,8 +18,8 @@
 // Dependencies:
 // 
 // C11++              : Use of C11++ features.
+// Antik Classes      : CFile, CPath.
 // Linux              : Target platform
-// Boost              : File system.
 //
 
 // =============
@@ -40,16 +40,21 @@
 #include "FPE_Actions.hpp"
 
 //
+// Antik Classes
+//
+
+#include "CFile.hpp"
+#include "CPath.hpp"
+//
 // Process wait
 //
 
 #include <sys/wait.h>
 
 //
-// Boost file system, format library
+// Boost format library
 //
 
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 namespace FPE_TaskActions {
@@ -62,7 +67,7 @@ namespace FPE_TaskActions {
 
     using namespace FPE;
 
-    namespace fs = boost::filesystem;
+    using namespace Antik::File;
 
     // ===============
     // LOCAL VARIABLES
@@ -176,8 +181,8 @@ namespace FPE_TaskActions {
 
         // Form source and destination file paths
 
-        fs::path sourceFile(file);
-        fs::path destinationFile(this->m_actionData[kDestinationOption] + sourceFile.filename().string());
+        CPath sourceFile(file);
+        CPath destinationFile(this->m_actionData[kDestinationOption] + sourceFile.fileName());
 
         // Create correct command for whether source and destination specified or just source or none
 
@@ -186,9 +191,9 @@ namespace FPE_TaskActions {
 
         string command;
         if (srcFound && dstFound) {
-            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string() % destinationFile.string()).str();
+            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
         } else if (srcFound) {
-            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.string()).str();
+            command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString()).str();
         } else {
             command = this->m_actionData[kCommandOption];
         }
@@ -198,8 +203,8 @@ namespace FPE_TaskActions {
             bSuccess = true;
             cout << "Command success." << endl;
             if (!this->m_actionData[kDeleteOption].empty()) {
-                cout << "Deleting Source [" << sourceFile.string() << "]" << endl;
-                fs::remove(sourceFile);
+                cout << "Deleting Source [" << sourceFile.toString() << "]" << endl;
+                CFile::remove(sourceFile);
             }
 
         } 

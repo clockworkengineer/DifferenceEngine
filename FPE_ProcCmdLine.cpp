@@ -18,8 +18,9 @@
 // Dependencies:
 // 
 // C11++        : Use of C11++ features.
+// Antik Classes: CFile, CPath.
 // Linux        : Target platform
-// Boost        : File system, program options.
+// Boost        : Program options.
 //
 
 // =============
@@ -40,11 +41,17 @@
 #include "FPE_ProcCmdLine.hpp"
 
 //
-// Boost  file system library & program options processing
+// Antik Classes
+//
+
+#include "CFile.hpp"
+#include "CPath.hpp"
+
+//
+// Boost  program options processing
 //
 
 #include "boost/program_options.hpp" 
-#include <boost/filesystem.hpp>
 
 // =========
 // NAMESPACE
@@ -60,9 +67,10 @@ namespace FPE_ProcCmdLine {
 
     using namespace FPE;
     using namespace FPE_TaskActions;
+    
+    using namespace Antik::File;
 
     namespace po = boost::program_options;
-    namespace fs = boost::filesystem;
 
     // ===============
     // LOCAL FUNCTIONS
@@ -134,20 +142,25 @@ namespace FPE_ProcCmdLine {
     }
 
     //
-    // Process program option data and display run options. All options specified 
-    // are displayed even though they may be ignored for the task (this is the 
-    // simplest solution rather displaying dependant upon task).
+    // Preprocess program option data and display run options.
     //
 
-    static void processOptions(FPEOptions& options) {
+    static void preprocessOptions(FPEOptions& options) {
         
-        // Make watch/destination paths absolute
-
-        options.map[kWatchOption] = fs::absolute(options.map[kWatchOption]).lexically_normal().string();
-        if (options.map[kWatchOption].back() == '.') options.map[kWatchOption].pop_back();
+        // Make watch/destination paths absolute and create directories
+        
+        CPath watchPath {options.map[kWatchOption]};
+        options.map[kWatchOption] = watchPath.absolutePath();
+        if (!CFile::exists(watchPath)) {
+            CFile::createDirectory(watchPath);
+        }
+        
         if (!options.map[kDestinationOption].empty()) {
-            options.map[kDestinationOption] = fs::absolute(options.map[kDestinationOption]).lexically_normal().string();
-            if (options.map[kDestinationOption].back() == '.') options.map[kDestinationOption].pop_back();
+            CPath destinationPath { options.map[kDestinationOption] };
+            options.map[kDestinationOption] = destinationPath.absolutePath();
+            if (!CFile::exists(destinationPath)) {
+                CFile::createDirectory(destinationPath);
+            }
         }
         
         // Display options
@@ -157,18 +170,7 @@ namespace FPE_ProcCmdLine {
                 cout << "*** " << option.first << " = [" << option.second << "] ***" << endl;
             }
         }
-  
-        // Create watch folder for task if necessary 
 
-        if (!fs::exists(options.map[kWatchOption])) {
-            fs::create_directories(options.map[kWatchOption]);
-        }
-
-        // Create destination folder for task if necessary 
-
-        if (!options.map[kDestinationOption].empty() && !fs::exists(options.map[kDestinationOption])) {
-            fs::create_directories(options.map[kDestinationOption]);
-        }
 
     }
 
@@ -184,7 +186,7 @@ namespace FPE_ProcCmdLine {
 
         FPEOptions options{};
         
-        // Set bost version 
+        // Set boost version 
         
         options.map["boost-version"] = 
                 to_string(BOOST_VERSION / 100000)+"."+
@@ -209,24 +211,24 @@ namespace FPE_ProcCmdLine {
 
         addCommonOptions(configFile, options);
 
-        po::variables_map configVarMap;
+        po::variables_map configVariablesMap;
 
         try {
 
             // Process command line options
 
-            po::store(po::parse_command_line(argc, argv, commandLine), configVarMap);
+            po::store(po::parse_command_line(argc, argv, commandLine), configVariablesMap);
 
             // Display options and exit with success
 
-            if (configVarMap.count("help")) {
+            if (configVariablesMap.count("help")) {
                 cout << "File Processing Engine Application" << endl << commandLine << endl;
                 exit(EXIT_SUCCESS);
             }
             
             // Display list of available tasks
             
-            if (configVarMap.count("list")) {
+            if (configVariablesMap.count("list")) {
                 cout << "File Processing Engine Application Tasks\n\n";
                 int taskNo=0;
                 shared_ptr<TaskAction> taskFunc;
@@ -240,32 +242,32 @@ namespace FPE_ProcCmdLine {
 
             // Load config file specified
 
-            if (configVarMap.count(kConfigOption)) {
-                if (fs::exists(configVarMap[kConfigOption].as<string>().c_str())) {
-                    ifstream configFileStream{configVarMap[kConfigOption].as<string>().c_str()};
+            if (configVariablesMap.count(kConfigOption)) {
+                if (CFile::exists(CPath(configVariablesMap[kConfigOption].as<string>().c_str()))) {
+                    ifstream configFileStream{configVariablesMap[kConfigOption].as<string>()};
                     if (configFileStream) {
-                        po::store(po::parse_config_file(configFileStream, configFile), configVarMap);
+                        po::store(po::parse_config_file(configFileStream, configFile), configVariablesMap);
                     } else {
                         throw po::error("Error opening config file.");
                     }
                 } else {
-                    throw po::error("Specified config file [" + configVarMap[kConfigOption].as<string>() + "] does not exist.");
+                    throw po::error("Specified config file [" + configVariablesMap[kConfigOption].as<string>() + "] does not exist.");
                 }
             }
             
             // Check common integer options
             
-            checkIntegerOptions({kTaskOption, kKillCountOption, kMaxDepthOption}, configVarMap);
+            checkIntegerOptions({kTaskOption, kKillCountOption, kMaxDepthOption}, configVariablesMap);
                  
             // Task option validation. Options  valid to the task being
             // run are checked for and if not present an exception is thrown to
             // produce a relevant error message.Any extra options not required 
             // for a task are just ignored.
 
-            if (configVarMap.count(kTaskOption)) {
-                options.action = TaskAction::create(stoi(configVarMap[kTaskOption].as<string>()));
+            if (configVariablesMap.count(kTaskOption)) {
+                options.action = TaskAction::create(stoi(configVariablesMap[kTaskOption].as<string>()));
                 if (options.action) {
-                    checkTaskOptions(options.action->getParameters(), configVarMap);
+                    checkTaskOptions(options.action->getParameters(), configVariablesMap);
                 } else {
                     throw po::error("Error invalid task number.");                 
                 }
@@ -277,23 +279,23 @@ namespace FPE_ProcCmdLine {
             
             // Delete source file
 
-            if (configVarMap.count(kDeleteOption)) {
+            if (configVariablesMap.count(kDeleteOption)) {
                 options.map[kDeleteOption] = "1";  // true
             }
 
             // No trace output
 
-            if (configVarMap.count(kQuietOption)) {
+            if (configVariablesMap.count(kQuietOption)) {
                 options.map[kQuietOption] = "1"; // true
             }
 
             // Use main thread for task.
 
-            if (configVarMap.count(kSingleOption)) {
+            if (configVariablesMap.count(kSingleOption)) {
                 options.map[kSingleOption] = "1"; // true
             }
 
-            po::notify(configVarMap);
+            po::notify(configVariablesMap);
 
         } catch (po::error& e) {
             cerr << "FPE Error: " << e.what() << endl;
@@ -302,7 +304,7 @@ namespace FPE_ProcCmdLine {
 
         // Process program option data
 
-        processOptions(options);
+        preprocessOptions(options);
 
         return (options);
 

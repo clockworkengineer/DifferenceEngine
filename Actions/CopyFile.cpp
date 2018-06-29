@@ -19,8 +19,8 @@
 // Dependencies:
 // 
 // C11++              : Use of C11++ features.
+// Antik Classes      : CFile, CPath.
 // Linux              : Target platform
-// Boost              : File system.
 //
 
 // =============
@@ -41,10 +41,11 @@
 #include "FPE_Actions.hpp"
 
 //
-// BOOST filesystem
+// Antik Classes
 //
 
-#include <boost/filesystem.hpp>
+#include "CFile.hpp"
+#include "CPath.hpp"
 
 namespace FPE_TaskActions {
 
@@ -56,7 +57,7 @@ namespace FPE_TaskActions {
 
     using namespace FPE;
     
-    namespace fs = boost::filesystem;
+    using namespace Antik::File;
 
     // ===============
     // LOCAL VARIABLES
@@ -84,36 +85,36 @@ namespace FPE_TaskActions {
 
         // Form source and destination file paths
 
-        fs::path sourceFile(file);
+        CPath sourceFile(file);
 
         // Destination file path += ("filename path" - "watch folder path")
 
-        fs::path destinationFile(this->m_actionData[kDestinationOption] +
+        CPath destinationFile(this->m_actionData[kDestinationOption] +
                 file.substr((this->m_actionData[kWatchOption]).length()));
 
         // Construct full destination path if needed
 
-        if (!fs::exists(destinationFile.parent_path())) {
-            if (fs::create_directories(destinationFile.parent_path())) {
-                 cout << "Created :" << destinationFile.parent_path().string() << endl;
+        if (!CFile::exists(destinationFile.parentPath())) {
+            if (CFile::createDirectory(destinationFile.parentPath())) {
+                 cout << "Created :" << destinationFile.parentPath().toString() << endl;
             } else {
-                 cerr << "Created failed for :" << destinationFile.parent_path().string() << endl;
+                 cerr << "Created failed for :" << destinationFile.toString() << endl;
             }
         }
 
         // Currently only copy file if it doesn't already exist.
 
-        if (!fs::exists(destinationFile)) {
-            cout << "COPY FROM [" << sourceFile.string() << "] TO [" << destinationFile.string() << "]" << endl;
-            fs::copy_file(sourceFile, destinationFile, fs::copy_option::none);
+        if (!CFile::exists(destinationFile)) {
+            cout << "COPY FROM [" << sourceFile.toString() << "] TO [" << destinationFile.toString() << "]" << endl;
+            CFile::copy(sourceFile, destinationFile);
             bSuccess = true;
             if (!this->m_actionData[kDeleteOption].empty()) {
-                 cout << "Deleting Source ["+sourceFile.string()+"]" << endl;
-                fs::remove(sourceFile);
+                cout << "Deleting Source ["+sourceFile.toString()+"]" << endl;
+                CFile::remove(sourceFile);
             }
 
         } else {
-             cout << "Destination already exists : " << destinationFile.string() << endl;
+             cout << "Destination already exists : " << destinationFile.toString() << endl;
         }
 
         return (bSuccess);
