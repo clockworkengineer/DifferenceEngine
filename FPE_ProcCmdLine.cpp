@@ -171,7 +171,6 @@ namespace FPE_ProcCmdLine {
             }
         }
 
-
     }
 
     // ================
@@ -302,7 +301,7 @@ namespace FPE_ProcCmdLine {
             exit(EXIT_FAILURE);
         }
 
-        // Process program option data
+        // Preprocess program option data
 
         preprocessOptions(options);
 
