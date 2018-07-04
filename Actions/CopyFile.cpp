@@ -91,8 +91,8 @@ namespace FPE_TaskActions {
 
             // Destination file path += ("filename path" - "watch folder path")
 
-            CPath destinationFile(this->m_actionData[kDestinationOption] +
-                    file.substr((this->m_actionData[kWatchOption]).length()));
+            CPath destinationFile { this->m_actionData[kDestinationOption] };
+            destinationFile.join(file.substr((this->m_actionData[kWatchOption]).length()));
 
             // Construct full destination path if needed
 
@@ -127,4 +127,4 @@ namespace FPE_TaskActions {
 
     }
 
-} // namespace FPE_Actions
+} // namespace FPE_TaskActions

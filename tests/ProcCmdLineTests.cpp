@@ -53,10 +53,10 @@ protected:
 
     // Empty destructor
 
-    virtual ~ProcCmdLineTests() {
+    ~ProcCmdLineTests() override {
     }
 
-    virtual void SetUp() {
+    void SetUp() override {
 
         // Create watch folder.
 
@@ -72,7 +72,7 @@ protected:
 
     }
 
-    virtual void TearDown() {
+    void TearDown() override {
 
         // Remove watch folder.
 
@@ -128,7 +128,7 @@ TEST_F(ProcCmdLineTests, NoOptions) {
 
     FPEOptions optionData;
 
-    char *argv[] = {(char *) "fpe", nullptr};
+    char *argv[] = { (char *)"fpe", nullptr};
 
     EXPECT_EXIT(optionData = fetchCommandLineOptions(this->argvLen(argv), argv),
             ::testing::ExitedWithCode(1), "FPE Error: the option '--task' is required but missing");

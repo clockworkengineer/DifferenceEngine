@@ -46,7 +46,6 @@ namespace FPE {
     
     void FileProcessingEngine(int argc, char** argv);
     
-} // namespace 
+} // namespace FPE 
 
 #endif /* FPE_HPP */
-

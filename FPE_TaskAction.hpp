@@ -42,7 +42,7 @@ namespace FPE_TaskActions {
         
         static std::shared_ptr<TaskAction> create(int taskNumber);
 
-        TaskAction(const std::string &taskName) : name{taskName}
+        explicit TaskAction(const std::string &taskName="") : name{taskName}
         {
         }
 
@@ -63,10 +63,10 @@ namespace FPE_TaskActions {
 
     protected:
         std::string name; // Action name
-        std::unordered_map<std::string, std::string> m_actionData; // Map to store action data
-
+        std::unordered_map<std::string, std::string> m_actionData {}; // Map to store action data
+        
     };
 
 
-} // namespace FPE_Actions
+} // namespace FPE_TaskActions
 #endif /* FPE_TASKACTION_HPP */

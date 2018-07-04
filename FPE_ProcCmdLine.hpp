@@ -39,8 +39,8 @@ namespace FPE_ProcCmdLine {
     //
 
     struct FPEOptions {
-        std::shared_ptr<FPE_TaskActions::TaskAction> action;   // Task action function details
-        std::unordered_map<std::string, std::string> map;      // Options map
+        std::shared_ptr<FPE_TaskActions::TaskAction> action {nullptr};   // Task action function details
+        std::unordered_map<std::string, std::string> map {};             // Options map
      };
      
     // Get command line options

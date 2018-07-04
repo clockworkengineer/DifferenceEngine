@@ -108,7 +108,6 @@ namespace FPE_TaskActions {
         } else { // for the parent:
 
             while (wait(&status) != pid) { /* wait for completion  */
-                continue;
             }
 
             if (WIFEXITED(status)) { // Set any exit status
@@ -225,4 +224,4 @@ namespace FPE_TaskActions {
     }
 
 
-} // namespace FPE_Actions
+} // namespace FPE_TaskActions

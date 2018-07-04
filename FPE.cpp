@@ -131,7 +131,7 @@ namespace FPE {
 
     void FileProcessingEngine(int argc, char** argv) {
 
-        FPEOptions options; // Command line options  
+        FPEOptions options {}; // Command line options  
 
         try {
 

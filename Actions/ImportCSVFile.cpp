@@ -47,10 +47,9 @@
 #include "CPath.hpp"
 
 //
-// Boost format and tokenizer library
+// Boost tokenizer library
 //
 
-#include <boost/format.hpp>
 #include <boost/tokenizer.hpp>
 
 //
@@ -61,7 +60,6 @@
 #if defined(MONGO_DRIVER_INSTALLED)
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
-
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
 #endif // MONGO_DRIVER_INSTALLED
@@ -86,6 +84,16 @@ namespace FPE_TaskActions {
     // LOCAL FUNCTIONS
     // ===============
 
+    vector<string> getCSVTokens(const std::string& csvLineStr) {
+
+        boost::tokenizer< boost::escaped_list_separator<char> > csvTokenizer(csvLineStr);
+        vector<string> csvTokens;
+
+        csvTokens.assign(csvTokenizer.begin(), csvTokenizer.end());
+
+        return (csvTokens);
+
+    }
 
     // ================
     // PUBLIC FUNCTIONS
@@ -111,13 +119,13 @@ namespace FPE_TaskActions {
 
             CPath sourceFile(file);
 
-            ifstream csvFileStream(sourceFile.string());
+            ifstream csvFileStream(sourceFile.toString());
             if (!csvFileStream.is_open()) {
-                cout << "Error opening file " << sourceFile.string() << endl;
+                cout << "Error opening file " << sourceFile.toString() << endl;
                 return (false);
             }
 
-            cout << "Importing CSV file [" << sourceFile.filename().string() << "] To MongoDB." << endl;
+            cout << "Importing CSV file [" << sourceFile.fileName() << "] To MongoDB." << endl;
 
             mongocxx::instance driverInstance{};
             mongocxx::client mongoConnection{mongocxx::uri{this->m_actionData[kServerOption]}};
@@ -151,4 +159,4 @@ namespace FPE_TaskActions {
 
     }
 
-} // namespace FPE_Actions
+} // namespace FPE_TaskActions

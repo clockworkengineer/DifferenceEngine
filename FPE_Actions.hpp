@@ -44,19 +44,19 @@ namespace FPE_TaskActions {
         CopyFile() : TaskAction("Copy File") {
         }
 
-        void init(void) final {
+        void init(void) override {
         };
 
-        void term(void) final {
+        void term(void) override {
         };
         
-        bool process(const std::string &file) final;
+        bool process(const std::string &file) override;
 
-        std::vector<std::string> getParameters() final {
+        std::vector<std::string> getParameters() override {
             return (std::vector<std::string>({FPE::kDestinationOption}));
         }
 
-        ~CopyFile() {
+        ~CopyFile() override {
         };
     };
 
@@ -66,24 +66,24 @@ namespace FPE_TaskActions {
         VideoConversion() : TaskAction("Video Conversion") {
         }
 
-        virtual void init(void) {
-            // Allows the override of built-in command
+        void init(void) override {
+            // Allows the  of built-in command
             if (m_actionData.find(FPE::kCommandOption)==m_actionData.end()) {
                 m_actionData[FPE::kCommandOption] =
                     "/usr/local/bin/HandBrakeCLI -i %1% -o %2% --preset=\"Normal\"";
             }
         };
 
-        virtual void term(void) {
+        void term(void) override {
         };
         
-        virtual bool process(const std::string &file);
+        bool process(const std::string &file) override;
 
-        virtual std::vector<std::string> getParameters() {
+        std::vector<std::string> getParameters() override {
             return (std::vector<std::string>({FPE::kDestinationOption}));
         }
 
-        ~VideoConversion() {
+        ~VideoConversion() override {
         };
     };
 
@@ -93,17 +93,17 @@ namespace FPE_TaskActions {
         EmailFile() : TaskAction("Email Attachment") {
         }
         
-        void init(void) final;
-        void term(void) final;
+        void init(void) override;
+        void term(void) override;
         
-        bool process(const std::string &file) final;
+        bool process(const std::string &file) override;
 
-        std::vector<std::string> getParameters() final {
+        std::vector<std::string> getParameters() override {
             return (std::vector<std::string>({FPE::kServerOption, FPE::kUserOption,
                 FPE::kPasswordOption, FPE::kRecipientOption, FPE::kMailBoxOption}));
         }
 
-        ~EmailFile() {
+        ~EmailFile() override {
         };
     };
 
@@ -113,19 +113,19 @@ namespace FPE_TaskActions {
         ZIPFile() : TaskAction("ZIP Archive") {
         }
 
-        void init(void) final {
+        void init(void) override {
         };
 
-        void term(void) final {
+        void term(void) override {
         };
         
-        bool process(const std::string &file) final;
+        bool process(const std::string &file) override;
 
-        std::vector<std::string> getParameters() {
+        std::vector<std::string> getParameters() override {
             return (std::vector<std::string>({FPE::kArchiveOption}));
         }
 
-        ~ZIPFile() {
+        ~ZIPFile() override {
         };
     };
 
@@ -135,19 +135,19 @@ namespace FPE_TaskActions {
         RunCommand() : TaskAction("Run Command") {
         }
 
-        void init(void) final {
+        void init(void) override {
         };
 
-        void term(void) final {
+        void term(void) override {
         };
         
-        bool process(const std::string &file) final;
+        bool process(const std::string &file) override;
 
-        std::vector<std::string> getParameters() {
+        std::vector<std::string> getParameters() override {
             return (std::vector<std::string>({FPE::kCommandOption}));
         }
 
-        ~RunCommand() {
+        ~RunCommand() override {
         };
     };
 
@@ -157,24 +157,24 @@ namespace FPE_TaskActions {
         ImportCSVFile() : TaskAction("Import CSV File") {
         }
 
-        void init(void) final {
+        void init(void) override {
         };
 
-        void term(void) final {
+        void term(void) override {
         };
         
-        bool process(const std::string &file) final;
+        bool process(const std::string &file) override;
 
-        std::vector<std::string> getParameters() final {
+        std::vector<std::string> getParameters() override {
             return (std::vector<std::string>({FPE::kServerOption, FPE::kUserOption,
                 FPE::kPasswordOption, FPE::kDatabaseOption, FPE::kCollectionOption}));
         }
 
-        ~ImportCSVFile() {
+        ~ImportCSVFile() override {
         };
     };
 
-} // namespace FPE_Actions
+} // namespace FPE_TaskActions
 #endif /* FPE_ACTIONS_HPP */
 
 

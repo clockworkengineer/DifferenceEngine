@@ -20,7 +20,6 @@
 // C11++              : Use of C11++ features.
 // Antik Classes      : CZIP, CFile, CPath.
 // Linux              : Target platform.
-// Boost              : File system.
 //
 
 // =============
@@ -136,5 +135,5 @@ namespace FPE_TaskActions {
 
     }
 
-} // namespace FPE_Actions
+} // namespace FPE_TaskActions
 
