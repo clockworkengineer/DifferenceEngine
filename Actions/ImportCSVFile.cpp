@@ -70,10 +70,7 @@ namespace FPE_TaskActions {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
-
     using namespace Antik::File;
 
     // ===============
@@ -84,10 +81,10 @@ namespace FPE_TaskActions {
     // LOCAL FUNCTIONS
     // ===============
 
-    vector<string> getCSVTokens(const std::string& csvLineStr) {
+    std::vector<std::string> getCSVTokens(const std::string& csvLineStr) {
 
         boost::tokenizer< boost::escaped_list_separator<char> > csvTokenizer(csvLineStr);
-        vector<string> csvTokens;
+        std::vector<std::string> csvTokens;
 
         csvTokens.assign(csvTokenizer.begin(), csvTokenizer.end());
 
@@ -103,7 +100,7 @@ namespace FPE_TaskActions {
     // Import CSV File to MongoDB
     //
 
-    bool ImportCSVFile::process(const string &file) {
+    bool ImportCSVFile::process(const std::string &file) {
 
         // ASSERT for any invalid options.
 
@@ -119,19 +116,19 @@ namespace FPE_TaskActions {
 
             CPath sourceFile(file);
 
-            ifstream csvFileStream(sourceFile.toString());
+            std::ifstream csvFileStream(sourceFile.toString());
             if (!csvFileStream.is_open()) {
-                cout << "Error opening file " << sourceFile.toString() << endl;
+                std::cout << "Error opening file " << sourceFile.toString() << std::endl;
                 return (false);
             }
 
-            cout << "Importing CSV file [" << sourceFile.fileName() << "] To MongoDB." << endl;
+            std::cout << "Importing CSV file [" << sourceFile.fileName() << "] To MongoDB." << std::endl;
 
             mongocxx::instance driverInstance{};
             mongocxx::client mongoConnection{mongocxx::uri{this->m_actionData[kServerOption]}};
             auto csvCollection = mongoConnection[this->m_actionData[kDatabaseOption]][this->m_actionData[kCollectionOption]];
-            vector<string> fieldNames;
-            string csvLine;
+            std::vector<std::string> fieldNames;
+            std::string csvLine;
 
             getline(csvFileStream, csvLine);
             if (csvLine.back() == '\r')csvLine.pop_back();
@@ -139,7 +136,7 @@ namespace FPE_TaskActions {
             fieldNames = getCSVTokens(csvLine);
 
             while (getline(csvFileStream, csvLine)) {
-                vector< string > fieldValues;
+                std::vector<std::string > fieldValues;
                 bsoncxx::builder::stream::document document{};
                 if (csvLine.back() == '\r')csvLine.pop_back();
                 fieldValues = getCSVTokens(csvLine);
@@ -150,8 +147,8 @@ namespace FPE_TaskActions {
                 csvCollection.insert_one(document.view());
             }
 
-        } catch (const exception & e) {
-            cerr << this->getName() << " Error: " << e.what() << endl;
+        } catch (const std::exception & e) {
+            std::cerr << this->getName() << " Error: " << e.what() << std::endl;
         }
 #endif // MONGO_DRIVER_INSTALLED
 

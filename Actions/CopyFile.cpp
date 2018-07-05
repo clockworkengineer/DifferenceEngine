@@ -53,10 +53,7 @@ namespace FPE_TaskActions {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
-
     using namespace Antik::File;
 
     // ===============
@@ -75,7 +72,7 @@ namespace FPE_TaskActions {
     // Copy file task action.
     //
 
-    bool CopyFile::process(const string &file) {
+    bool CopyFile::process(const std::string &file) {
 
         // ASSERT for any invalid options.
 
@@ -98,29 +95,29 @@ namespace FPE_TaskActions {
 
             if (!CFile::exists(destinationFile.parentPath())) {
                 if (CFile::createDirectory(destinationFile.parentPath())) {
-                    cout << "Created :" << destinationFile.parentPath().toString() << endl;
+                    std::cout << "Created :" << destinationFile.parentPath().toString() << std::endl;
                 } else {
-                    cerr << "Created failed for :" << destinationFile.toString() << endl;
+                    std::cerr << "Created failed for :" << destinationFile.toString() << std::endl;
                 }
             }
 
             // Currently only copy file if it doesn't already exist.
 
             if (!CFile::exists(destinationFile)) {
-                cout << "COPY FROM [" << sourceFile.toString() << "] TO [" << destinationFile.toString() << "]" << endl;
+                std::cout << "COPY FROM [" << sourceFile.toString() << "] TO [" << destinationFile.toString() << "]" << std::endl;
                 CFile::copy(sourceFile, destinationFile);
                 bSuccess = true;
                 if (!this->m_actionData[kDeleteOption].empty()) {
-                    cout << "Deleting Source [" + sourceFile.toString() + "]" << endl;
+                    std::cout << "Deleting Source [" + sourceFile.toString() + "]" << std::endl;
                     CFile::remove(sourceFile);
                 }
 
             } else {
-                cout << "Destination already exists : " << destinationFile.toString() << endl;
+                std::cout << "Destination already exists : " << destinationFile.toString() << std::endl;
             }
 
         } catch (const CFile::Exception& e) {
-            cerr << this->getName() << " Error: " << e.what() << endl;
+            std::cerr << this->getName() << " Error: " << e.what() << std::endl;
         }
 
         return (bSuccess);

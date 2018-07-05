@@ -63,10 +63,7 @@ namespace FPE_TaskActions {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
-
     using namespace Antik::File;
 
     // ===============
@@ -89,7 +86,7 @@ namespace FPE_TaskActions {
 
         if ((pid = fork()) < 0) { /* fork a child process           */
 
-            throw system_error(error_code(errno, system_category()), "Error: forking child process failed:");
+            throw std::system_error(std::error_code(errno, std::system_category()), "Error: forking child process failed:");
 
         } else if (pid == 0) { /* for the child process: */
 
@@ -122,14 +119,14 @@ namespace FPE_TaskActions {
     // All heap memory cleaned up when function returns due to unique_pointers.
     //
 
-    static int runShellCommand(const string& shellCommand) {
+    static int runShellCommand(const std::string& shellCommand) {
 
         int exitStatus = 0;
         int argc = 0;
 
-        vector<char *> argvs;
-        unique_ptr<char*> argv;
-        unique_ptr<char> command{ new char[shellCommand.length() + 1]};
+        std::vector<char *> argvs;
+        std::unique_ptr<char*> argv;
+        std::unique_ptr<char> command{ new char[shellCommand.length() + 1]};
 
         // Take a 'C' string copy
 
@@ -170,7 +167,7 @@ namespace FPE_TaskActions {
     // Run a specified command on the file (%1% source, %2% destination)
     //
 
-    bool RunCommand::process(const string &file) {
+    bool RunCommand::process(const std::string &file) {
 
         // ASSERT for any invalid options.
 
@@ -187,10 +184,10 @@ namespace FPE_TaskActions {
 
             // Create correct command for whether source and destination specified or just source or none
 
-            bool srcFound = (this->m_actionData[kCommandOption].find("%1%") != string::npos);
-            bool dstFound = (this->m_actionData[kCommandOption].find("%2%") != string::npos);
+            bool srcFound = (this->m_actionData[kCommandOption].find("%1%") != std::string::npos);
+            bool dstFound = (this->m_actionData[kCommandOption].find("%2%") != std::string::npos);
 
-            string command;
+            std::string command;
             if (srcFound && dstFound) {
                 command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
             } else if (srcFound) {
@@ -202,16 +199,16 @@ namespace FPE_TaskActions {
             auto result = 0;
             if ((result = runShellCommand(command)) == 0) {
                 bSuccess = true;
-                cout << "Command success." << endl;
+                std::cout << "Command success." << std::endl;
                 if (!this->m_actionData[kDeleteOption].empty()) {
-                    cout << "Deleting Source [" << sourceFile.toString() << "]" << endl;
+                    std::cout << "Deleting Source [" << sourceFile.toString() << "]" << std::endl;
                     CFile::remove(sourceFile);
                 }
 
             }
 
-        } catch (const exception & e) {
-            cerr << this->getName() << " Error: " << e.what() << endl;
+        } catch (const std::exception & e) {
+            std::cerr << this->getName() << " Error: " << e.what() << std::endl;
         }
 
         return (bSuccess);

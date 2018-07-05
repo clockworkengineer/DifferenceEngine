@@ -63,8 +63,6 @@ namespace FPE_ProcCmdLine {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
     using namespace FPE_TaskActions;
     
@@ -83,25 +81,25 @@ namespace FPE_ProcCmdLine {
     static void addCommonOptions(po::options_description& commonOptions, FPEOptions& options) {
 
         commonOptions.add_options()
-                ("watch,w", po::value<string>(&options.map[kWatchOption])->required(), "Watch folder")
-                ("destination,d", po::value<string>(&options.map[kDestinationOption]), "Destination folder")
-                ("task,t", po::value<string>(&options.map[kTaskOption])->required(), "Task number")
-                ("command", po::value<string>(&options.map[kCommandOption]), "Shell command to run")
-                ("maxdepth", po::value<string>(&options.map[kMaxDepthOption])->default_value("-1"), "Maximum watch depth")
-                ("extension,e", po::value<string>(&options.map[kExtensionOption]), "Override destination file extension")
+                ("watch,w", po::value<std::string>(&options.map[kWatchOption])->required(), "Watch folder")
+                ("destination,d", po::value<std::string>(&options.map[kDestinationOption]), "Destination folder")
+                ("task,t", po::value<std::string>(&options.map[kTaskOption])->required(), "Task number")
+                ("command", po::value<std::string>(&options.map[kCommandOption]), "Shell command to run")
+                ("maxdepth", po::value<std::string>(&options.map[kMaxDepthOption])->default_value("-1"), "Maximum watch depth")
+                ("extension,e", po::value<std::string>(&options.map[kExtensionOption]), "Override destination file extension")
                 ("quiet,q", "Quiet mode (no trace output)")
                 ("delete", "Delete source file")
-                ("log,l", po::value<string>(&options.map[kLogOption]), "Log file")
+                ("log,l", po::value<std::string>(&options.map[kLogOption]), "Log file")
                 ("single,s", "Run task in main thread")
-                ("killcount,k", po::value<string>(&options.map[kKillCountOption])->default_value("0"), "Files to process before closedown")
-                ("server,s", po::value<string>(&options.map[kServerOption]), "SMTP/IMAP/MongoDB server URL and port")
-                ("user,u", po::value<string>(&options.map[kUserOption]), "Account username")
-                ("password,p", po::value<string>(&options.map[kPasswordOption]), "Account username password")
-                ("recipient,r", po::value<string>(&options.map[kRecipientOption]), "Recipients(s) for email with attached file")
-                ("mailbox,m", po::value<string>(&options.map[kMailBoxOption]), "IMAP Mailbox name for drop box")
-                ("archive,a", po::value<string>(&options.map[kArchiveOption]), "ZIP destination archive")
-                ("database,b", po::value<string>(&options.map[kDatabaseOption]), "Database name")
-                ("collection,c", po::value<string>(&options.map[kCollectionOption]), "Collection/Table name")
+                ("killcount,k", po::value<std::string>(&options.map[kKillCountOption])->default_value("0"), "Files to process before closedown")
+                ("server,s", po::value<std::string>(&options.map[kServerOption]), "SMTP/IMAP/MongoDB server URL and port")
+                ("user,u", po::value<std::string>(&options.map[kUserOption]), "Account username")
+                ("password,p", po::value<std::string>(&options.map[kPasswordOption]), "Account username password")
+                ("recipient,r", po::value<std::string>(&options.map[kRecipientOption]), "Recipients(s) for email with attached file")
+                ("mailbox,m", po::value<std::string>(&options.map[kMailBoxOption]), "IMAP Mailbox name for drop box")
+                ("archive,a", po::value<std::string>(&options.map[kArchiveOption]), "ZIP destination archive")
+                ("database,b", po::value<std::string>(&options.map[kDatabaseOption]), "Database name")
+                ("collection,c", po::value<std::string>(&options.map[kCollectionOption]), "Collection/Table name")
                 ("list", "Display a list of supported tasks.");
                 
 
@@ -111,10 +109,10 @@ namespace FPE_ProcCmdLine {
     // If a task option is not present throw an exception.
     //
 
-    static void checkTaskOptions(const vector<string>& options, const po::variables_map& configVarMap) {
+    static void checkTaskOptions(const std::vector<std::string>& options, const po::variables_map& configVarMap) {
 
         for (auto opt : options) {
-            if (!configVarMap.count(opt) || configVarMap[opt].as<string>().empty()) {
+            if (!configVarMap.count(opt) || configVarMap[opt].as<std::string>().empty()) {
                 throw po::error("Task option '" + opt + "' missing.");
             }
         }
@@ -124,16 +122,16 @@ namespace FPE_ProcCmdLine {
     //
     // If an option is not a valid int throw an exception.For the moment just try to convert to an
     // integer with stoi() (throws an error if the conversion fails). Note stoi() will convert up and to
-    // the first non-numeric character so a string like "89ttt" will be converted to 89. 
+    // the first non-numeric character so a std::string like "89ttt" will be converted to 89. 
     //
     
-    static void checkIntegerOptions(const vector<string>& options, const po::variables_map& configVarMap) {
+    static void checkIntegerOptions(const std::vector<std::string>& options, const po::variables_map& configVarMap) {
 
         for (auto opt : options) {
             if (configVarMap.count(opt)) {
                 try {
-                    stoi(configVarMap[opt].as<string>());
-                } catch (const exception& e) {
+                    stoi(configVarMap[opt].as<std::string>());
+                } catch (const std::exception& e) {
                     throw po::error(opt + " is not a valid integer.");
                 }
             }
@@ -167,7 +165,7 @@ namespace FPE_ProcCmdLine {
 
         for (auto &option : options.map) {
             if (!option.second.empty()) {
-                cout << "*** " << option.first << " = [" << option.second << "] ***" << endl;
+                std::cout << "*** " << option.first << " = [" << option.second << "] ***" << std::endl;
             }
         }
 
@@ -181,16 +179,16 @@ namespace FPE_ProcCmdLine {
     // Read in and process command line options using boost.
     //
 
-    FPEOptions fetchCommandLineOptions(int argc, char** argv) {
+    FPEOptions fetchCommandLineOptions(int argc, char*argv[]) {
 
         FPEOptions options{};
         
         // Set boost version 
         
         options.map["boost-version"] = 
-                to_string(BOOST_VERSION / 100000)+"."+
-                to_string(BOOST_VERSION / 100 % 1000)+"."+
-                to_string(BOOST_VERSION % 100);
+                std::to_string(BOOST_VERSION / 100000)+"."+
+                std::to_string(BOOST_VERSION / 100 % 1000)+"."+
+                std::to_string(BOOST_VERSION % 100);
 
         // Define and parse the program options
 
@@ -200,7 +198,7 @@ namespace FPE_ProcCmdLine {
 
         commandLine.add_options()
                 ("help", "Display help message")
-                (kConfigOption, po::value<string>(&options.map[kConfigOption]), "Configuration file name");
+                (kConfigOption, po::value<std::string>(&options.map[kConfigOption]), "Configuration file name");
 
         addCommonOptions(commandLine, options);
 
@@ -221,19 +219,19 @@ namespace FPE_ProcCmdLine {
             // Display options and exit with success
 
             if (configVariablesMap.count("help")) {
-                cout << "File Processing Engine Application" << endl << commandLine << endl;
+                std::cout << "File Processing Engine Application" << std::endl << commandLine << std::endl;
                 exit(EXIT_SUCCESS);
             }
             
             // Display list of available tasks
             
             if (configVariablesMap.count("list")) {
-                cout << "File Processing Engine Application Tasks\n\n";
+                std::cout << "File Processing Engine Application Tasks\n\n";
                 int taskNo=0;
-                shared_ptr<TaskAction> taskFunc;
+                std::shared_ptr<TaskAction> taskFunc;
                 taskFunc = TaskAction::create(taskNo);
                 while (!taskFunc->getName().empty()){
-                    cout << taskNo << "\t" << taskFunc->getName() << "\n";
+                    std::cout << taskNo << "\t" << taskFunc->getName() << "\n";
                     taskFunc =  TaskAction::create(++taskNo);
                 }
                 exit(EXIT_SUCCESS);
@@ -242,15 +240,15 @@ namespace FPE_ProcCmdLine {
             // Load config file specified
 
             if (configVariablesMap.count(kConfigOption)) {
-                if (CFile::exists(CPath(configVariablesMap[kConfigOption].as<string>().c_str()))) {
-                    ifstream configFileStream{configVariablesMap[kConfigOption].as<string>()};
+                if (CFile::exists(CPath(configVariablesMap[kConfigOption].as<std::string>().c_str()))) {
+                    std::ifstream configFileStream{configVariablesMap[kConfigOption].as<std::string>()};
                     if (configFileStream) {
                         po::store(po::parse_config_file(configFileStream, configFile), configVariablesMap);
                     } else {
                         throw po::error("Error opening config file.");
                     }
                 } else {
-                    throw po::error("Specified config file [" + configVariablesMap[kConfigOption].as<string>() + "] does not exist.");
+                    throw po::error("Specified config file [" + configVariablesMap[kConfigOption].as<std::string>() + "] does not exist.");
                 }
             }
             
@@ -264,7 +262,7 @@ namespace FPE_ProcCmdLine {
             // for a task are just ignored.
 
             if (configVariablesMap.count(kTaskOption)) {
-                options.action = TaskAction::create(stoi(configVariablesMap[kTaskOption].as<string>()));
+                options.action = TaskAction::create(stoi(configVariablesMap[kTaskOption].as<std::string>()));
                 if (options.action) {
                     checkTaskOptions(options.action->getParameters(), configVariablesMap);
                 } else {
@@ -297,7 +295,7 @@ namespace FPE_ProcCmdLine {
             po::notify(configVariablesMap);
 
         } catch (po::error& e) {
-            cerr << "FPE Error: " << e.what() << endl;
+            std::cerr << "FPE Error: " << e.what() << std::endl;
             exit(EXIT_FAILURE);
         }
 

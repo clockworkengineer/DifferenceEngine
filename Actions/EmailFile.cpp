@@ -58,10 +58,7 @@ namespace FPE_TaskActions {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
-
     using namespace Antik::IMAP;
     using namespace Antik::File;
     using namespace Antik::SMTP;
@@ -92,7 +89,7 @@ namespace FPE_TaskActions {
         CIMAP::closedown();
     };
 
-    bool EmailFile::process(const string &file) {
+    bool EmailFile::process(const std::string &file) {
 
         // ASSERT for any invalid options.
 
@@ -116,34 +113,34 @@ namespace FPE_TaskActions {
             smtp.setMailSubject("FPE Attached File");
             smtp.addFileAttachment(file, CMIME::getFileMIMEType(file), "base64");
 
-            if (this->m_actionData[kServerOption].find(string("smtp")) == 0) {
+            if (this->m_actionData[kServerOption].find(std::string("smtp")) == 0) {
 
                 smtp.postMail();
-                cout << "Emailing file [" << file << "] to [" << this->m_actionData[kRecipientOption] << "]" << endl;
+                std::cout << "Emailing file [" << file << "] to [" << this->m_actionData[kRecipientOption] << "]" << std::endl;
                 bSuccess = true;
 
-            } else if (this->m_actionData[kServerOption].find(string("imap")) == 0) {
+            } else if (this->m_actionData[kServerOption].find(std::string("imap")) == 0) {
 
                 CIMAP imap;
-                string mailMessage;
-                string commandLine;
+                std::string mailMessage;
+                std::string commandLine;
 
                 commandLine = "Append " + this->m_actionData[kMailBoxOption] + " (\\Seen) {";
                 mailMessage = smtp.getMailMessage();
-                commandLine += to_string(mailMessage.length() - 2) + "}" + mailMessage;
+                commandLine += std::to_string(mailMessage.length() - 2) + "}" + mailMessage;
 
                 imap.setServer(this->m_actionData[kServerOption]);
                 imap.setUserAndPassword(this->m_actionData[kUserOption], this->m_actionData[kPasswordOption]);
 
                 imap.connect();
 
-                string response(imap.sendCommand(commandLine));
+                std::string response(imap.sendCommand(commandLine));
 
                 CIMAPParse::COMMANDRESPONSE commandResponse(CIMAPParse::parseResponse(response));
                 if (commandResponse->status == CIMAPParse::RespCode::BAD) {
-                    cout << commandResponse->errorMessage << endl;
+                    std::cout << commandResponse->errorMessage << std::endl;
                 } else {
-                    cout << "Added file [" << file << "] to [" << this->m_actionData[kMailBoxOption] << "]" << endl;
+                    std::cout << "Added file [" << file << "] to [" << this->m_actionData[kMailBoxOption] << "]" << std::endl;
                     bSuccess = true;
                 }
 
@@ -152,11 +149,11 @@ namespace FPE_TaskActions {
             }
 
         } catch (const CSMTP::Exception &e) {
-            cerr << this->getName() << " Error: " << e.what() << endl;
+            std::cerr << this->getName() << " Error: " << e.what() << std::endl;
         } catch (const CIMAP::Exception &e) {
-            cerr << this->getName() << " Error: " << e.what() << endl;
-        } catch (const exception & e) {
-            cerr << this->getName() << " Error: " << e.what() << endl;
+            std::cerr << this->getName() << " Error: " << e.what() << std::endl;
+        } catch (const std::exception & e) {
+            std::cerr << this->getName() << " Error: " << e.what() << std::endl;
         }
 
         return (bSuccess);

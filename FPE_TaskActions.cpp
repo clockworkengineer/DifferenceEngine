@@ -39,8 +39,6 @@ namespace FPE_TaskActions {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
 
     // ===============
@@ -59,26 +57,26 @@ namespace FPE_TaskActions {
     // Task action factory
     //
 
-    shared_ptr<TaskAction> TaskAction::create(int taskNumber) {
+    std::shared_ptr<TaskAction> TaskAction::create(int taskNumber) {
 
         switch (taskNumber) {
             case 0:
-                return (shared_ptr<TaskAction> (new CopyFile()));
+                return (std::shared_ptr<TaskAction> (new CopyFile()));
                 break;
             case 1:
-                return (shared_ptr<TaskAction> (new VideoConversion()));
+                return (std::shared_ptr<TaskAction> (new VideoConversion()));
                 break;
             case 2:
-                return (shared_ptr<TaskAction> (new EmailFile()));
+                return (std::shared_ptr<TaskAction> (new EmailFile()));
                 break;
             case 3:
-                return (shared_ptr<TaskAction> (new ZIPFile()));
+                return (std::shared_ptr<TaskAction> (new ZIPFile()));
                 break;
             case 4:
-                return (shared_ptr<TaskAction> (new RunCommand()));
+                return (std::shared_ptr<TaskAction> (new RunCommand()));
                 break;
             case 5:
-                return (shared_ptr<TaskAction> (new ImportCSVFile()));
+                return (std::shared_ptr<TaskAction> (new ImportCSVFile()));
                 break;
         }
         

@@ -45,7 +45,7 @@ namespace FPE_ProcCmdLine {
      
     // Get command line options
 
-    FPEOptions fetchCommandLineOptions(int argc, char** argv);
+    FPEOptions fetchCommandLineOptions(int argc, char* argv[]);
 
     //
     //  Get option map value and return as type T

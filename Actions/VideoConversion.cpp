@@ -66,10 +66,7 @@ namespace FPE_TaskActions {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
-
     using namespace Antik::File;
 
     // ===============
@@ -92,7 +89,7 @@ namespace FPE_TaskActions {
 
         if ((pid = fork()) < 0) { /* fork a child process           */
 
-            throw system_error(error_code(errno, system_category()), "Error: forking child process failed:");
+            throw std::system_error(std::error_code(errno, std::system_category()), "Error: forking child process failed:");
 
         } else if (pid == 0) { /* for the child process: */
 
@@ -125,14 +122,14 @@ namespace FPE_TaskActions {
     // All heap memory cleaned up when function returns due to unique_pointers.
     //
 
-    static int runShellCommand(const string& shellCommand) {
+    static int runShellCommand(const std::string& shellCommand) {
 
         int exitStatus = 0;
         int argc = 0;
 
-        vector<char *> argvs;
-        unique_ptr<char*> argv;
-        unique_ptr<char> command{ new char[shellCommand.length() + 1]};
+        std::vector<char *> argvs;
+        std::unique_ptr<char*> argv;
+        std::unique_ptr<char> command{ new char[shellCommand.length() + 1]};
 
         // Take a 'C' string copy
 
@@ -173,7 +170,7 @@ namespace FPE_TaskActions {
     // Video file conversion action function. Convert passed in file to MP4 using Handbrake.
     //
 
-    bool VideoConversion::process(const string& file) {
+    bool VideoConversion::process(const std::string& file) {
 
         // ASSERT for any invalid options.
 
@@ -198,25 +195,25 @@ namespace FPE_TaskActions {
 
             // Convert file
 
-            string command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
+            std::string command = (boost::format(this->m_actionData[kCommandOption]) % sourceFile.toString() % destinationFile.toString()).str();
 
-            cout << "Converting file [" << sourceFile.toString() << "] To [" << destinationFile.toString() << "]" << endl;
+            std::cout << "Converting file [" << sourceFile.toString() << "] To [" << destinationFile.toString() << "]" << std::endl;
 
             auto result = 0;
             if ((result = runShellCommand(command)) == 0) {
                 bSuccess = true;
-                cout << "File conversion success." << endl;
+                std::cout << "File conversion success." << std::endl;
                 if (!this->m_actionData[kDeleteOption].empty()) {
-                    cout << "Deleting Source [" << sourceFile.toString() << "]" << endl;
+                    std::cout << "Deleting Source [" << sourceFile.toString() << "]" << std::endl;
                     CFile::remove(sourceFile);
                 }
 
             } else {
-                cout << "File conversion error: " << to_string(result) << endl;
+                std::cout << "File conversion error: " << std::to_string(result) << std::endl;
             }
 
-        } catch (const exception & e) {
-           cerr << this->getName() << " Error: " << e.what() << endl;
+        } catch (const std::exception & e) {
+           std::cerr << this->getName() << " Error: " << e.what() << std::endl;
         }
 
         return (bSuccess);

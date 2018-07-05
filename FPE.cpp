@@ -66,8 +66,6 @@ namespace FPE {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace Antik::File;
     using namespace Antik::Util;
 
@@ -82,11 +80,11 @@ namespace FPE {
     // Exit with error message/status
     //
 
-    static void exitWithError(const string& errmsg) {
+    static void exitWithError(const std::string& errmsg) {
 
         // Closedown action functions, display error and exit.
 
-        cerr << errmsg << endl;
+        std::cerr << errmsg << std::endl;
         exit(EXIT_FAILURE);
 
     }
@@ -110,8 +108,8 @@ namespace FPE {
         // Create task object thread and start to watch else use FPE thread.
 
         if (getOption<bool>(options,kSingleOption)) {
-            unique_ptr<thread> taskThread;
-            taskThread.reset(new thread(&CTask::monitor, &task));
+            std::unique_ptr<std::thread> taskThread;
+            taskThread.reset(new std::thread(&CTask::monitor, &task));
             taskThread->join();
         } else {
             task.monitor();
@@ -120,7 +118,7 @@ namespace FPE {
         // If an exception occurred re-throw (end of chain)
 
         if (task.getThrownException()) {
-            rethrow_exception(task.getThrownException());
+            std::rethrow_exception(task.getThrownException());
         }
 
     }
@@ -129,7 +127,7 @@ namespace FPE {
     // PUBLIC FUNCTIONS
     // ================
 
-    void FileProcessingEngine(int argc, char** argv) {
+    void FileProcessingEngine(int argc, char* argv[]) {
 
         FPEOptions options {}; // Command line options  
 
@@ -137,7 +135,7 @@ namespace FPE {
 
             // cout to logfile if option specified.
 
-            CRedirect logFile{cout};
+            CRedirect logFile{std::cout};
             
             // Get FPE command line options.
 
@@ -145,15 +143,15 @@ namespace FPE {
 
             // FPE up and running
 
-            cout << "FPE Running..." << endl;
+            std::cout << "FPE Running..." << std::endl;
 
             // Output to log file ( CRedirect(cout) is the simplest solution). 
             // Once the try is exited CRedirect object will be destroyed and 
             // cout restored.
 
             if (!options.map[kLogOption].empty()) {
-                logFile.change(options.map[kLogOption], ios_base::out | ios_base::app);
-                cout << string(100, '=') << endl;
+                logFile.change(options.map[kLogOption], std::ios_base::out | std::ios_base::app);
+                std::cout << std::string(100, '=') << std::endl;
             }
 
             // Create task object
@@ -166,13 +164,13 @@ namespace FPE {
 
         } catch (const CFile::Exception &e) {
             exitWithError(e.what());
-        } catch (const system_error &e) {
+        } catch (const std::system_error &e) {
             exitWithError(e.what());
-        } catch (const exception & e) {
+        } catch (const std::exception & e) {
             exitWithError(e.what());
         }
 
-        cout << "FPE Exiting." << endl;
+        std::cout << "FPE Exiting." << std::endl;
 
 
     }
@@ -183,7 +181,7 @@ namespace FPE {
 // ===== MAIN ENTRY POINT =====
 // ============================
 
-int main(int argc, char** argv) {
+int main(int argc, char*argv[]) {
 
     FPE::FileProcessingEngine(argc, argv);
     exit(EXIT_SUCCESS);

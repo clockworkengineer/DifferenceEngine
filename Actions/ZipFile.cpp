@@ -59,10 +59,7 @@ namespace FPE_TaskActions {
     // IMPORTS
     // =======
 
-    using namespace std;
-
     using namespace FPE;
-
     using namespace Antik::ZIP;
     using namespace Antik::File;
 
@@ -82,7 +79,7 @@ namespace FPE_TaskActions {
     // Add file to ZIP archive.
     //
 
-    bool ZIPFile::process(const string &file) {
+    bool ZIPFile::process(const std::string &file) {
 
         // ASSERT for any invalid options.
 
@@ -101,9 +98,9 @@ namespace FPE_TaskActions {
 
             if (!CFile::exists(zipFilePath.parentPath())) {
                 if (CFile::createDirectory(zipFilePath.parentPath())) {
-                    cout << "Created : " << zipFilePath.parentPath().toString() << endl;
+                    std::cout << "Created : " << zipFilePath.parentPath().toString() << std::endl;
                 } else {
-                    cerr << "Created failed for :" << zipFilePath.parentPath().toString() << endl;
+                    std::cerr << "Created failed for :" << zipFilePath.parentPath().toString() << std::endl;
                 }
             }
 
@@ -112,7 +109,7 @@ namespace FPE_TaskActions {
             CZIP zipFile(zipFilePath.toString());
 
             if (!CFile::exists(zipFilePath)) {
-                cout << "Creating archive " << zipFilePath.toString() << endl;
+                std::cout << "Creating archive " << zipFilePath.toString() << std::endl;
                 zipFile.create();
             }
 
@@ -122,13 +119,13 @@ namespace FPE_TaskActions {
 
             bSuccess = zipFile.add(sourceFile.toString(), sourceFile.fileName());
             if (bSuccess) {
-                cout << "Appended [" << sourceFile.fileName() << "] to archive [" << zipFilePath.toString() << "]" << endl;
+                std::cout << "Appended [" << sourceFile.fileName() << "] to archive [" << zipFilePath.toString() << "]" << std::endl;
             }
 
             zipFile.close();
 
-        } catch (const exception & e) {
-           cerr << this->getName() << " Error: " << e.what() << endl;
+        } catch (const std::exception & e) {
+           std::cerr << this->getName() << " Error: " << e.what() << std::endl;
         }
 
         return (bSuccess);
