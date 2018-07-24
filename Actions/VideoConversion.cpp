@@ -34,13 +34,6 @@
 #include <iostream>
 
 //
-// Program components.
-//
-
-#include "FPE.hpp"
-#include "FPE_Actions.hpp"
-
-//
 // Antik Classes
 //
 
@@ -48,6 +41,12 @@
 #include "CPath.hpp"
 
 //
+// Program components.
+//
+
+#include "FPE.hpp"
+#include "FPE_Actions.hpp"
+
 //
 // Process wait
 //

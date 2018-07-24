@@ -32,21 +32,12 @@
 // 
 // C11++        : Use of C11++ features.
 // Antik Classes: CTask, CRedirect, CFile, CPath.
-// Linux        : Target platform
-// Boost        : File system.
+// Linux        : Target platform.
 //
 
 // =============
 // INCLUDE FILES
 // =============
-
-//
-// Program components.
-//
-
-#include "FPE.hpp"
-#include "FPE_ProcCmdLine.hpp"
-#include "FPE_TaskAction.hpp"
 
 //
 // Antik Classes
@@ -55,6 +46,14 @@
 #include "CRedirect.hpp"
 #include "CFile.hpp"
 #include "CPath.hpp"
+
+//
+// Program components.
+//
+
+#include "FPE.hpp"
+#include "FPE_ProcCmdLine.hpp"
+#include "FPE_TaskAction.hpp"
 
 // =========
 // NAMESPACE

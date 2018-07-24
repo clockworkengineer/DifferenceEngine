@@ -33,19 +33,19 @@
 #include <iostream>
 
 //
+// Antik Classes
+//
+
+#include "CFile.hpp"
+#include "CPath.hpp"
+
+//
 // Program components.
 //
 
 #include "FPE.hpp"
 #include "FPE_Actions.hpp"
 
-//
-// Antik Classes
-//
-
-#include "CFile.hpp"
-#include "CPath.hpp"
-//
 // Process wait
 //
 

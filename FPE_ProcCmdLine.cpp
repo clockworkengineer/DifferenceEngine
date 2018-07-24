@@ -33,12 +33,6 @@
 
 #include <iostream>
 
-//
-// Program components.
-//
-
-#include "FPE.hpp"
-#include "FPE_ProcCmdLine.hpp"
 
 //
 // Antik Classes
@@ -46,6 +40,12 @@
 
 #include "CFile.hpp"
 #include "CPath.hpp"
+//
+// Program components.
+//
+
+#include "FPE.hpp"
+#include "FPE_ProcCmdLine.hpp"
 
 //
 // Boost  program options processing

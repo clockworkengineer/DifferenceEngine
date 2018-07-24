@@ -33,19 +33,19 @@
 #include <iostream>
 
 //
-// Program components.
-//
-
-#include "FPE.hpp"
-#include "FPE_Actions.hpp"
-
-//
 // Antik Classes
 //
 
 #include "CZIP.hpp"
 #include "CFile.hpp"
 #include "CPath.hpp"
+
+//
+// Program components.
+//
+
+#include "FPE.hpp"
+#include "FPE_Actions.hpp"
 
 //
 // Boost format library
