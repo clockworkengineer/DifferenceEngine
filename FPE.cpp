@@ -161,10 +161,6 @@ namespace FPE {
         // Catch any errors
         //    
 
-        } catch (const CFile::Exception &e) {
-            exitWithError(e.what());
-        } catch (const std::system_error &e) {
-            exitWithError(e.what());
         } catch (const std::exception & e) {
             exitWithError(e.what());
         }

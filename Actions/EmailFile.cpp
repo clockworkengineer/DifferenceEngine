@@ -81,12 +81,10 @@ namespace FPE_TaskActions {
 
     void EmailFile::init(void) {
         CSMTP::init();
-        CIMAP::init();
     };
 
     void EmailFile::term(void) {
         CSMTP::closedown();
-        CIMAP::closedown();
     };
 
     bool EmailFile::process(const std::string &file) {
