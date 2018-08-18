@@ -58,6 +58,7 @@
         <ccTool>
           <standard>8</standard>
           <incDir>
+            <pElem>.</pElem>
             <pElem>../Antik/include</pElem>
             <pElem>../Antik/classes/implementation</pElem>
           </incDir>
@@ -166,6 +167,7 @@
           <developmentMode>5</developmentMode>
           <standard>8</standard>
           <incDir>
+            <pElem>.</pElem>
             <pElem>../Antik/include</pElem>
             <pElem>../Antik/classes/implementation</pElem>
           </incDir>
@@ -176,6 +178,18 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibFileItem>../Antik/dist/Release/GNU-Linux/libantik.a</linkerLibFileItem>
+            <linkerOptionItem>-lboost_system</linkerOptionItem>
+            <linkerOptionItem>-lboost_filesystem</linkerOptionItem>
+            <linkerOptionItem>-lboost_program_options</linkerOptionItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerOptionItem>`pkg-config --libs libcurl`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs zlib`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs openssl`</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
       <item path="Actions/CopyFile.cpp" ex="false" tool="1" flavor2="0">
       </item>
