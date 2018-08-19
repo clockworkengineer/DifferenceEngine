@@ -129,6 +129,7 @@ ${OBJECTDIR}/FPE_TaskActions.o: FPE_TaskActions.cpp
 
 # Subprojects
 .build-subprojects:
+	cd ../Antik && ${MAKE}  -f Makefile CONF=Release
 
 # Build Test Targets
 .build-tests-conf: .build-tests-subprojects .build-conf ${TESTFILES}
@@ -277,6 +278,7 @@ ${OBJECTDIR}/FPE_TaskActions_nomain.o: ${OBJECTDIR}/FPE_TaskActions.o FPE_TaskAc
 
 # Subprojects
 .clean-subprojects:
+	cd ../Antik && ${MAKE}  -f Makefile CONF=Release clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl
