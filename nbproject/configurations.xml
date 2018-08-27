@@ -180,14 +180,16 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibFileItem>../Antik/dist/Release/GNU-Linux/libantik.a</linkerLibFileItem>
+            <linkerLibFileItem>/home/robt/Projects/NetBeansProjects/Antik/_distribution/antik/lib/libantik.a</linkerLibFileItem>
             <linkerOptionItem>-lboost_system</linkerOptionItem>
             <linkerOptionItem>-lboost_filesystem</linkerOptionItem>
             <linkerOptionItem>-lboost_program_options</linkerOptionItem>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerOptionItem>`pkg-config --libs libcurl`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs zlib`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs openssl`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs libssh`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs libssh_threads`</linkerOptionItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
         </linkerTool>
         <requiredProjects>
