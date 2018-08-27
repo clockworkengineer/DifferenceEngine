@@ -180,7 +180,7 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibFileItem>/home/robt/Projects/NetBeansProjects/Antik/_distribution/antik/lib/libantik.a</linkerLibFileItem>
+            <linkerLibFileItem>/home/robt/Projects/NetBeansProjects/Antik/dist/Release/GNU-Linux/libantik.a</linkerLibFileItem>
             <linkerOptionItem>-lboost_system</linkerOptionItem>
             <linkerOptionItem>-lboost_filesystem</linkerOptionItem>
             <linkerOptionItem>-lboost_program_options</linkerOptionItem>

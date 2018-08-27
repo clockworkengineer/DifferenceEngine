@@ -92,10 +92,12 @@ namespace FPE_TaskActions {
 
         } else if (pid == 0) { /* for the child process: */
 
+            FILE *ignore;
+            
             // Redirect stdout/stderr
 
-            freopen("/dev/null", "w", stdout);
-            freopen("/dev/null", "w", stderr);
+            ignore = freopen("/dev/null", "w", stdout);
+            ignore = freopen("/dev/null", "w", stderr);
 
             if (execvp(*argv, argv) < 0) { /* execute the command  */
                 exit(1);

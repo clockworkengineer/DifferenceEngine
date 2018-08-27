@@ -70,13 +70,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=/home/robt/Projects/NetBeansProjects/Antik/_distribution/antik/lib/libantik.a -lboost_system -lboost_filesystem -lboost_program_options `pkg-config --libs libcurl` `pkg-config --libs zlib` `pkg-config --libs openssl` `pkg-config --libs libssh` `pkg-config --libs libssh_threads` -lpthread   
+LDLIBSOPTIONS=/home/robt/Projects/NetBeansProjects/Antik/dist/Release/GNU-Linux/libantik.a -lboost_system -lboost_filesystem -lboost_program_options `pkg-config --libs libcurl` `pkg-config --libs zlib` `pkg-config --libs openssl` `pkg-config --libs libssh` `pkg-config --libs libssh_threads` -lpthread   
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/differenceengine
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/differenceengine: /home/robt/Projects/NetBeansProjects/Antik/_distribution/antik/lib/libantik.a
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/differenceengine: /home/robt/Projects/NetBeansProjects/Antik/dist/Release/GNU-Linux/libantik.a
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/differenceengine: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
