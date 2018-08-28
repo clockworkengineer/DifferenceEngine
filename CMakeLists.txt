@@ -17,7 +17,7 @@ file(GLOB PROGRAM_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp" )
 # FPE target
 
 add_executable(${PROGRAM_NAME} ${PROGRAM_SOURCES} )
-target_include_directories(${PROGRAM_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${ANTIK_DIR}/include)
+target_include_directories(${PROGRAM_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROGRAM_NAME} antik)
 
 # Install FPE
