@@ -56,12 +56,12 @@
       </toolsSet>
       <compileType>
         <ccTool>
-          <standard>8</standard>
           <incDir>
             <pElem>.</pElem>
             <pElem>../Antik/include</pElem>
             <pElem>../Antik/classes/implementation</pElem>
           </incDir>
+          <commandLine>-Wall -Werror -std=c++17</commandLine>
           <useLinkerLibraries>false</useLinkerLibraries>
         </ccTool>
         <linkerTool>
@@ -165,12 +165,12 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
-          <standard>8</standard>
           <incDir>
             <pElem>.</pElem>
             <pElem>../Antik/include</pElem>
             <pElem>../Antik/classes/implementation</pElem>
           </incDir>
+          <commandLine>-Wall -Werror -std=c++17</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>

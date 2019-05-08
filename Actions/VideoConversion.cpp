@@ -93,6 +93,7 @@ namespace FPE_TaskActions {
         } else if (pid == 0) { /* for the child process: */
 
             FILE *ignore;
+            (void)ignore;
             
             // Redirect stdout/stderr
 

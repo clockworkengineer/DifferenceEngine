@@ -18,27 +18,27 @@ namespace FPE {
     // Option map command indexes
     //
     
-    constexpr const char *kConfigOption{"config"};
-    constexpr const char *kWatchOption{"watch"};
-    constexpr const char *kDestinationOption{"destination"};
-    constexpr const char *kTaskOption{"task"};
-    constexpr const char *kCommandOption{"command"};
-    constexpr const char *kMaxDepthOption{"maxdepth"};
-    constexpr const char *kExtensionOption{"extension"};
-    constexpr const char *kQuietOption{"quiet"};
-    constexpr const char *kDeleteOption{"delete"};
-    constexpr const char *kLogOption{"log"};
-    constexpr const char *kSingleOption{"single"};
-    constexpr const char *kKillCountOption{"killcount"};
-    constexpr const char *kServerOption{"server"};
-    constexpr const char *kUserOption{"user"};
-    constexpr const char *kPasswordOption{"password"};
-    constexpr const char *kRecipientOption{"recipient"};
-    constexpr const char *kMailBoxOption{"mailbox"};
-    constexpr const char *kArchiveOption{"archive"};
-    constexpr const char *kDatabaseOption{"database"};
-    constexpr const char *kCollectionOption{"collection"};
-    constexpr const char *kListOption{"list"};
+    constexpr char const *kConfigOption{"config"};
+    constexpr char const *kWatchOption{"watch"};
+    constexpr char const *kDestinationOption{"destination"};
+    constexpr char const *kTaskOption{"task"};
+    constexpr char const *kCommandOption{"command"};
+    constexpr char const *kMaxDepthOption{"maxdepth"};
+    constexpr char const *kExtensionOption{"extension"};
+    constexpr char const *kQuietOption{"quiet"};
+    constexpr char const *kDeleteOption{"delete"};
+    constexpr char const *kLogOption{"log"};
+    constexpr char const *kSingleOption{"single"};
+    constexpr char const *kKillCountOption{"killcount"};
+    constexpr char const *kServerOption{"server"};
+    constexpr char const *kUserOption{"user"};
+    constexpr char const *kPasswordOption{"password"};
+    constexpr char const *kRecipientOption{"recipient"};
+    constexpr char const *kMailBoxOption{"mailbox"};
+    constexpr char const *kArchiveOption{"archive"};
+    constexpr char const *kDatabaseOption{"database"};
+    constexpr char const *kCollectionOption{"collection"};
+    constexpr char const *kListOption{"list"};
 
     //
     // File Processing Engine.
