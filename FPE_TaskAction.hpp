@@ -1,14 +1,3 @@
-/*
- * File:   FPE_TaskAction.hpp
- * 
- * Author: Robert Tizzard
- *
- * Created on October 24, 2016, 2:34 PM
- *
- * Copyright 2016.
- *
- */
-
 #ifndef FPE_TASKACTION_HPP
 #define FPE_TASKACTION_HPP
 

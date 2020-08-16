@@ -1,14 +1,3 @@
-/*
- * File:   FPE_Actions.hpp
- * 
- * Author: Robert Tizzard
- *
- * Created on October 24, 2016, 2:34 PM
- *
- * Copyright 2016.
- *
- */
-
 #ifndef FPE_ACTIONS_HPP
 #define FPE_ACTIONS_HPP
 

@@ -1,15 +1,3 @@
-#include "HOST.hpp"
-/*
- * File:   FPE_ProcCmdLine.cpp
- * 
- * Author: Robert Tizzard
- *
- * Created on October 24, 2016, 2:34 PM
- * 
- * Copyright 2016.
- * 
- */
-
 //
 // Module: FPE_ProcCmdLine
 //
